@@ -9,11 +9,6 @@ Advanced multi-intelligence fusion system combining Overhead Persistent Infrared
 </p>  
 <br>
 
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![PyTorch](https://img.shields.io/badge/PyTorch-ee4c2c?logo=pytorch&logoColor=white)](#)
-[![CUDA](https://img.shields.io/badge/CUDA-76B900?logo=nvidia&logoColor=fff)](#)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Visual Studio Code](https://custom-icon-badges.demolab.com/badge/Visual%20Studio%20Code-0078d7.svg?logo=vsc&logoColor=white)](#)
 
 ## Project Overview
 
@@ -410,24 +405,41 @@ python tests/test_9_full_system.py
 **Signal Processing:**
 - S. Kay, "Fundamentals of Statistical Signal Processing: Detection Theory"
 
-## License
+<br>
 
-This project is provided as a demonstration of technical capabilities. All code is original work.
+<h1 align="center">LET'S CONNECT!</h1>
+
+<p align="center">
+This project demonstrates production-grade ML engineering capabilities including distributed training infrastructure, experiment management, and systematic research methodology. All code and documentation available for technical review.
+</p>
 
 
-## Contributing
+<h3 align="center">Michael Gurule</h3>
 
-This is a portfolio project. For questions or collaboration:
+<p align="center">
+  <strong>Data Science | ML Engineering</strong>
+</p>
+<br>
 
-**Michael Gurule**  
-Data Scientist | ML Engineer 
-
-- [![Email Me](https://img.shields.io/badge/EMAIL-8A2BE2)](michaelgurule1164@gmail.com)
-- [![LinkedIn](https://custom-icon-badges.demolab.com/badge/LinkedIn-0A66C2?logo=linkedin-white&logoColor=fff)](www.linkedin.com/in/michael-j-gurule-447aa2134)
-- [![Medium](https://img.shields.io/badge/Medium-%23000000.svg?logo=medium&logoColor=white)](https://medium.com/@michaelgurule1164)
+  
+<div align="center">
+  <a href="mailto:michaelgurule1164@gmail.com">
+    <img src="https://img.shields.io/badge/Gmail-D14836?style=for-the-badge&logo=gmail&logoColor=white"></a>
+  
+  <a href="michaelgurule.com">
+    <img src="https://custom-icon-badges.demolab.com/badge/MICHAELGURULE.COM-150458?style=for-the-badge&logo=browser&logoColor=white"></a>
+  
+  <a href="www.linkedin.com/in/michael-gurule-447aa2134">
+    <img src="https://custom-icon-badges.demolab.com/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin-white&logoColor=fff"></a>
+  
+  <a href="https://medium.com/@michaelgurule1164">
+    <img src="https://img.shields.io/badge/Medium-12100E?style=for-the-badge&logo=medium&logoColor=white"></a>    
+</div>
+<br>
 
 ---
 
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/0d69bf96-335b-4160-a202-780e8bad2d45" alt="MICHAEL GURULE">
+<p align="center"> 
+<img  width="450" alt="Designed By" src="https://github.com/user-attachments/assets/12ddff9c-b9b6-4e69-ace0-5cbc94f1a3ad"> 
 </p>
+
