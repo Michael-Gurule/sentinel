@@ -9,12 +9,12 @@ Advanced multi-intelligence fusion system combining Overhead Persistent Infrared
 </p>  
 <br>
 
-
 ## Project Overview
 
-SENTINEL is a production-grade Machine Learning platform designed for Defense applications, demonstrating expertise in Sensor Fusion, Geolocation Algorithms, and Multi-Sensor Tracking. The system integrates thermal event detection with RF signal processing to provide comprehensive situational awareness.
+SENTINEL-XF is a production-grade Machine Learning platform designed for Defense applications, demonstrating expertise in Sensor Fusion, Geolocation Algorithms, and Multi-Sensor Tracking. The system integrates thermal event detection with RF signal processing to provide comprehensive situational awareness.
 
 **Key Capabilities:**
+
 - Real-time OPIR thermal event detection and classification
 - RF emitter geolocation using TDOA/FDOA algorithms
 - Multi-sensor data fusion with Kalman filtering
@@ -36,8 +36,7 @@ Consider a scenario: An OPIR satellite detects a thermal anomaly consistent with
 The mathematics is straightforward but powerful. Using covariance intersection, the fused position uncertainty becomes:
 <br>
 
-
-<p align="center"> 
+<p align="center">
 <img src="https://latex.codecogs.com/png.latex?%5Chuge%20P_{fused}%20=%20(P_{OPIR}^{-1}%20+%20P_{RF}^{-1})^{-1}">
 </p>  
 
@@ -45,9 +44,10 @@ Where `P` represents position covariance matrices. The fused uncertainty is **al
 
 ---
 
-##  System Architecture
+## System Architecture
 
 ### Signal Generation & Data Pipeline
+
 - **OPIR Signal Generator**: Physics-based thermal signature modeling
   - 5 event types: missile launches, explosions, wildfires, aircraft, background
   - Realistic temporal dynamics and noise characteristics
@@ -55,6 +55,7 @@ Where `P` represents position covariance matrices. The fused uncertainty is **al
 - **Training Dataset**: 10,000+ labeled samples organized for PyTorch training
 
 ### Detection, Classification & Tracking
+
 - **Detection Algorithms**: 4 complementary methods
   - Temporal Difference Detection
   - Anomaly Detection (MAD & Z-Score)
@@ -67,6 +68,7 @@ Where `P` represents position covariance matrices. The fused uncertainty is **al
 - **Kalman Filter Tracking**: Multi-target tracking with coasting and pruning
 
 ### RF Geolocation & Sensor Fusion
+
 - **TDOA Geolocation**: Time Difference of Arrival positioning
   - Least-squares optimization
   - GDOP computation for quality assessment
@@ -83,7 +85,8 @@ Where `P` represents position covariance matrices. The fused uncertainty is **al
 
 ---
 
-##  Project Structure
+## Project Structure
+
 ```
 sentinel-multi-intel-platform/
 │
@@ -140,9 +143,11 @@ sentinel-multi-intel-platform/
 └── outputs/
     └── models/                       # Trained model checkpoints
 ```
+
 ## Installation
 
 ### Setup
+
 ```
 # Clone repository
 git clone https://github.com/michael-gurule/sentinel-multi-intel-platform.git
@@ -157,9 +162,11 @@ pip install numpy scipy pandas matplotlib
 # Verify installation
 python -c "import torch; print(f'PyTorch {torch.__version__} installed')"
 ```
-##  Usage
+
+## Usage
 
 ### Quick Start: Full System Demo
+
 ```python
 from src.pipeline.phase3_pipeline import demo_phase3_system
 
@@ -168,6 +175,7 @@ demo_phase3_system()
 ```
 
 ### OPIR Detection & Classification
+
 ```python
 from src.models.signal_generator import OPIRSignalGenerator
 from src.detection.opir_detectors import MultiMethodDetector
@@ -191,6 +199,7 @@ print(f"Confidence: {classification.confidence:.3f}")
 ```
 
 ### RF Geolocation
+
 ```python
 from src.geolocation.tdoa_fdoa import (
     HybridTDOAFDOA,
@@ -221,6 +230,7 @@ print(f"GDOP: {result.gdop:.3f}")
 ```
 
 ### Multi-Sensor Fusion
+
 ```python
 from src.pipeline.phase3_pipeline import SENTINELPhase3Pipeline
 from src.models.signal_generator import OPIRSignalGenerator
@@ -255,6 +265,7 @@ print(f"Track quality: {sa['average_track_quality']:.3f}")
 ```
 
 ### Training the CNN Classifier
+
 ```python
 from src.training.train_classifier import train_model_from_folders
 
@@ -271,9 +282,10 @@ history = train_model_from_folders(
 print(f"Best validation accuracy: {max(history['val_acc']):.2f}%")
 ```
 
-##  Testing
+## Testing
 
 ### Run Individual Component Tests
+
 ```bash
 # Test signal generation
 python tests/test_0_generator.py
@@ -299,120 +311,83 @@ python tests/test_9_full_system.py
 
 ### Expected Test Results
 
-**Phase 2 Components:**
 - Detection algorithms: 75-100% detection rate
 - CNN forward pass: Successful with 4-5 classes
 - Kalman tracking: <5m mean error over 10 steps
-
-**Phase 3 Components:**
 - TDOA geolocation: <50m position error (4 sensors, low noise)
 - FDOA velocity estimation: <20 m/s velocity error
 - Sensor fusion: Track quality >0.7 for high-confidence tracks
 - Full system: Successfully creates and maintains fused tracks
 
-##  Performance Metrics
+## Performance Metrics
 
 ### Geolocation Accuracy
+
 - **Position Error**: 10-50m (depending on sensor geometry and noise)
 - **GDOP**: 2-5 (good geometry with mixed-altitude sensors)
 - **Convergence Rate**: >95% for 4+ sensors
 
 ### Detection Performance
+
 - **Temporal Difference**: 80-90% detection rate
 - **Anomaly Detection**: 75-85% detection rate
 - **Multi-Method Ensemble**: 90-95% detection rate
 
 ### Classification Accuracy (Untrained Model)
+
 - Random baseline: ~20% (5 classes)
 - After training: Expected 85-95% validation accuracy
 
 ### Sensor Fusion Quality
+
 - **Track Quality**: 0.7-0.9 for multi-sensor tracks
 - **Position Uncertainty**: 20-100m CEP (50% confidence)
 - **Velocity Uncertainty**: 5-20 m/s standard deviation
 
-##  Technical Highlights
+## Technical Highlights
 
 ### Algorithm Implementations
 
 **Detection Algorithms:**
+
 - Temporal differencing with adaptive thresholding
 - MAD-based anomaly detection for outlier identification
 - Rise-time analysis for signature characterization
 - Ensemble voting for robust detection
 
 **Geolocation Methods:**
+
 - Least-squares TDOA positioning with Levenberg-Marquardt optimization
 - Doppler-shift FDOA for velocity estimation
 - Chan's algorithm for closed-form hyperbolic positioning
 - Weighted least squares with covariance estimation
 
 **Sensor Fusion:**
+
 - Mahalanobis distance gating for data association
 - Covariance intersection for multi-sensor fusion
 - Extended Kalman filtering for track propagation
 - Track quality scoring based on confidence, uncertainty, and sensor diversity
 
-### Key Features for Defense Applications
-
-- **Multi-altitude sensor deployment**: Realistic ISR platform configuration
-- **GDOP monitoring**: Automatic geometry quality assessment
-- **Uncertainty quantification**: CEP, covariance, and confidence metrics
-- **Track quality assessment**: Objective scoring for decision support
-- **Modular architecture**: Easy integration with external systems
-
-##  Skills Demonstrated
-
-### Technical Skills
-- **Machine Learning**: CNN architecture, training pipelines, PyTorch
-- **Signal Processing**: Time-series analysis, Doppler processing, filtering
-- **Geolocation**: TDOA, FDOA, multilateration, optimization
-- **Sensor Fusion**: Kalman filtering, data association, covariance management
-- **Software Engineering**: Modular design, testing, documentation
-
-### Domain Expertise
-- **Defense Systems**: ISR platforms, threat detection, situational awareness
-- **Physics-Based Modeling**: Thermal signatures, RF propagation, sensor geometry
-- **Production ML**: Data pipelines, model training, deployment considerations
-
-##  Future Enhancements
-
-### Planned Features
-- [ ] Real-time visualization dashboard
-- [ ] Multi-hypothesis tracking (MHT)
-- [ ] Additional sensor modalities (EO/IR, SAR)
-- [ ] Distributed sensor network simulation
-- [ ] Track prediction and threat assessment
-- [ ] RESTful API for external integration
-- [ ] Docker containerization
-
-### Performance Optimizations
-- [ ] GPU-accelerated geolocation solvers
-- [ ] Parallel track processing
-- [ ] Approximate inference for real-time operation
-- [ ] Model quantization for edge deployment
-
-##  References
+## References
 
 **Geolocation Algorithms:**
+
 - Y. T. Chan and K. C. Ho, "A Simple and Efficient Estimator for Hyperbolic Location"
 - K. C. Ho and W. Xu, "An Accurate Algebraic Solution for Moving Source Location"
 
 **Sensor Fusion:**
+
 - S. Blackman and R. Popoli, "Design and Analysis of Modern Tracking Systems"
 - Y. Bar-Shalom et al., "Estimation with Applications to Tracking and Navigation"
 
 **Signal Processing:**
+
 - S. Kay, "Fundamentals of Statistical Signal Processing: Detection Theory"
 
 <br>
 
 <h1 align="center">LET'S CONNECT!</h1>
-
-<p align="center">
-This project demonstrates production-grade ML engineering capabilities including distributed training infrastructure, experiment management, and systematic research methodology. All code and documentation available for technical review.
-</p>
-
 
 <h3 align="center">Michael Gurule</h3>
 
@@ -421,7 +396,6 @@ This project demonstrates production-grade ML engineering capabilities including
 </p>
 <br>
 
-  
 <div align="center">
   <a href="mailto:michaelgurule1164@gmail.com">
     <img src="https://img.shields.io/badge/Gmail-D14836?style=for-the-badge&logo=gmail&logoColor=white"></a>
@@ -433,13 +407,12 @@ This project demonstrates production-grade ML engineering capabilities including
     <img src="https://custom-icon-badges.demolab.com/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin-white&logoColor=fff"></a>
   
   <a href="https://medium.com/@michaelgurule1164">
-    <img src="https://img.shields.io/badge/Medium-12100E?style=for-the-badge&logo=medium&logoColor=white"></a>    
+    <img src="https://img.shields.io/badge/Medium-12100E?style=for-the-badge&logo=medium&logoColor=white"></a>
 </div>
 <br>
 
 ---
 
-<p align="center"> 
-<img  width="450" alt="Designed By" src="https://github.com/user-attachments/assets/12ddff9c-b9b6-4e69-ace0-5cbc94f1a3ad"> 
+<p align="center">
+<img  width="450" alt="Designed By" src="https://github.com/user-attachments/assets/12ddff9c-b9b6-4e69-ace0-5cbc94f1a3ad">
 </p>
-
