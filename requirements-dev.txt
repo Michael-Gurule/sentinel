@@ -1,4 +1,14 @@
-# Development dependencies (testing; lint/type tooling is added in a later step).
+# Development dependencies, pinned. Installed by environment.yml.
 -r requirements.txt
+
+# Testing
 pytest==9.1.1
 pytest-cov==7.1.0
+
+# Lint, format, type check
+ruff==0.16.10
+mypy==2.4.0
+scipy-stubs==1.18.1.1
+
+# Git hooks
+pre-commit==4.6.2

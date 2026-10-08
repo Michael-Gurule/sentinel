@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: [main, v2]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+  MPLBACKEND: Agg
+
+jobs:
+  lint:
+    name: Lint & format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Install ruff (pinned)
+        run: pip install "$(grep -E '^ruff==' requirements-dev.txt)"
+      - run: ruff check --output-format=github .
+      - run: ruff format --check .
+
+  test:
+    name: Type check & test (py${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12"]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - name: Install CPU-only torch (avoids multi-GB CUDA wheels)
+        run: pip install "$(grep -E '^torch==' requirements.txt)" --index-url https://download.pytorch.org/whl/cpu
+      - name: Install pinned dependencies and package
+        run: pip install -r requirements-dev.txt -e .
+      - name: Type check
+        run: mypy
+      - name: Test
+        run: pytest --cov --cov-report=term-missing --cov-report=xml
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-py${{ matrix.python-version }}
+          path: coverage.xml
+          if-no-files-found: ignore

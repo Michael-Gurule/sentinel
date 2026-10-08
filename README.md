@@ -3,7 +3,7 @@
   <img width="500" alt="SENTINEL" src="https://github.com/user-attachments/assets/84043002-a02f-4837-9d49-f3390b61176a" />
 <p align="center">
   <strong>Multi-Sensor Fusion for Defense Applications</strong><br>
-  
+
 <p align="center">  
 Advanced multi-intelligence fusion system combining Overhead Persistent Infrared (OPIR) thermal detection with Radio Frequency (RF) geolocation for real-time threat detection and tracking
 </p>  
@@ -401,13 +401,13 @@ python tests/test_9_full_system.py
 <div align="center">
   <a href="mailto:michaelgurule1164@gmail.com">
     <img src="https://img.shields.io/badge/Gmail-D14836?style=for-the-badge&logo=gmail&logoColor=white"></a>
-  
+
   <a href="michaelgurule.com">
     <img src="https://custom-icon-badges.demolab.com/badge/MICHAELGURULE.COM-150458?style=for-the-badge&logo=browser&logoColor=white"></a>
-  
+
   <a href="www.linkedin.com/in/michael-gurule-447aa2134">
     <img src="https://custom-icon-badges.demolab.com/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin-white&logoColor=fff"></a>
-  
+
   <a href="https://medium.com/@michaelgurule1164">
     <img src="https://img.shields.io/badge/Medium-12100E?style=for-the-badge&logo=medium&logoColor=white"></a>
 </div>

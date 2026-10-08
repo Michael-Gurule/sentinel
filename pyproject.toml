@@ -81,3 +81,46 @@ allowed-confusables = ["σ"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["sentinel"]
+
+[tool.mypy]
+python_version = "3.12"
+files = ["src/sentinel"]
+strict = true
+warn_unreachable = true
+enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
+
+# Legacy ratchet: v1 modules type-checked leniently until rewritten.
+# Remove a module from this list when it is rewritten; new modules are
+# always strict.
+[[tool.mypy.overrides]]
+module = [
+    "sentinel.detection.opir_detectors",
+    "sentinel.fusion.sensor_fusion",
+    "sentinel.geolocation.multilateration",
+    "sentinel.geolocation.tdoa_fdoa",
+    "sentinel.inference.opir_inference",
+    "sentinel.models.cnn_classifier",
+    "sentinel.models.rf_generator",
+    "sentinel.models.signal_generator",
+    "sentinel.pipeline.phase2_pipeline",
+    "sentinel.pipeline.phase3_pipeline",
+    "sentinel.tracking.kalman_tracker",
+    "sentinel.training.datasets",
+    "sentinel.training.train_classifier",
+    "sentinel.utils.geospatial",
+    "sentinel.utils.visualization",
+]
+ignore_errors = true
+
+[tool.coverage.run]
+source = ["sentinel"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+exclude_also = [
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+]
