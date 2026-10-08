@@ -3,13 +3,9 @@ Demo: Single signal classification
 Shows how to use trained model for individual predictions
 """
 
-import sys
-from pathlib import Path
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
-from src.inference.opir_inference import OPIRInference
+from sentinel.inference.opir_inference import OPIRInference
 
 
 def main():

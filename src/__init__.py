@@ -1,1 +1,0 @@
-"""SENTINEL Multi-INT Platform"""

@@ -1,0 +1,14 @@
+# Conda environment for SENTINEL development.
+#   conda env create -f environment.yml
+#   conda activate sentinel
+# Python comes from conda; Python packages come from the pinned pip requirements.
+name: sentinel
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+  - python=3.12
+  - pip
+  - pip:
+      - -r requirements-dev.txt
+      - -e .

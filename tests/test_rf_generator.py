@@ -2,12 +2,8 @@
 Test RF signal generator
 """
 
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from models.rf_generator import RFScenarioGenerator
-from src.utils.visualization import plot_spectrogram, plot_rf_pulse_train
+from sentinel.models.rf_generator import RFScenarioGenerator
+from sentinel.utils.visualization import plot_spectrogram, plot_rf_pulse_train
 import numpy as np
 
 def test_all_emitter_types():

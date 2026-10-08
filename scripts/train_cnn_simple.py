@@ -3,56 +3,12 @@ Simple Training Script for OPIR CNN Classifier
 Works with folder-based dataset structure
 """
 
-import sys
-from pathlib import Path
-import numpy as np
 import torch
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import DataLoader
 
-# Add project root to path
-project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
-
-from src.models.cnn_classifier import OPIREventCNN
-from src.training.train_classifier import ModelTrainer
-
-
-class FolderDataset(Dataset):
-    """Load data from folder structure: train/class_name/*.npy"""
-    
-    def __init__(self, data_dir, split='train'):
-        self.data_dir = Path(data_dir) / split
-        self.class_names = ['launch', 'explosion', 'fire', 'aircraft', 'background']
-        self.class_to_idx = {name: idx for idx, name in enumerate(self.class_names)}
-        
-        # Collect all file paths
-        self.samples = []
-        for class_name in self.class_names:
-            class_dir = self.data_dir / class_name
-            for file_path in sorted(class_dir.glob('*.npy')):
-                self.samples.append((file_path, self.class_to_idx[class_name]))
-        
-        print(f"  Loaded {len(self.samples)} samples from {split} set")
-    
-    def __len__(self):
-        return len(self.samples)
-    
-    def __getitem__(self, idx):
-        file_path, label = self.samples[idx]
-        signal = np.load(file_path)
-        
-        # Handle 2D arrays
-        if signal.ndim == 2:
-            signal = signal[0]
-        
-        # Normalize
-        signal = (signal - np.mean(signal)) / (np.std(signal) + 1e-8)
-        
-        # Convert to tensor [1, time_steps]
-        signal_tensor = torch.FloatTensor(signal).unsqueeze(0)
-        label_tensor = torch.LongTensor([label])
-        
-        return signal_tensor, label_tensor
+from sentinel.models.cnn_classifier import OPIREventCNN
+from sentinel.training.datasets import FolderDataset
+from sentinel.training.train_classifier import ModelTrainer
 
 
 def main():

@@ -3,13 +3,7 @@ Test 4: Kalman Filter Only
 """
 
 import numpy as np
-import sys
-from pathlib import Path
-
-project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
-
-from src.tracking.kalman_tracker import KalmanFilter
+from sentinel.tracking.kalman_tracker import KalmanFilter
 
 
 def test_kalman():

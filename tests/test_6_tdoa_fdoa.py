@@ -3,13 +3,7 @@ Test 6: TDOA/FDOA Geolocation
 """
 
 import numpy as np
-import sys
-from pathlib import Path
-
-project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
-
-from src.geolocation.tdoa_fdoa import (
+from sentinel.geolocation.tdoa_fdoa import (
     TDOAGeolocation,
     FDOAGeolocation,
     HybridTDOAFDOA,
@@ -171,7 +165,7 @@ def test_hybrid_tdoa_fdoa():
     )
     
     # Combine measurements
-    from src.geolocation.tdoa_fdoa import GeolocationMeasurement
+    from sentinel.geolocation.tdoa_fdoa import GeolocationMeasurement
     combined_meas = []
     for i, (tm, fm) in enumerate(zip(tdoa_meas, fdoa_meas)):
         combined_meas.append(GeolocationMeasurement(

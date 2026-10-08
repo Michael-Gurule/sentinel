@@ -3,14 +3,8 @@ Test 3: Classifier Wrapper Only
 """
 
 import numpy as np
-import sys
-from pathlib import Path
-
-project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
-
-from src.models.cnn_classifier import OPIRClassifier
-from src.models.signal_generator import OPIRSignalGenerator
+from sentinel.models.cnn_classifier import OPIRClassifier
+from sentinel.models.signal_generator import OPIRSignalGenerator
 
 
 def test_classifier():

@@ -3,13 +3,7 @@ Test 8: Sensor Fusion Engine
 """
 
 import numpy as np
-import sys
-from pathlib import Path
-
-project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
-
-from src.fusion.sensor_fusion import (
+from sentinel.fusion.sensor_fusion import (
     SensorFusionEngine,
     SensorMeasurement,
     SensorType,

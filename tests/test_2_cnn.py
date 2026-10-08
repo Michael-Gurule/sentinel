@@ -4,13 +4,7 @@ Test 2: CNN Architecture Only
 
 import torch
 import numpy as np
-import sys
-from pathlib import Path
-
-project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
-
-from src.models.cnn_classifier import OPIREventCNN
+from sentinel.models.cnn_classifier import OPIREventCNN
 
 
 def test_cnn():

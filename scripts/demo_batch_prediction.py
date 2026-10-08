@@ -3,14 +3,11 @@ Demo: Batch classification
 Shows efficient processing of multiple signals
 """
 
-import sys
 from pathlib import Path
 import numpy as np
 import time
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
-from src.inference.opir_inference import OPIRInference
+from sentinel.inference.opir_inference import OPIRInference
 
 
 def load_test_batch(class_name: str, num_samples: int = 50):

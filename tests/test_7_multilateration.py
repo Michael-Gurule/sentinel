@@ -3,13 +3,7 @@ Test 7: Multilateration Algorithms
 """
 
 import numpy as np
-import sys
-from pathlib import Path
-
-project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
-
-from src.geolocation.multilateration import (
+from sentinel.geolocation.multilateration import (
     SphericalMultilateration,
     HyperbolicMultilateration,
     WeightedLeastSquares,

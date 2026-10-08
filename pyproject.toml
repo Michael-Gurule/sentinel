@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sentinel"
+dynamic = ["version"]
+description = "Multi-sensor (OPIR + RF) detection, geolocation, tracking, and fusion"
+readme = "README.md"
+requires-python = ">=3.12"
+authors = [{ name = "Michael Gurule" }]
+# Compatible ranges for the library; exact pins for reproducible
+# environments live in requirements.txt / requirements-dev.txt.
+dependencies = [
+    "numpy>=2.0",
+    "scipy>=1.13",
+    "torch>=2.4",
+    "matplotlib>=3.8",
+    "scikit-learn>=1.5",
+    "tqdm>=4.66",
+]
+
+[project.optional-dependencies]
+viz = ["seaborn>=0.13"]
+
+[tool.setuptools.dynamic]
+version = { attr = "sentinel.__version__" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# importlib mode keeps the repo root off sys.path, so tests exercise the
+# installed `sentinel` package rather than whatever happens to be on disk.
+addopts = ["-ra", "--strict-markers", "--import-mode=importlib"]

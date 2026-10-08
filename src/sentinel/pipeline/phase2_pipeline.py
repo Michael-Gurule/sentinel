@@ -164,7 +164,7 @@ def demo_phase2_pipeline():
     
     # Generate test signals
     print("\nGenerating test signals...")
-    from src.generators.opir_generator import OPIRSignalGenerator
+    from sentinel.models.signal_generator import OPIRSignalGenerator
 
     
     generator = OPIRSignalGenerator()

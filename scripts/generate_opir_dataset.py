@@ -4,11 +4,9 @@ Generate comprehensive OPIR training dataset
 Creates synthetic thermal events for training the CNN classifier.
 """
 
-import sys
 import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.models.signal_generator import OPIRSignalGenerator
+from sentinel.models.signal_generator import OPIRSignalGenerator
 import numpy as np
 from tqdm import tqdm
 import json

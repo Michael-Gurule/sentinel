@@ -2,12 +2,8 @@
 Test OPIR signal generator
 """
 
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from src.models.signal_generator import OPIRSignalGenerator
-from src.utils.visualization import plot_thermal_scenario
+from sentinel.models.signal_generator import OPIRSignalGenerator
+from sentinel.utils.visualization import plot_thermal_scenario
 import numpy as np
 
 def test_all_event_types():

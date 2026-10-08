@@ -88,9 +88,9 @@ Where `P` represents position covariance matrices. The fused uncertainty is **al
 ## Project Structure
 
 ```
-sentinel-multi-intel-platform/
+sentinel/
 │
-├── src/
+├── src/sentinel/
 │   ├── models/
 │   │   ├── signal_generator.py       # OPIR thermal signature generation
 │   │   ├── rf_generator.py           # RF signal generation
@@ -148,19 +148,21 @@ sentinel-multi-intel-platform/
 
 ### Setup
 
-```
+Requires [conda](https://docs.conda.io/) (Miniconda or Anaconda).
+
+```bash
 # Clone repository
-git clone https://github.com/michael-gurule/sentinel-multi-intel-platform.git
-cd sentinel-multi-intel-platform
+git clone https://github.com/Michael-Gurule/sentinel.git
+cd sentinel
 
-# Create virtual environment
-
-# Install dependencies
-pip install torch torchvision
-pip install numpy scipy pandas matplotlib
+# Create and activate the environment (Python 3.12, pinned dependencies,
+# and the `sentinel` package installed in editable mode)
+conda env create -f environment.yml
+conda activate sentinel
 
 # Verify installation
-python -c "import torch; print(f'PyTorch {torch.__version__} installed')"
+python -c "import sentinel; print(f'SENTINEL {sentinel.__version__} installed')"
+pytest
 ```
 
 ## Usage
@@ -168,7 +170,7 @@ python -c "import torch; print(f'PyTorch {torch.__version__} installed')"
 ### Quick Start: Full System Demo
 
 ```python
-from src.pipeline.phase3_pipeline import demo_phase3_system
+from sentinel.pipeline.phase3_pipeline import demo_phase3_system
 
 # Run complete multi-sensor demonstration
 demo_phase3_system()
@@ -177,9 +179,9 @@ demo_phase3_system()
 ### OPIR Detection & Classification
 
 ```python
-from src.models.signal_generator import OPIRSignalGenerator
-from src.detection.opir_detectors import MultiMethodDetector
-from src.models.cnn_classifier import OPIRClassifier
+from sentinel.models.signal_generator import OPIRSignalGenerator
+from sentinel.detection.opir_detectors import MultiMethodDetector
+from sentinel.models.cnn_classifier import OPIRClassifier
 
 # Generate signal
 generator = OPIRSignalGenerator()
@@ -201,7 +203,7 @@ print(f"Confidence: {classification.confidence:.3f}")
 ### RF Geolocation
 
 ```python
-from src.geolocation.tdoa_fdoa import (
+from sentinel.geolocation.tdoa_fdoa import (
     HybridTDOAFDOA,
     SensorPosition,
     simulate_tdoa_measurements
@@ -232,9 +234,9 @@ print(f"GDOP: {result.gdop:.3f}")
 ### Multi-Sensor Fusion
 
 ```python
-from src.pipeline.phase3_pipeline import SENTINELPhase3Pipeline
-from src.models.signal_generator import OPIRSignalGenerator
-from src.geolocation.tdoa_fdoa import simulate_tdoa_measurements
+from sentinel.pipeline.phase3_pipeline import SENTINELPhase3Pipeline
+from sentinel.models.signal_generator import OPIRSignalGenerator
+from sentinel.geolocation.tdoa_fdoa import simulate_tdoa_measurements
 import numpy as np
 
 # Initialize system
@@ -267,7 +269,7 @@ print(f"Track quality: {sa['average_track_quality']:.3f}")
 ### Training the CNN Classifier
 
 ```python
-from src.training.train_classifier import train_model_from_folders
+from sentinel.training.train_classifier import train_model_from_folders
 
 # Train model on generated dataset
 history = train_model_from_folders(

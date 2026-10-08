@@ -3,13 +3,7 @@ Test 9: Complete Phase 3 System Integration
 """
 
 import numpy as np
-import sys
-from pathlib import Path
-
-project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
-
-from src.pipeline.phase3_pipeline import SENTINELPhase3Pipeline
+from sentinel.pipeline.phase3_pipeline import SENTINELPhase3Pipeline
 
 
 def test_full_system():
@@ -25,7 +19,7 @@ def test_full_system():
     
     # Test OPIR processing
     print("\n2. Testing OPIR signal processing...")
-    from src.models.signal_generator import OPIRSignalGenerator
+    from sentinel.models.signal_generator import OPIRSignalGenerator
     
     generator = OPIRSignalGenerator()
     opir_signal = generator.generate_launch_signature(start_time=2.0)
@@ -45,7 +39,7 @@ def test_full_system():
     
     # Test RF geolocation
     print("\n3. Testing RF geolocation...")
-    from src.geolocation.tdoa_fdoa import simulate_tdoa_measurements
+    from sentinel.geolocation.tdoa_fdoa import simulate_tdoa_measurements
     
     emitter_pos = np.array([5000.0, 5000.0, 500.0])
     rf_measurements = simulate_tdoa_measurements(

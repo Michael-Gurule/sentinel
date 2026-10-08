@@ -3,7 +3,6 @@ Evaluation Script for Trained OPIR CNN Classifier
 Tests on held-out test set and generates performance metrics
 """
 
-import sys
 from pathlib import Path
 import numpy as np
 import torch
@@ -13,12 +12,8 @@ import seaborn as sns
 from sklearn.metrics import confusion_matrix, classification_report
 import json
 
-# Add project root to path
-project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
-
-from src.models.cnn_classifier import OPIREventCNN
-from scripts.train_cnn_simple import FolderDataset
+from sentinel.models.cnn_classifier import OPIREventCNN
+from sentinel.training.datasets import FolderDataset
 
 
 def evaluate_model(model, dataloader, device, class_names):

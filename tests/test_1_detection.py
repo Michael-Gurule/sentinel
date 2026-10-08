@@ -3,19 +3,13 @@ Test 1: Detection Algorithms Only
 """
 
 import numpy as np
-import sys
-from pathlib import Path
-
-project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
-
-from src.detection.opir_detectors import (
+from sentinel.detection.opir_detectors import (
     TemporalDifferenceDetector,
     AnomalyDetector,
     RiseTimeDetector,
     MultiMethodDetector
 )
-from src.models.signal_generator import OPIRSignalGenerator
+from sentinel.models.signal_generator import OPIRSignalGenerator
 
 
 def test_detection():
