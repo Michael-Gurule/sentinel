@@ -9,7 +9,8 @@ the same change. Fixed defects keep their test as a regression guard.
 All tests are deterministic, so they cannot pass or fail by chance.
 """
 
-import importlib.util
+import hashlib
+import json
 from pathlib import Path
 
 import numpy as np
@@ -18,6 +19,7 @@ import torch
 
 from sentinel.core import GeometryError
 from sentinel.core.constants import SPEED_OF_LIGHT
+from sentinel.data import build_dataset, load_dataset_config
 from sentinel.detection.opir_detectors import (
     AnomalyDetector,
     MultiMethodDetector,
@@ -107,27 +109,22 @@ def test_c3_generator_produces_background_scenario():
     assert events == []
 
 
-def test_c3_dataset_script_runs_and_is_reproducible(tmp_path):
-    script = REPO_ROOT / "scripts" / "generate_opir_dataset.py"
-    spec = importlib.util.spec_from_file_location("generate_opir_dataset", script)
-    assert spec is not None
-    assert spec.loader is not None
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+def test_c3_dataset_is_reproducible_from_committed_code(tmp_path):
+    config = load_dataset_config(REPO_ROOT / "configs/dataset/opir_v2.yaml").scaled(
+        0.002
+    )
+    first = build_dataset(config, tmp_path / "a")
+    second = build_dataset(config, tmp_path / "b", workers=2)
+    for name, split in first["splits"].items():
+        assert split["content_sha256"] == second["splits"][name]["content_sha256"]
 
-    for name in ("a", "b"):
-        module.generate_dataset(
-            num_samples_per_class=1,
-            output_dir=str(tmp_path / name),
-            sequence_length=100,
-            seed=42,
-        )
-    assert (tmp_path / "a" / "metadata.json").exists()
-    files_a = sorted((tmp_path / "a").rglob("*.npy"))
-    files_b = sorted((tmp_path / "b").rglob("*.npy"))
-    assert len(files_a) == 5
-    for fa, fb in zip(files_a, files_b, strict=True):
-        np.testing.assert_array_equal(np.load(fa), np.load(fb))
+
+def test_c3_versioned_manifest_matches_committed_config():
+    """The checked-in manifest must be rebuilt whenever the dataset config changes."""
+    manifest = json.loads((REPO_ROOT / "data/manifests/opir_v2.json").read_text())
+    config = load_dataset_config(REPO_ROOT / "configs/dataset/opir_v2.yaml")
+    config_json = json.dumps(config.model_dump(mode="json"), sort_keys=True)
+    assert manifest["config_sha256"] == hashlib.sha256(config_json.encode()).hexdigest()
 
 
 # --------------------------------------------------------------------------

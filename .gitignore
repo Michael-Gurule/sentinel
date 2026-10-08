@@ -47,6 +47,9 @@ data/synthetic/*
 !data/raw/.gitkeep
 !data/processed/.gitkeep
 !data/synthetic/.gitkeep
+data/opir_v2/
+# Dataset manifests (config + content hashes) are versioned; the data is rebuilt.
+!data/manifests/
 
 # Local-only working files
 # assets/ holds design sources and article drafts; curated pieces move into docs/ in Phase 7

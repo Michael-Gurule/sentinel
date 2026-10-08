@@ -1,0 +1,619 @@
+{
+  "classes": [
+    "launch",
+    "explosion",
+    "fire",
+    "aircraft",
+    "background"
+  ],
+  "config": {
+    "name": "opir_v2",
+    "priors": {
+      "aircraft": {
+        "afterburner_factor": {
+          "high": 6.0,
+          "log": false,
+          "low": 2.0
+        },
+        "afterburner_probability": 0.2,
+        "altitude_m": {
+          "high": 13000.0,
+          "log": false,
+          "low": 3000.0
+        },
+        "aspect_modulation": {
+          "high": 0.3,
+          "log": false,
+          "low": 0.05
+        },
+        "aspect_period": {
+          "high": 80.0,
+          "log": false,
+          "low": 20.0
+        },
+        "base_intensity": {
+          "high": 60000.0,
+          "log": true,
+          "low": 5000.0
+        },
+        "onset_s": {
+          "high": 30.0,
+          "log": false,
+          "low": -60.0
+        },
+        "speed_mps": {
+          "high": 300.0,
+          "log": false,
+          "low": 150.0
+        }
+      },
+      "explosion": {
+        "fireball_decay": {
+          "high": 6.0,
+          "log": false,
+          "low": 1.0
+        },
+        "fireball_ratio": {
+          "high": 0.3,
+          "log": false,
+          "low": 0.05
+        },
+        "flash_decay": {
+          "high": 0.5,
+          "log": false,
+          "low": 0.05
+        },
+        "onset_s": {
+          "high": 40.0,
+          "log": false,
+          "low": 2.0
+        },
+        "peak_intensity": {
+          "high": 20000000.0,
+          "log": true,
+          "low": 200000.0
+        }
+      },
+      "fire": {
+        "correlation_time": {
+          "high": 15.0,
+          "log": false,
+          "low": 3.0
+        },
+        "fluctuation": {
+          "high": 0.3,
+          "log": false,
+          "low": 0.05
+        },
+        "growth_time": {
+          "high": 200.0,
+          "log": false,
+          "low": 20.0
+        },
+        "onset_s": {
+          "high": 40.0,
+          "log": false,
+          "low": 2.0
+        },
+        "peak_intensity": {
+          "high": 3000000.0,
+          "log": true,
+          "low": 100000.0
+        }
+      },
+      "launch": {
+        "burn_time": {
+          "high": 180.0,
+          "log": false,
+          "low": 60.0
+        },
+        "flicker": {
+          "high": 0.06,
+          "log": false,
+          "low": 0.01
+        },
+        "onset_s": {
+          "high": 40.0,
+          "log": false,
+          "low": 2.0
+        },
+        "peak_intensity": {
+          "high": 1000000.0,
+          "log": true,
+          "low": 50000.0
+        },
+        "pitch_elevation_deg": {
+          "high": 70.0,
+          "log": false,
+          "low": 30.0
+        },
+        "rise_time": {
+          "high": 5.0,
+          "log": false,
+          "low": 1.0
+        },
+        "staging_fraction": {
+          "high": 0.6,
+          "log": false,
+          "low": 0.4
+        },
+        "staging_probability": 0.5,
+        "thrust_acceleration": {
+          "high": 40.0,
+          "log": false,
+          "low": 20.0
+        }
+      },
+      "scene": {
+        "background": {
+          "high": 400.0,
+          "log": false,
+          "low": 100.0
+        },
+        "cloud_probability": 0.4,
+        "cloud_top_m": {
+          "high": 10000.0,
+          "log": false,
+          "low": 2000.0
+        },
+        "cloud_transmittance": {
+          "high": 0.3,
+          "log": false,
+          "low": 0.02
+        },
+        "clutter_correlation_s": {
+          "high": 30.0,
+          "log": false,
+          "low": 3.0
+        },
+        "clutter_std": {
+          "high": 3.0,
+          "log": true,
+          "low": 0.3
+        },
+        "glint_amplitude": [
+          5.0,
+          150.0
+        ],
+        "glint_probability": 0.3,
+        "glint_rate_hz": {
+          "high": 0.05,
+          "log": false,
+          "low": 0.008333333333333333
+        },
+        "mean_clear_s": {
+          "high": 120.0,
+          "log": false,
+          "low": 30.0
+        },
+        "mean_cloudy_s": {
+          "high": 60.0,
+          "log": false,
+          "low": 10.0
+        },
+        "zenith_optical_depth": {
+          "high": 0.8,
+          "log": false,
+          "low": 0.2
+        }
+      },
+      "sensor": {
+        "frame_rate_hz": 10.0,
+        "ifov_urad": 30.0,
+        "nei": {
+          "high": 2.0,
+          "log": true,
+          "low": 0.5
+        },
+        "psf_sigma_px": {
+          "high": 0.6,
+          "log": false,
+          "low": 0.3
+        },
+        "site_lat_deg": {
+          "high": 60.0,
+          "log": false,
+          "low": 0.0
+        },
+        "site_lon_offset_deg": {
+          "high": 40.0,
+          "log": false,
+          "low": -40.0
+        }
+      }
+    },
+    "root_seed": 20261008,
+    "splits": [
+      {
+        "description": "In-distribution training data.",
+        "name": "train",
+        "overrides": {},
+        "samples_per_class": 3000
+      },
+      {
+        "description": "In-distribution validation data (model selection, calibration).",
+        "name": "validation",
+        "overrides": {},
+        "samples_per_class": 600
+      },
+      {
+        "description": "In-distribution test data.",
+        "name": "test",
+        "overrides": {},
+        "samples_per_class": 600
+      },
+      {
+        "description": "Degraded sensor; noise-equivalent irradiance 4x the training range.",
+        "name": "shift_low_snr",
+        "overrides": {
+          "sensor": {
+            "nei": {
+              "high": 8.0,
+              "log": true,
+              "low": 2.0
+            }
+          }
+        },
+        "samples_per_class": 600
+      },
+      {
+        "description": "Event physics outside the training ranges: short burns that end inside the window, fast launch rises, long fireballs, fast-growing fires, frequent afterburner use.",
+        "name": "shift_params",
+        "overrides": {
+          "aircraft": {
+            "afterburner_probability": 0.8
+          },
+          "explosion": {
+            "fireball_decay": {
+              "high": 15.0,
+              "low": 6.0
+            }
+          },
+          "fire": {
+            "growth_time": {
+              "high": 20.0,
+              "low": 5.0
+            }
+          },
+          "launch": {
+            "burn_time": {
+              "high": 55.0,
+              "low": 25.0
+            },
+            "onset_s": {
+              "high": 20.0,
+              "low": 2.0
+            },
+            "rise_time": {
+              "high": 1.0,
+              "low": 0.3
+            }
+          }
+        },
+        "samples_per_class": 600
+      },
+      {
+        "description": "Harsh scenes; heavy clutter, frequent sun glint, and frequent cloud.",
+        "name": "shift_clutter",
+        "overrides": {
+          "scene": {
+            "cloud_probability": 0.9,
+            "clutter_std": {
+              "high": 10.0,
+              "log": true,
+              "low": 3.0
+            },
+            "glint_probability": 0.9,
+            "glint_rate_hz": {
+              "high": 0.2,
+              "low": 0.05
+            }
+          }
+        },
+        "samples_per_class": 600
+      }
+    ],
+    "version": "2.0.0",
+    "window_s": 64.0
+  },
+  "config_sha256": "8279544b1c49ad8528f4e1688ea4c342b3bb2bbdd06fcb8a1b60d76741e95e4a",
+  "dataset": "opir_v2",
+  "environment": {
+    "numpy": "2.5.3",
+    "python": "3.12",
+    "sentinel": "2.0.0.dev0"
+  },
+  "root_seed": 20261008,
+  "splits": {
+    "shift_clutter": {
+      "classes": {
+        "aircraft": {
+          "count": 600,
+          "peak_snr_p10_p50_p90": [
+            0.355,
+            1.254,
+            4.185
+          ]
+        },
+        "background": {
+          "count": 600,
+          "peak_snr_p10_p50_p90": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "explosion": {
+          "count": 600,
+          "peak_snr_p10_p50_p90": [
+            1.617,
+            21.334,
+            196.703
+          ]
+        },
+        "fire": {
+          "count": 600,
+          "peak_snr_p10_p50_p90": [
+            0.11,
+            0.89,
+            7.84
+          ]
+        },
+        "launch": {
+          "count": 600,
+          "peak_snr_p10_p50_p90": [
+            3.093,
+            11.896,
+            44.732
+          ]
+        }
+      },
+      "content_sha256": "dca9b8a8003d066598c683fe864dd8947fb804b8c04c7665da6b1b29baf306fd",
+      "description": "Harsh scenes; heavy clutter, frequent sun glint, and frequent cloud.",
+      "file": "shift_clutter.npz",
+      "num_samples": 3000
+    },
+    "shift_low_snr": {
+      "classes": {
+        "aircraft": {
+          "count": 600,
+          "peak_snr_p10_p50_p90": [
+            0.441,
+            1.515,
+            5.805
+          ]
+        },
+        "background": {
+          "count": 600,
+          "peak_snr_p10_p50_p90": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "explosion": {
+          "count": 600,
+          "peak_snr_p10_p50_p90": [
+            4.312,
+            34.205,
+            263.071
+          ]
+        },
+        "fire": {
+          "count": 600,
+          "peak_snr_p10_p50_p90": [
+            0.172,
+            1.069,
+            10.29
+          ]
+        },
+        "launch": {
+          "count": 600,
+          "peak_snr_p10_p50_p90": [
+            4.452,
+            16.331,
+            61.532
+          ]
+        }
+      },
+      "content_sha256": "c7970cbbb22ff5a3664a13032fc85ca06053bcd5048afcfbc4baead9b0f5ea48",
+      "description": "Degraded sensor; noise-equivalent irradiance 4x the training range.",
+      "file": "shift_low_snr.npz",
+      "num_samples": 3000
+    },
+    "shift_params": {
+      "classes": {
+        "aircraft": {
+          "count": 600,
+          "peak_snr_p10_p50_p90": [
+            1.663,
+            7.614,
+            32.533
+          ]
+        },
+        "background": {
+          "count": 600,
+          "peak_snr_p10_p50_p90": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "explosion": {
+          "count": 600,
+          "peak_snr_p10_p50_p90": [
+            12.962,
+            114.998,
+            896.73
+          ]
+        },
+        "fire": {
+          "count": 600,
+          "peak_snr_p10_p50_p90": [
+            10.637,
+            52.608,
+            263.313
+          ]
+        },
+        "launch": {
+          "count": 600,
+          "peak_snr_p10_p50_p90": [
+            8.027,
+            34.073,
+            137.729
+          ]
+        }
+      },
+      "content_sha256": "d4f0b9fa6184735a7ffb3c8f1d06683af3b84b78ffe85981d42a1e38de3db760",
+      "description": "Event physics outside the training ranges: short burns that end inside the window, fast launch rises, long fireballs, fast-growing fires, frequent afterburner use.",
+      "file": "shift_params.npz",
+      "num_samples": 3000
+    },
+    "test": {
+      "classes": {
+        "aircraft": {
+          "count": 600,
+          "peak_snr_p10_p50_p90": [
+            0.984,
+            3.854,
+            14.935
+          ]
+        },
+        "background": {
+          "count": 600,
+          "peak_snr_p10_p50_p90": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "explosion": {
+          "count": 600,
+          "peak_snr_p10_p50_p90": [
+            14.841,
+            94.001,
+            834.679
+          ]
+        },
+        "fire": {
+          "count": 600,
+          "peak_snr_p10_p50_p90": [
+            0.491,
+            2.999,
+            34.244
+          ]
+        },
+        "launch": {
+          "count": 600,
+          "peak_snr_p10_p50_p90": [
+            10.39,
+            41.686,
+            151.128
+          ]
+        }
+      },
+      "content_sha256": "67a7adf5888b632cf9dc37ad8a94e96f5697d77ff89fff2e2321a913a86901c9",
+      "description": "In-distribution test data.",
+      "file": "test.npz",
+      "num_samples": 3000
+    },
+    "train": {
+      "classes": {
+        "aircraft": {
+          "count": 3000,
+          "peak_snr_p10_p50_p90": [
+            1.106,
+            4.307,
+            14.928
+          ]
+        },
+        "background": {
+          "count": 3000,
+          "peak_snr_p10_p50_p90": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "explosion": {
+          "count": 3000,
+          "peak_snr_p10_p50_p90": [
+            13.047,
+            106.919,
+            937.878
+          ]
+        },
+        "fire": {
+          "count": 3000,
+          "peak_snr_p10_p50_p90": [
+            0.465,
+            3.854,
+            41.297
+          ]
+        },
+        "launch": {
+          "count": 3000,
+          "peak_snr_p10_p50_p90": [
+            11.459,
+            43.157,
+            165.397
+          ]
+        }
+      },
+      "content_sha256": "1ce7138c24280df5b4650ba4000bc1bf324883f273dcb37b3b0d353c1f5c968f",
+      "description": "In-distribution training data.",
+      "file": "train.npz",
+      "num_samples": 15000
+    },
+    "validation": {
+      "classes": {
+        "aircraft": {
+          "count": 600,
+          "peak_snr_p10_p50_p90": [
+            1.198,
+            4.575,
+            17.978
+          ]
+        },
+        "background": {
+          "count": 600,
+          "peak_snr_p10_p50_p90": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "explosion": {
+          "count": 600,
+          "peak_snr_p10_p50_p90": [
+            12.808,
+            117.995,
+            897.365
+          ]
+        },
+        "fire": {
+          "count": 600,
+          "peak_snr_p10_p50_p90": [
+            0.46,
+            3.627,
+            37.073
+          ]
+        },
+        "launch": {
+          "count": 600,
+          "peak_snr_p10_p50_p90": [
+            11.695,
+            42.158,
+            165.386
+          ]
+        }
+      },
+      "content_sha256": "bf3a9ac71b9efb1b304811135fa262cc9c279577a9c6dac247de33214949b6eb",
+      "description": "In-distribution validation data (model selection, calibration).",
+      "file": "validation.npz",
+      "num_samples": 3000
+    }
+  },
+  "version": "2.0.0",
+  "window_s": 64.0
+}
