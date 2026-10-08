@@ -286,15 +286,34 @@ print(f"Detected: {detection.detected}")
 print(f"Event type: {classification.class_name} ({classification.confidence:.2f})")
 ```
 
-### Training the CNN Classifier
+### Simulating a Scenario
 
-```bash
-python scripts/generate_opir_dataset.py --samples 2000 --seed 0
-python scripts/train_cnn_simple.py
-python scripts/evaluate_cnn.py
+```python
+from sentinel.sim import load_scenario, simulate_scenario
+
+config = load_scenario("configs/scenario/launch_with_radar.yaml")
+result = simulate_scenario(config, seed=7)  # same seed, same scenario
+
+for event_id, pixel in result.opir.items():
+    print(f"{event_id:12s} peak SNR {pixel.peak_snr:6.1f}")
+print(f"{len(result.rf_scans)} RF scans (TDOA, plus FDOA where configured)")
 ```
 
-The dataset is fully determined by `--seed`.
+A scenario places launches, explosions, fires, and aircraft around a geodetic
+origin. A GEO staring sensor observes them (range, atmosphere, clouds, PSF,
+clutter, glint, noise), and an RF receiver network with clock biases and survey
+errors measures the emitters.
+
+### Building the Dataset
+
+```bash
+make data          # builds data/opir_v2 and updates data/manifests/opir_v2.json
+make data-verify   # rebuilds and checks every split against the versioned manifest
+```
+
+The dataset is a pure function of `configs/dataset/opir_v2.yaml` and its seed.
+See the [data card](docs/data_card.md) for the generative model, splits,
+domain-shift test sets, and limitations.
 
 ## Testing
 
