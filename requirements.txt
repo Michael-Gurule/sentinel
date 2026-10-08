@@ -8,3 +8,5 @@ matplotlib==3.11.2
 scikit-learn==1.9.1
 seaborn==0.13.2
 tqdm==4.70.1
+pydantic==2.14.0
+pyyaml==6.0.3

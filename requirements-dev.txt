@@ -10,6 +10,7 @@ hypothesis==6.168.5
 ruff==0.16.10
 mypy==2.4.0
 scipy-stubs==1.18.1.1
+types-PyYAML==6.0.12.20260906
 
 # Git hooks
 pre-commit==4.6.2

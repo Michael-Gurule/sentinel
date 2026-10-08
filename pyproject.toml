@@ -18,6 +18,8 @@ dependencies = [
     "matplotlib>=3.8",
     "scikit-learn>=1.5",
     "tqdm>=4.66",
+    "pydantic>=2.7",
+    "pyyaml>=6.0",
 ]
 
 [project.optional-dependencies]
@@ -59,16 +61,13 @@ select = [
 # The formatter owns line length; long f-strings/URLs are tolerated.
 ignore = ["E501"]
 # Math notation in docstrings and output is intentional.
-allowed-confusables = ["σ", "α", "ν", "ρ", "γ", "×"]
+allowed-confusables = ["σ", "α", "ν", "ρ", "γ", "×", "–"]
 
 # Known-debt register (v1 code). Each entry is removed when the module is
 # rewritten; the lint must stay clean everywhere else.
 #   B905   zip() without strict=       -> Phase 3 (detection/evaluation rewrite)
-#   NPY002 global np.random state      -> Phase 2 (simulator rewrite)
 [tool.ruff.lint.per-file-ignores]
 "src/sentinel/detection/opir_detectors.py" = ["B905"]
-"src/sentinel/models/rf_generator.py" = ["NPY002"]
-"src/sentinel/utils/geospatial.py" = ["NPY002"]
 "scripts/evaluate_cnn.py" = ["B905"]
 
 [tool.mypy]
@@ -77,18 +76,21 @@ files = ["src/sentinel"]
 strict = true
 warn_unreachable = true
 enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
+plugins = ["pydantic.mypy"]
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true
 
 # Legacy ratchet: v1 modules type-checked leniently until rewritten
-# (detection, training loop -> Phase 3; RF generator, utils -> Phase 2).
+# (detection, training loop -> Phase 3).
 # Remove a module from this list when it is rewritten; new modules are
 # always strict.
 [[tool.mypy.overrides]]
 module = [
     "sentinel.detection.opir_detectors",
-    "sentinel.models.rf_generator",
     "sentinel.training.train_classifier",
-    "sentinel.utils.geospatial",
-    "sentinel.utils.visualization",
 ]
 ignore_errors = true
 
