@@ -5,7 +5,6 @@ Generates synthetic radar and communication signals for training and testing.
 """
 
 from dataclasses import dataclass
-from typing import Tuple
 
 import numpy as np
 import scipy.signal as signal
@@ -35,8 +34,8 @@ class RadarSignalGenerator:
         pulse_width_s: float,
         duration_s: float,
         power_dbm: float,
-        scan_rate_deg_s: float = None,
-    ) -> Tuple[np.ndarray, np.ndarray]:
+        scan_rate_deg_s: float | None = None,
+    ) -> tuple[np.ndarray, np.ndarray]:
         """
         Generate radar pulse train
 
@@ -133,7 +132,7 @@ class RadarSignalGenerator:
         prf_hz: float,
         duration_s: float,
         power_dbm: float,
-    ) -> Tuple[np.ndarray, np.ndarray]:
+    ) -> tuple[np.ndarray, np.ndarray]:
         """
         Generate chirped (LFM) radar pulse train
 
@@ -157,7 +156,6 @@ class RadarSignalGenerator:
                 t_pulse = np.arange(pulse_samples) / self.fs
 
                 # Chirp signal: f(t) = f_c + chirp_rate * t
-                instantaneous_freq = carrier_freq_hz + chirp_rate * t_pulse
                 phase = (
                     2
                     * np.pi
@@ -200,7 +198,7 @@ class CommunicationSignalGenerator:
         duration_s: float,
         modulation_index: float,
         power_dbm: float,
-    ) -> Tuple[np.ndarray, np.ndarray]:
+    ) -> tuple[np.ndarray, np.ndarray]:
         """
         Generate FM modulated signal
 
@@ -235,7 +233,7 @@ class CommunicationSignalGenerator:
         duration_s: float,
         modulation_order: int,
         power_dbm: float,
-    ) -> Tuple[np.ndarray, np.ndarray]:
+    ) -> tuple[np.ndarray, np.ndarray]:
         """
         Generate PSK modulated signal
 
@@ -248,7 +246,6 @@ class CommunicationSignalGenerator:
 
         # Generate random data bits
         num_symbols = int(duration_s * symbol_rate_hz)
-        bits_per_symbol = int(np.log2(modulation_order))
         symbols = np.random.randint(0, modulation_order, num_symbols)
 
         # Map symbols to phases
@@ -302,7 +299,7 @@ class CommunicationSignalGenerator:
         duration_s: float,
         modulation_order: int,
         power_dbm: float,
-    ) -> Tuple[np.ndarray, np.ndarray]:
+    ) -> tuple[np.ndarray, np.ndarray]:
         """
         Generate QAM modulated signal
 
@@ -376,7 +373,7 @@ class RFScenarioGenerator:
 
     def generate_early_warning_radar(
         self, start_time: float, duration_s: float, lat: float, lon: float
-    ) -> Tuple[np.ndarray, np.ndarray, RFEmitter]:
+    ) -> tuple[np.ndarray, np.ndarray, RFEmitter]:
         """Generate early warning radar signal"""
 
         carrier_freq = np.random.uniform(400e6, 1000e6)  # UHF/L-band
@@ -409,7 +406,7 @@ class RFScenarioGenerator:
         lat: float,
         lon: float,
         target_velocity_mps: float = 200,
-    ) -> Tuple[np.ndarray, np.ndarray, RFEmitter]:
+    ) -> tuple[np.ndarray, np.ndarray, RFEmitter]:
         """Generate fire control (tracking) radar with Doppler"""
 
         carrier_freq = np.random.uniform(8e9, 12e9)  # X-band
@@ -444,7 +441,7 @@ class RFScenarioGenerator:
 
     def generate_tactical_radio(
         self, start_time: float, duration_s: float, lat: float, lon: float
-    ) -> Tuple[np.ndarray, np.ndarray, RFEmitter]:
+    ) -> tuple[np.ndarray, np.ndarray, RFEmitter]:
         """Generate tactical FM radio transmission"""
 
         carrier_freq = np.random.uniform(30e6, 90e6)  # VHF
@@ -471,7 +468,7 @@ class RFScenarioGenerator:
 
     def generate_satellite_uplink(
         self, start_time: float, duration_s: float, lat: float, lon: float
-    ) -> Tuple[np.ndarray, np.ndarray, RFEmitter]:
+    ) -> tuple[np.ndarray, np.ndarray, RFEmitter]:
         """Generate satellite uplink (QPSK modulation)"""
 
         carrier_freq = np.random.uniform(14e9, 14.5e9)  # Ku-band

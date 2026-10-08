@@ -192,7 +192,7 @@ detector = MultiMethodDetector()
 detection = detector.detect(signal, generator.sampling_rate)
 
 # Classify event
-classifier = OPIRClassifier(device='cpu')
+classifier = OPIRClassifier(device="cpu")
 classification = classifier.classify(signal)
 
 print(f"Detected: {detection.detected}")
@@ -206,7 +206,7 @@ print(f"Confidence: {classification.confidence:.3f}")
 from sentinel.geolocation.tdoa_fdoa import (
     HybridTDOAFDOA,
     SensorPosition,
-    simulate_tdoa_measurements
+    simulate_tdoa_measurements,
 )
 import numpy as np
 
@@ -215,7 +215,7 @@ sensors = [
     SensorPosition(id=0, position=np.array([0.0, 0.0, 500.0])),
     SensorPosition(id=1, position=np.array([10000.0, 0.0, 1500.0])),
     SensorPosition(id=2, position=np.array([10000.0, 10000.0, 1000.0])),
-    SensorPosition(id=3, position=np.array([0.0, 10000.0, 2000.0]))
+    SensorPosition(id=3, position=np.array([0.0, 10000.0, 2000.0])),
 ]
 
 # Simulate measurements
@@ -254,7 +254,7 @@ result = pipeline.process_multi_sensor_frame(
     opir_signals=opir_signals,
     rf_measurements=rf_measurements,
     sampling_rate=generator.sampling_rate,
-    timestamp=0.0
+    timestamp=0.0,
 )
 
 print(f"OPIR detections: {result['opir_detections']}")
@@ -273,12 +273,12 @@ from sentinel.training.train_classifier import train_model_from_folders
 
 # Train model on generated dataset
 history = train_model_from_folders(
-    train_dir='data/synthetic/opir/train',
-    val_dir='data/synthetic/opir/validation',
-    output_dir='outputs/models',
+    train_dir="data/synthetic/opir/train",
+    val_dir="data/synthetic/opir/validation",
+    output_dir="outputs/models",
     num_epochs=50,
     batch_size=32,
-    device='cpu'  # or 'cuda' for GPU
+    device="cpu",  # or 'cuda' for GPU
 )
 
 print(f"Best validation accuracy: {max(history['val_acc']):.2f}%")

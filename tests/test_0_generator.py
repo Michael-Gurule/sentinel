@@ -9,15 +9,15 @@ def test_generator():
     print("=" * 60)
     print("TEST: Signal Generator")
     print("=" * 60)
-    
+
     # Initialize generator
     print("\n1. Initializing generator...")
     generator = OPIRSignalGenerator()
     print("   Generator initialized")
-    
+
     # Check attributes
     print("\n2. Generator attributes:")
-    attrs = [a for a in dir(generator) if not a.startswith('_')]
+    attrs = [a for a in dir(generator) if not a.startswith("_")]
     for attr in attrs:
         try:
             value = getattr(generator, attr)
@@ -25,7 +25,7 @@ def test_generator():
                 print(f"   {attr}: {value}")
         except:
             pass
-    
+
     # Generate signal
     print("\n3. Generating launch signal...")
     try:
@@ -37,12 +37,13 @@ def test_generator():
     except Exception as e:
         print(f"   ERROR: {e}")
         import traceback
+
         traceback.print_exc()
-    
+
     print("\n" + "=" * 60)
     print("Generator test complete!")
     print("=" * 60)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     test_generator()

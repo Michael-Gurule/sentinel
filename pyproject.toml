@@ -34,3 +34,50 @@ testpaths = ["tests"]
 # importlib mode keeps the repo root off sys.path, so tests exercise the
 # installed `sentinel` package rather than whatever happens to be on disk.
 addopts = ["-ra", "--strict-markers", "--import-mode=importlib"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 88
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E", "W",   # pycodestyle
+    "F",        # pyflakes
+    "I",        # isort
+    "B",        # flake8-bugbear
+    "UP",       # pyupgrade
+    "SIM",      # flake8-simplify
+    "C4",       # flake8-comprehensions
+    "NPY",      # numpy-specific (incl. legacy global RNG use)
+    "PT",       # flake8-pytest-style
+    "RUF",      # ruff-specific
+]
+# The formatter owns line length; long f-strings/URLs are tolerated.
+ignore = ["E501"]
+# Greek letters are intentional in math/estimation output (e.g., σ).
+allowed-confusables = ["σ"]
+
+# Known-debt register (v1 code). Each entry is removed when the module is
+# rewritten; the lint must stay clean everywhere else.
+#   E722   bare `except:`             -> Phase 1 (typed errors, explicit status)
+#   B905   zip() without strict=       -> Phase 1 (length mismatches must raise)
+#   NPY002 global np.random state      -> Phase 2 (injected np.random.Generator)
+[tool.ruff.lint.per-file-ignores]
+"src/sentinel/detection/opir_detectors.py" = ["B905"]
+"src/sentinel/fusion/sensor_fusion.py" = ["E722"]
+"src/sentinel/geolocation/multilateration.py" = ["E722", "NPY002"]
+"src/sentinel/geolocation/tdoa_fdoa.py" = ["E722", "NPY002"]
+"src/sentinel/inference/opir_inference.py" = ["B905"]
+"src/sentinel/models/rf_generator.py" = ["NPY002"]
+"src/sentinel/models/signal_generator.py" = ["NPY002"]
+"src/sentinel/pipeline/phase2_pipeline.py" = ["NPY002"]
+"src/sentinel/training/train_classifier.py" = ["NPY002"]
+"src/sentinel/utils/geospatial.py" = ["NPY002"]
+"scripts/evaluate_cnn.py" = ["B905"]
+"scripts/generate_opir_dataset.py" = ["NPY002"]
+# v1 print-style tests are replaced wholesale in Phase 1.
+"tests/test_*.py" = ["E722", "B905", "NPY002"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["sentinel"]

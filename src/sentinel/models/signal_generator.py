@@ -5,7 +5,6 @@ Generates realistic thermal event signatures for training and testing.
 """
 
 from dataclasses import dataclass
-from typing import Dict, Tuple
 
 import numpy as np
 
@@ -244,8 +243,8 @@ class OPIRSignalGenerator:
         return background
 
     def generate_scenario(
-        self, events: list[Dict]
-    ) -> Tuple[np.ndarray, list[ThermalEvent]]:
+        self, events: list[dict]
+    ) -> tuple[np.ndarray, list[ThermalEvent]]:
         """
         Generate complete scenario with multiple events
 
