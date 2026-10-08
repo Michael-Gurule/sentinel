@@ -34,6 +34,9 @@ testpaths = ["tests"]
 # importlib mode keeps the repo root off sys.path, so tests exercise the
 # installed `sentinel` package rather than whatever happens to be on disk.
 addopts = ["-ra", "--strict-markers", "--import-mode=importlib"]
+# An expected failure that starts passing must fail the run (forces the
+# marker to be removed together with the fix).
+xfail_strict = true
 
 [tool.ruff]
 target-version = "py312"

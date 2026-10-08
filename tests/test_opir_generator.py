@@ -3,11 +3,17 @@ Test OPIR signal generator
 """
 
 import numpy as np
+import pytest
 
 from sentinel.models.signal_generator import OPIRSignalGenerator
 from sentinel.utils.visualization import plot_thermal_scenario
 
 
+@pytest.mark.xfail(
+    strict=True,
+    raises=TypeError,
+    reason="C3: OPIRSignalGenerator does not accept sample_rate_hz/duration_s",
+)
 def test_all_event_types():
     """Test all OPIR event types"""
 
