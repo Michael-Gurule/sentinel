@@ -35,57 +35,51 @@ env/
 *.swp
 *.swo
 *~
-.DS_Store
 
 # Environment variables
 .env
 .env.local
 
-# Data files (large synthetic datasets)
+# Data files (regenerated deterministically from code)
 data/raw/*
 data/processed/*
 data/synthetic/*
 !data/raw/.gitkeep
 !data/processed/.gitkeep
 !data/synthetic/.gitkeep
+
+# Local-only working files
+# assets/ holds design sources and article drafts; curated pieces move into docs/ in Phase 7
 assets/
-docs/
+REFACTOR_PLAN.md
 
-
-# Model files (can be large)
-models/**/*.pth
-models/**/*.h5
+# Model artifacts and run outputs
+*.pth
+*.pt
+*.onnx
 *.pkl
+outputs/
+mlruns/
 
 # Logs
 *.log
 logs/
 
-# Testing
+# Testing / tooling caches
 .pytest_cache/
 .coverage
+.coverage.*
+coverage.xml
 htmlcov/
 .tox/
 .nox/
+.hypothesis/
+.ruff_cache/
+.benchmarks/
 
 # Jupyter Notebooks
 .ipynb_checkpoints/
 *.ipynb
-
-# MacOS
-.DS_Store
-.AppleDouble
-.LSOverride
-._*
-
-# Thumbnails
-.DocumentRevisions-V100
-.fseventsd
-.Spotlight-V100
-.TemporaryItems
-.Trashes
-.VolumeIcon.icns
-.com.apple.timemachine.donotpresent
 
 # mypy
 .mypy_cache/
@@ -96,11 +90,16 @@ dmypy.json
 tests/*.png
 tests/*.jpg
 tests/*.pdf
-docs/development_plan.md
-docs/Phase1_Checklist.md
-docs/Phase2_Specs.md
-docs/dev notes/development_plan.md
-docs/dev notes/Phase1_Checklist.md
-docs/dev notes/Phase2_Specs.md
-/outputs/evaluation
-/outputs/training
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
