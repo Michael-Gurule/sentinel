@@ -8,40 +8,32 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 
+from sentinel.models.taxonomy import EVENT_CLASSES, preprocess_signal
 
-class FolderDataset(Dataset):
-    """Load data from folder structure: train/class_name/*.npy"""
 
-    def __init__(self, data_dir, split="train"):
+class FolderDataset(Dataset[tuple[torch.Tensor, torch.Tensor]]):
+    """Samples stored as ``<split>/<class_name>/*.npy``, labeled by folder.
+
+    Files may hold a 1-D series or a 2-D ``[features, time]`` array; for the
+    latter the first feature row is used (v1 dataset layout).
+    """
+
+    def __init__(self, data_dir: str | Path, split: str = "train") -> None:
         self.data_dir = Path(data_dir) / split
-        self.class_names = ["launch", "explosion", "fire", "aircraft", "background"]
-        self.class_to_idx = {name: idx for idx, name in enumerate(self.class_names)}
+        self.class_names = list(EVENT_CLASSES)
+        self.samples: list[tuple[Path, int]] = [
+            (path, label)
+            for label, name in enumerate(self.class_names)
+            for path in sorted((self.data_dir / name).glob("*.npy"))
+        ]
 
-        # Collect all file paths
-        self.samples = []
-        for class_name in self.class_names:
-            class_dir = self.data_dir / class_name
-            for file_path in sorted(class_dir.glob("*.npy")):
-                self.samples.append((file_path, self.class_to_idx[class_name]))
-
-        print(f"  Loaded {len(self.samples)} samples from {split} set")
-
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.samples)
 
-    def __getitem__(self, idx):
-        file_path, label = self.samples[idx]
-        signal = np.load(file_path)
-
-        # Handle 2D arrays
+    def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor]:
+        path, label = self.samples[idx]
+        signal = np.load(path)
         if signal.ndim == 2:
             signal = signal[0]
-
-        # Normalize
-        signal = (signal - np.mean(signal)) / (np.std(signal) + 1e-8)
-
-        # Convert to tensor [1, time_steps]
-        signal_tensor = torch.FloatTensor(signal).unsqueeze(0)
-        label_tensor = torch.LongTensor([label])
-
-        return signal_tensor, label_tensor
+        x = torch.as_tensor(preprocess_signal(signal), dtype=torch.float32)[None, :]
+        return x, torch.tensor([label], dtype=torch.long)

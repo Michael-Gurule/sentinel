@@ -169,157 +169,146 @@ pytest
 
 ### Quick Start: Full System Demo
 
-```python
-from sentinel.pipeline.phase3_pipeline import demo_phase3_system
-
-# Run complete multi-sensor demonstration
-demo_phase3_system()
+```bash
+python -m sentinel.pipeline.phase3_pipeline
 ```
+
+Tracks a moving RF emitter for 10 s while running OPIR detection and
+classification on each frame.
+
+### RF Geolocation (TDOA)
+
+```python
+import numpy as np
+
+from sentinel.geolocation import Receiver, simulate_tdoa, solve_tdoa, tdoa_dop
+
+receivers = [
+    Receiver(0, np.array([0.0, 0.0, 500.0])),
+    Receiver(1, np.array([10_000.0, 0.0, 1_500.0])),
+    Receiver(2, np.array([10_000.0, 10_000.0, 1_000.0])),
+    Receiver(3, np.array([0.0, 10_000.0, 2_000.0])),
+    Receiver(4, np.array([5_000.0, -4_000.0, 6_000.0])),
+]
+emitter = np.array([5_000.0, 5_000.0, 500.0])
+rng = np.random.default_rng(0)
+
+# Per-receiver timing error of 10 ns; TDOAs are correlated through the
+# reference receiver and carry their full covariance.
+measurement = simulate_tdoa(emitter, receivers, toa_std=10e-9, rng=rng)
+result = solve_tdoa(receivers, measurement)  # Chan-Ho init + ML refinement
+
+print(f"Position error: {np.linalg.norm(result.position - emitter):.1f} m")
+print(f"1-sigma RMS:    {np.sqrt(np.trace(result.position_covariance)):.1f} m")
+print(f"GDOP:           {tdoa_dop(emitter, [r.position for r in receivers]).gdop:.2f}")
+```
+
+### Joint TDOA/FDOA (Position and Velocity)
+
+```python
+import numpy as np
+
+from sentinel.geolocation import Receiver, simulate_fdoa, simulate_tdoa, solve_tdoa_fdoa
+
+positions = [
+    [0, 0, 500],
+    [10e3, 0, 1500],
+    [10e3, 10e3, 1000],
+    [0, 10e3, 2000],
+    [5e3, -4e3, 6e3],
+]
+velocities = [[0, 0, 0], [30, 0, 0], [0, -40, 0], [20, 20, 0], [-30, 10, 0]]
+receivers = [
+    Receiver(i, np.array(p, float), np.array(v, float))
+    for i, (p, v) in enumerate(zip(positions, velocities, strict=True))
+]
+emitter, velocity = np.array([5e3, 5e3, 500.0]), np.array([100.0, 50.0, 0.0])
+rng = np.random.default_rng(0)
+
+tdoa = simulate_tdoa(emitter, receivers, toa_std=10e-9, rng=rng)
+fdoa = simulate_fdoa(emitter, velocity, receivers, 1e9, frequency_std=1.0, rng=rng)
+result = solve_tdoa_fdoa(receivers, tdoa, fdoa)
+
+print(f"Velocity estimate: {result.velocity.round(1)} m/s")
+```
+
+Without FDOA the velocity is not observable, and `solve_tdoa_fdoa` returns
+`velocity=None` instead of a meaningless estimate.
+
+### Multi-Sensor Tracking
+
+```python
+import numpy as np
+
+from sentinel.geolocation import simulate_tdoa
+from sentinel.pipeline.phase3_pipeline import SENTINELPhase3Pipeline
+
+pipeline = SENTINELPhase3Pipeline()
+rng = np.random.default_rng(0)
+start, velocity = np.array([5e3, 5e3, 500.0]), np.array([100.0, 50.0, 0.0])
+
+for t in range(10):
+    truth = start + velocity * t
+    pipeline.process_multi_sensor_frame(
+        opir_signals=[],
+        rf_measurements=[simulate_tdoa(truth, pipeline.receivers, 10e-9, rng)],
+        sampling_rate=100.0,
+        timestamp=float(t),
+    )
+
+print(pipeline.get_situation_awareness())
+```
+
+Tracks are maintained by a Kalman filter with a constant-velocity
+(white-noise acceleration) model, χ² gating on the innovation covariance, and
+global-nearest-neighbor assignment. OPIR reports are detected and classified
+but not yet fused into tracks: that requires OPIR geolocation, which is on the
+roadmap.
 
 ### OPIR Detection & Classification
 
 ```python
-from sentinel.models.signal_generator import OPIRSignalGenerator
+import numpy as np
+
 from sentinel.detection.opir_detectors import MultiMethodDetector
 from sentinel.models.cnn_classifier import OPIRClassifier
+from sentinel.models.signal_generator import OPIRSignalGenerator
 
-# Generate signal
-generator = OPIRSignalGenerator()
+generator = OPIRSignalGenerator(rng=np.random.default_rng(0))
 signal = generator.generate_launch_signature(start_time=2.0)
 
-# Detect event
-detector = MultiMethodDetector()
-detection = detector.detect(signal, generator.sampling_rate)
-
-# Classify event
-classifier = OPIRClassifier(device="cpu")
-classification = classifier.classify(signal)
+detection = MultiMethodDetector().detect(signal, generator.sampling_rate)
+classification = OPIRClassifier().classify(
+    signal
+)  # pass model_path= for trained weights
 
 print(f"Detected: {detection.detected}")
-print(f"Event type: {classification.class_name}")
-print(f"Confidence: {classification.confidence:.3f}")
-```
-
-### RF Geolocation
-
-```python
-from sentinel.geolocation.tdoa_fdoa import (
-    HybridTDOAFDOA,
-    SensorPosition,
-    simulate_tdoa_measurements,
-)
-import numpy as np
-
-# Define sensor network (mixed altitude deployment)
-sensors = [
-    SensorPosition(id=0, position=np.array([0.0, 0.0, 500.0])),
-    SensorPosition(id=1, position=np.array([10000.0, 0.0, 1500.0])),
-    SensorPosition(id=2, position=np.array([10000.0, 10000.0, 1000.0])),
-    SensorPosition(id=3, position=np.array([0.0, 10000.0, 2000.0])),
-]
-
-# Simulate measurements
-emitter_pos = np.array([5000.0, 5000.0, 500.0])
-measurements = simulate_tdoa_measurements(emitter_pos, sensors)
-
-# Geolocate emitter
-solver = HybridTDOAFDOA(carrier_freq=1e9)
-result = solver.estimate(sensors, measurements)
-
-print(f"Estimated position: {result.position}")
-print(f"Position error: {np.linalg.norm(result.position - emitter_pos):.1f} m")
-print(f"GDOP: {result.gdop:.3f}")
-```
-
-### Multi-Sensor Fusion
-
-```python
-from sentinel.pipeline.phase3_pipeline import SENTINELPhase3Pipeline
-from sentinel.models.signal_generator import OPIRSignalGenerator
-from sentinel.geolocation.tdoa_fdoa import simulate_tdoa_measurements
-import numpy as np
-
-# Initialize system
-pipeline = SENTINELPhase3Pipeline()
-
-# Generate multi-sensor frame
-generator = OPIRSignalGenerator()
-opir_signals = [generator.generate_launch_signature(start_time=2.0)]
-
-emitter_pos = np.array([5000.0, 5000.0, 500.0])
-rf_measurements = [simulate_tdoa_measurements(emitter_pos, pipeline.sensors)]
-
-# Process frame
-result = pipeline.process_multi_sensor_frame(
-    opir_signals=opir_signals,
-    rf_measurements=rf_measurements,
-    sampling_rate=generator.sampling_rate,
-    timestamp=0.0,
-)
-
-print(f"OPIR detections: {result['opir_detections']}")
-print(f"RF geolocations: {result['rf_geolocations']}")
-print(f"Fused tracks: {result['fused_tracks']}")
-
-# Get situation awareness
-sa = pipeline.get_situation_awareness()
-print(f"Track quality: {sa['average_track_quality']:.3f}")
+print(f"Event type: {classification.class_name} ({classification.confidence:.2f})")
 ```
 
 ### Training the CNN Classifier
 
-```python
-from sentinel.training.train_classifier import train_model_from_folders
-
-# Train model on generated dataset
-history = train_model_from_folders(
-    train_dir="data/synthetic/opir/train",
-    val_dir="data/synthetic/opir/validation",
-    output_dir="outputs/models",
-    num_epochs=50,
-    batch_size=32,
-    device="cpu",  # or 'cuda' for GPU
-)
-
-print(f"Best validation accuracy: {max(history['val_acc']):.2f}%")
+```bash
+python scripts/generate_opir_dataset.py --samples 2000 --seed 0
+python scripts/train_cnn_simple.py
+python scripts/evaluate_cnn.py
 ```
+
+The dataset is fully determined by `--seed`.
 
 ## Testing
 
-### Run Individual Component Tests
-
 ```bash
-# Test signal generation
-python tests/test_0_generator.py
-
-# Test detection algorithms
-python tests/test_1_detection.py
-
-# Test CNN architecture
-python tests/test_2_cnn.py
-
-# Test TDOA/FDOA geolocation
-python tests/test_6_tdoa_fdoa.py
-
-# Test multilateration
-python tests/test_7_multilateration.py
-
-# Test sensor fusion
-python tests/test_8_sensor_fusion.py
-
-# Test complete system
-python tests/test_9_full_system.py
+make check   # lint, format check, strict type check, tests, coverage gate
+make test    # tests only
 ```
 
-### Expected Test Results
-
-- Detection algorithms: 75-100% detection rate
-- CNN forward pass: Successful with 4-5 classes
-- Kalman tracking: <5m mean error over 10 steps
-- TDOA geolocation: <50m position error (4 sensors, low noise)
-- FDOA velocity estimation: <20 m/s velocity error
-- Sensor fusion: Track quality >0.7 for high-confidence tracks
-- Full system: Successfully creates and maintains fused tracks
+| Suite | Contents |
+|---|---|
+| `tests/unit/` | Per-module tests, including Monte Carlo consistency checks (NEES/NIS within χ² bounds) and exactness on noiseless data |
+| `tests/property/` | Hypothesis property tests: covariance stays PSD, GNN matches brute force, estimates are invariant to measurement order and translation |
+| `tests/integration/` | End-to-end pipeline scenarios |
+| `tests/characterization/` | One test per defect found in the v1 audit; open defects are strict expected failures |
 
 ## Performance Metrics
 

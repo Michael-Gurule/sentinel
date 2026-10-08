@@ -11,12 +11,14 @@ import numpy as np
 from tqdm import tqdm
 
 from sentinel.models.signal_generator import OPIRSignalGenerator
+from sentinel.models.taxonomy import EVENT_CLASSES
 
 
 def generate_dataset(
     num_samples_per_class: int = 2000,  # samples per event type
     output_dir: str = "data/synthetic/opir",  # output directory
     sequence_length: int = 100,  # length of each sequence in frames
+    seed: int = 0,  # RNG seed; the same seed reproduces the same dataset
 ):
     """
     Generate complete OPIR training dataset
@@ -25,6 +27,7 @@ def generate_dataset(
         num_samples_per_class: Number of samples per event type
         output_dir: Output directory for dataset
         sequence_length: Length of each sequence in frames
+        seed: Random seed for event parameters and noise
     """
 
     print("\n" + "=" * 70)
@@ -33,7 +36,7 @@ def generate_dataset(
 
     # Create directory structure
     splits = ["train", "validation", "test"]
-    classes = ["launch", "explosion", "fire", "aircraft", "background"]
+    classes = list(EVENT_CLASSES)
 
     for split in splits:
         for cls in classes:
@@ -42,7 +45,10 @@ def generate_dataset(
     # Split ratios
     split_ratios = {"train": 0.7, "validation": 0.15, "test": 0.15}
 
-    generator = OPIRSignalGenerator(sample_rate_hz=1.0, duration_s=sequence_length)
+    rng = np.random.default_rng(seed)
+    generator = OPIRSignalGenerator(
+        duration_s=sequence_length, sample_rate_hz=1.0, rng=rng
+    )
 
     # Generate for each class
     for class_name in classes:
@@ -73,13 +79,13 @@ def generate_dataset(
                     events = [
                         {
                             "type": "launch",
-                            "start_time": np.random.uniform(10, 20),
+                            "start_time": rng.uniform(10, 20),
                             "lat": 0,
                             "lon": 0,
-                            "peak_temp": np.random.uniform(3000, 4500),
-                            "rise_time": np.random.uniform(2, 5),
-                            "sustain_duration": np.random.uniform(20, 60),
-                            "decay_time": np.random.uniform(30, 50),
+                            "peak_temp": rng.uniform(3000, 4500),
+                            "rise_time": rng.uniform(2, 5),
+                            "sustain_duration": rng.uniform(20, 60),
+                            "decay_time": rng.uniform(30, 50),
                         }
                     ]
 
@@ -87,12 +93,12 @@ def generate_dataset(
                     events = [
                         {
                             "type": "explosion",
-                            "start_time": np.random.uniform(10, 20),
+                            "start_time": rng.uniform(10, 20),
                             "lat": 0,
                             "lon": 0,
-                            "peak_temp": np.random.uniform(4000, 6000),
-                            "flash_duration": np.random.uniform(1, 3),
-                            "decay_time": np.random.uniform(5, 15),
+                            "peak_temp": rng.uniform(4000, 6000),
+                            "flash_duration": rng.uniform(1, 3),
+                            "decay_time": rng.uniform(5, 15),
                         }
                     ]
 
@@ -100,12 +106,12 @@ def generate_dataset(
                     events = [
                         {
                             "type": "fire",
-                            "start_time": np.random.uniform(5, 15),
+                            "start_time": rng.uniform(5, 15),
                             "lat": 0,
                             "lon": 0,
-                            "peak_temp": np.random.uniform(800, 1800),
-                            "growth_time": np.random.uniform(30, 80),
-                            "sustain_duration": np.random.uniform(0, 30),
+                            "peak_temp": rng.uniform(800, 1800),
+                            "growth_time": rng.uniform(30, 80),
+                            "sustain_duration": rng.uniform(0, 30),
                         }
                     ]
 
@@ -113,11 +119,11 @@ def generate_dataset(
                     events = [
                         {
                             "type": "aircraft",
-                            "start_time": np.random.uniform(10, 30),
+                            "start_time": rng.uniform(10, 30),
                             "lat": 0,
                             "lon": 0,
-                            "peak_temp": np.random.uniform(800, 1200),
-                            "transit_duration": np.random.uniform(20, 50),
+                            "peak_temp": rng.uniform(800, 1200),
+                            "transit_duration": rng.uniform(20, 50),
                         }
                     ]
 
@@ -141,6 +147,7 @@ def generate_dataset(
         "num_samples_per_class": num_samples_per_class,
         "sequence_length": sequence_length,
         "classes": classes,
+        "seed": seed,
         "splits": split_counts,
         "features": ["max_temp", "mean_temp", "std_temp", "rise_rate"],
     }
@@ -203,6 +210,7 @@ if __name__ == "__main__":
         "--output", type=str, default="data/synthetic/opir", help="Output directory"
     )
     parser.add_argument("--length", type=int, default=100, help="Sequence length")
+    parser.add_argument("--seed", type=int, default=0, help="Random seed")
 
     args = parser.parse_args()
 
@@ -210,4 +218,5 @@ if __name__ == "__main__":
         num_samples_per_class=args.samples,
         output_dir=args.output,
         sequence_length=args.length,
+        seed=args.seed,
     )

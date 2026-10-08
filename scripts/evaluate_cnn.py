@@ -13,7 +13,11 @@ import torch
 from sklearn.metrics import classification_report, confusion_matrix
 from torch.utils.data import DataLoader
 
-from sentinel.models.cnn_classifier import OPIREventCNN
+from sentinel.models.cnn_classifier import (
+    OPIREventCNN,
+    load_state_dict,
+    select_device,
+)
 from sentinel.training.datasets import FolderDataset
 
 
@@ -149,12 +153,7 @@ def main():
     OUTPUT_DIR = "outputs/evaluation"
 
     # Auto-detect device
-    if torch.backends.mps.is_available():
-        DEVICE = "mps"
-    elif torch.cuda.is_available():
-        DEVICE = "cuda"
-    else:
-        DEVICE = "cpu"
+    DEVICE = str(select_device())
 
     # Create output directory
     output_path = Path(OUTPUT_DIR)
@@ -175,17 +174,12 @@ def main():
 
     # Load model
     print(f"\nLoading trained model from {MODEL_PATH}...")
-    sample_signal, _ = test_dataset[0]
-    input_length = sample_signal.shape[1]
-
-    model = OPIREventCNN(input_length=input_length, num_classes=5, dropout_rate=0.3)
-
-    checkpoint = torch.load(MODEL_PATH, map_location=DEVICE)
-    model.load_state_dict(checkpoint["model_state_dict"])
+    model = OPIREventCNN()
+    info = load_state_dict(model, MODEL_PATH, torch.device(DEVICE))
     model = model.to(DEVICE)
 
-    print(f"  Loaded model from epoch {checkpoint['epoch']}")
-    print(f"  Validation accuracy during training: {checkpoint['val_acc']:.2f}%")
+    print(f"  Loaded model from epoch {info.get('epoch', 'unknown')}")
+    print(f"  Validation accuracy during training: {info.get('val_acc', 'unknown')}")
 
     # Evaluate on test set
     print("\nEvaluating on test set...")

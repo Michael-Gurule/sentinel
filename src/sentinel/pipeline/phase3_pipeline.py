@@ -1,407 +1,200 @@
 """
-Phase 3 Integration Pipeline
-Complete multi-sensor fusion system combining OPIR and RF intelligence
+Multi-sensor processing pipeline: OPIR detection/classification, RF
+geolocation, and track fusion.
+
+OPIR reports are detected and classified but not yet fused: OPIR has no
+position until line-of-sight geolocation lands in Phase 5 (audit defect C1).
+This module is replaced by a configurable runner in Phase 6.
 """
+
+import json
+import logging
+from collections.abc import Sequence
+from dataclasses import dataclass
+from pathlib import Path
 
 import numpy as np
 
-from ..detection.opir_detectors import MultiMethodDetector
-from ..fusion.sensor_fusion import (
-    FusedTrack,
-    SensorFusionEngine,
-    SensorMeasurement,
-    convert_opir_to_measurement,
-    convert_rf_to_measurement,
+from sentinel.core.errors import GeometryError, InsufficientMeasurementsError
+from sentinel.core.linalg import FloatArray
+from sentinel.detection.opir_detectors import DetectionResult, MultiMethodDetector
+from sentinel.fusion.engine import FusionEngine
+from sentinel.fusion.measurements import rf_measurement
+from sentinel.geolocation.hybrid import solve_tdoa_fdoa
+from sentinel.geolocation.measurements import (
+    FDOAMeasurement,
+    Receiver,
+    TDOAMeasurement,
 )
-from ..geolocation.multilateration import (
-    SphericalMultilateration,
-)
-from ..geolocation.tdoa_fdoa import (
-    FDOAGeolocation,
-    GeolocationMeasurement,
-    HybridTDOAFDOA,
-    SensorPosition,
-    TDOAGeolocation,
-)
-from ..models.cnn_classifier import OPIRClassifier
+from sentinel.models.cnn_classifier import ClassificationResult, OPIRClassifier
+from sentinel.tracking.tracker import LinearMeasurement, Track
+
+logger = logging.getLogger(__name__)
+
+RFInput = TDOAMeasurement | tuple[TDOAMeasurement, FDOAMeasurement | None]
+
+
+@dataclass(frozen=True, eq=False)
+class OPIRReport:
+    """Detected and classified OPIR event (not yet geolocated)."""
+
+    timestamp: float
+    detection: DetectionResult
+    classification: ClassificationResult
+
+
+def default_receiver_network() -> list[Receiver]:
+    """Five stationary receivers at mixed altitudes.
+
+    Altitude diversity keeps the vertical geometry observable; five receivers
+    give four TDOAs, enough for the closed-form Chan-Ho initializer.
+    """
+    positions = [
+        [0.0, 0.0, 500.0],  # ground station
+        [10_000.0, 0.0, 1_500.0],  # low-altitude ISR aircraft
+        [10_000.0, 10_000.0, 1_000.0],  # medium-altitude platform
+        [0.0, 10_000.0, 2_000.0],  # high-altitude ISR
+        [5_000.0, -4_000.0, 6_000.0],  # stand-off high-altitude platform
+    ]
+    return [Receiver(i, np.array(p)) for i, p in enumerate(positions)]
+
+
+def track_to_dict(track: Track) -> dict[str, object]:
+    return {
+        "track_id": track.id,
+        "position": track.position.tolist(),
+        "velocity": track.velocity.tolist(),
+        "position_rms_uncertainty_m": track.position_rms_uncertainty,
+        "velocity_rms_uncertainty_mps": float(
+            np.sqrt(np.trace(track.velocity_covariance))
+        ),
+        "label": track.label,
+        "hits_by_source": dict(track.hits_by_source),
+        "created": track.created,
+        "last_update": track.last_update,
+    }
 
 
 class SENTINELPhase3Pipeline:
-    """
-    Complete SENTINEL Multi-INT Platform
-    Integrates OPIR detection, RF geolocation, and multi-sensor fusion
-    """
+    """OPIR + RF processing with centralized track fusion."""
 
     def __init__(
         self,
         model_path: str | None = None,
-        carrier_freq: float = 1e9,
         device: str = "cpu",
-    ):
-        """
-        Args:
-            model_path: Path to trained CNN model
-            carrier_freq: RF carrier frequency for FDOA
-            device: Device for CNN inference
-        """
-        # OPIR components
+        receivers: Sequence[Receiver] | None = None,
+        fusion_engine: FusionEngine | None = None,
+    ) -> None:
         self.opir_detector = MultiMethodDetector()
         self.opir_classifier = OPIRClassifier(model_path=model_path, device=device)
-
-        # RF geolocation components
-        self.tdoa_solver = TDOAGeolocation()
-        self.fdoa_solver = FDOAGeolocation(carrier_freq=carrier_freq)
-        self.hybrid_solver = HybridTDOAFDOA(carrier_freq=carrier_freq)
-        self.multilateration = SphericalMultilateration(method="nonlinear")
-
-        # Fusion engine
-        self.fusion_engine = SensorFusionEngine(
-            max_coast_time=10.0,  # 10 seconds max without updates
-            min_confidence=0.15,  # Lower threshold for noisy environments
-            gate_threshold=2000.0,  # 2km association gate (typical for this scale)
-        )
-
-        # Sensor network (example configuration)
-        self.sensors = self._initialize_sensor_network()
-
-        # Processing history
-        self.processing_history = []
-        self.current_time = 0.0
-
-    def _initialize_sensor_network(self) -> list[SensorPosition]:
-        """
-        Initialize realistic multi-altitude sensor network
-
-        Simulates mixed deployment of ground-based, airborne, and
-        high-altitude sensors typical of actual ISR systems.
-        Varying altitudes provide 3D geometric diversity for improved
-        positioning accuracy (lower GDOP).
-
-        Returns:
-            List of sensor positions
-        """
-
-        sensors = [
-            SensorPosition(
-                id=0,
-                position=np.array([0.0, 0.0, 500.0]),  # Ground-based SIGINT station
-                velocity=np.array([0.0, 0.0, 0.0]),
-            ),
-            SensorPosition(
-                id=1,
-                position=np.array([10000.0, 0.0, 1500.0]),  # Low-altitude ISR aircraft
-                velocity=np.array([0.0, 0.0, 0.0]),
-            ),
-            SensorPosition(
-                id=2,
-                position=np.array(
-                    [10000.0, 10000.0, 1000.0]
-                ),  # Medium-altitude platform
-                velocity=np.array([0.0, 0.0, 0.0]),
-            ),
-            SensorPosition(
-                id=3,
-                position=np.array(
-                    [0.0, 10000.0, 2000.0]
-                ),  # High-altitude ISR (Global Hawk class)
-                velocity=np.array([0.0, 0.0, 0.0]),
-            ),
-        ]
-        return sensors
+        self.receivers = list(receivers or default_receiver_network())
+        self.fusion_engine = fusion_engine or FusionEngine()
+        self.processing_history: list[dict[str, object]] = []
 
     def process_opir_signal(
-        self, signal: np.ndarray, sampling_rate: float, timestamp: float
-    ) -> SensorMeasurement | None:
-        """
-        Process OPIR signal through detection and classification
-
-        Args:
-            signal: OPIR intensity time series
-            sampling_rate: Sampling rate in Hz
-            timestamp: Signal timestamp
-
-        Returns:
-            SensorMeasurement if event detected, None otherwise
-        """
-        # Step 1: Detection
+        self, signal: FloatArray, sampling_rate: float, timestamp: float
+    ) -> OPIRReport | None:
+        """Detect and classify an OPIR intensity time series."""
         detection = self.opir_detector.detect(signal, sampling_rate)
-
         if not detection.detected:
             return None
-
-        # Step 2: Classification
-        classification = self.opir_classifier.classify(signal)
-
-        # Step 3: Convert to measurement (no position yet, just detection)
-        measurement = convert_opir_to_measurement(
-            detection=detection,
-            classification=classification,
+        return OPIRReport(
             timestamp=timestamp,
-            position=None,  # OPIR alone doesn't provide position
+            detection=detection,
+            classification=self.opir_classifier.classify(signal),
         )
 
-        return measurement
-
-    def process_rf_measurements(
-        self,
-        rf_measurements: list[GeolocationMeasurement],
-        timestamp: float,
-        use_hybrid: bool = True,
-    ) -> SensorMeasurement | None:
-        """
-        Process RF measurements to estimate emitter position
-
-        Args:
-            rf_measurements: TDOA/FDOA measurements from sensor pairs
-            timestamp: Measurement timestamp
-            use_hybrid: Use hybrid TDOA/FDOA if True
-
-        Returns:
-            SensorMeasurement with position estimate
-        """
-        if use_hybrid:
-            # Use hybrid solver for best accuracy
-            result = self.hybrid_solver.estimate(
-                sensors=self.sensors, measurements=rf_measurements
-            )
-        else:
-            # Use TDOA only
-            result = self.tdoa_solver.estimate_position(
-                sensors=self.sensors, measurements=rf_measurements
-            )
-
-        if not result.converged:
+    def process_rf_measurements(self, rf_input: RFInput) -> LinearMeasurement | None:
+        """Geolocate an emitter; ``None`` if the geometry cannot support a fix."""
+        tdoa, fdoa = rf_input if isinstance(rf_input, tuple) else (rf_input, None)
+        try:
+            result = solve_tdoa_fdoa(self.receivers, tdoa, fdoa)
+        except (GeometryError, InsufficientMeasurementsError) as exc:
+            logger.warning("RF geolocation failed: %s", exc)
             return None
-
-        # Convert to sensor measurement
-        measurement = convert_rf_to_measurement(geolocation=result, timestamp=timestamp)
-
-        return measurement
+        if not result.converged:
+            logger.warning("RF geolocation did not converge")
+            return None
+        return rf_measurement(result)
 
     def process_multi_sensor_frame(
         self,
-        opir_signals: list[np.ndarray],
-        rf_measurements: list[list[GeolocationMeasurement]],
+        opir_signals: Sequence[FloatArray],
+        rf_measurements: Sequence[RFInput],
         sampling_rate: float,
         timestamp: float,
-    ) -> dict:
-        """
-        Process synchronized frame from multiple sensors
+    ) -> dict[str, object]:
+        """Process one synchronized frame from all sensors."""
+        opir_reports = [
+            report
+            for signal in opir_signals
+            if (report := self.process_opir_signal(signal, sampling_rate, timestamp))
+        ]
+        rf_fixes = [self.process_rf_measurements(m) for m in rf_measurements]
+        measurements = [m for m in rf_fixes if m is not None]
 
-        Args:
-            opir_signals: List of OPIR signals from different sensors
-            rf_measurements: List of RF measurement sets
-            sampling_rate: OPIR sampling rate
-            timestamp: Frame timestamp
-
-        Returns:
-            Processing result dictionary
-        """
-        self.current_time = timestamp
-
-        result = {
+        tracks = self.fusion_engine.process(measurements, timestamp)
+        result: dict[str, object] = {
             "timestamp": timestamp,
-            "opir_detections": 0,
-            "rf_geolocations": 0,
-            "fused_tracks": 0,
-            "measurements": [],
+            "opir_detections": len(opir_reports),
+            "opir_labels": [r.classification.class_name for r in opir_reports],
+            "rf_geolocations": len(measurements),
+            "rf_failures": len(rf_fixes) - len(measurements),
+            "fused_tracks": len(tracks),
+            "tracks": [track_to_dict(t) for t in tracks],
         }
-
-        # Process OPIR signals
-        for signal in opir_signals:
-            opir_meas = self.process_opir_signal(signal, sampling_rate, timestamp)
-            if opir_meas is not None:
-                result["measurements"].append(opir_meas)
-                result["opir_detections"] += 1
-
-        # Process RF measurements
-        for rf_meas_set in rf_measurements:
-            rf_meas = self.process_rf_measurements(rf_meas_set, timestamp)
-            if rf_meas is not None:
-                result["measurements"].append(rf_meas)
-                result["rf_geolocations"] += 1
-
-        # Fuse all measurements
-        if result["measurements"]:
-            self.fusion_engine.process_measurements(
-                measurements=result["measurements"], timestamp=timestamp
-            )
-
-        # Get current tracks
-        tracks = self.fusion_engine.get_tracks()
-        result["fused_tracks"] = len(tracks)
-        result["tracks"] = [self._track_to_dict(t) for t in tracks]
-
-        # Store in history
         self.processing_history.append(result)
-
         return result
 
-    def _track_to_dict(self, track: FusedTrack) -> dict:
-        """Convert FusedTrack to dictionary"""
-        return {
-            "track_id": track.track_id,
-            "position": track.position.tolist(),
-            "velocity": track.velocity.tolist(),
-            "confidence": track.confidence,
-            "event_type": track.event_type,
-            "position_uncertainty": track.position_uncertainty,
-            "velocity_uncertainty": track.velocity_uncertainty,
-            "track_quality": track.track_quality,
-            "opir_detections": track.opir_detections,
-            "rf_detections": track.rf_detections,
-        }
+    def get_situation_awareness(self) -> dict[str, object]:
+        """Summary of the current track picture."""
+        return self.fusion_engine.summary()
 
-    def get_situation_awareness(self) -> dict:
-        """
-        Get overall situation awareness summary
+    def get_track_by_id(self, track_id: int) -> Track | None:
+        return next((t for t in self.fusion_engine.tracks if t.id == track_id), None)
 
-        Returns:
-            Situation summary dictionary
-        """
-        tracks = self.fusion_engine.get_tracks()
-        high_quality = self.fusion_engine.get_high_quality_tracks(min_quality=0.6)
-
-        # Count by event type
-        event_counts = {}
-        for track in tracks:
-            event_type = track.event_type or "unknown"
-            event_counts[event_type] = event_counts.get(event_type, 0) + 1
-
-        # Average track quality
-        avg_quality = np.mean([t.track_quality for t in tracks]) if tracks else 0.0
-
-        # Sensor health (simplified)
-        opir_active = sum(1 for t in tracks if t.opir_detections > 0)
-        rf_active = sum(1 for t in tracks if t.rf_detections > 0)
-
-        return {
-            "total_tracks": len(tracks),
-            "high_quality_tracks": len(high_quality),
-            "average_track_quality": avg_quality,
-            "event_type_distribution": event_counts,
-            "opir_active_tracks": opir_active,
-            "rf_active_tracks": rf_active,
-            "fusion_ratio": rf_active / max(len(tracks), 1),
-            "current_time": self.current_time,
-        }
-
-    def get_track_by_id(self, track_id: int) -> FusedTrack | None:
-        """Get specific track by ID"""
-        for track in self.fusion_engine.get_tracks():
-            if track.track_id == track_id:
-                return track
-        return None
-
-    def export_tracks_to_file(self, filepath: str):
-        """
-        Export current tracks to file
-
-        Args:
-            filepath: Output file path
-        """
-        import json
-
-        tracks = self.fusion_engine.get_tracks()
+    def export_tracks_to_file(self, filepath: str | Path) -> None:
         data = {
-            "timestamp": self.current_time,
-            "tracks": [self._track_to_dict(t) for t in tracks],
+            "tracks": [track_to_dict(t) for t in self.fusion_engine.tracks],
             "situation_awareness": self.get_situation_awareness(),
         }
-
-        with open(filepath, "w") as f:
-            json.dump(data, f, indent=2)
+        Path(filepath).write_text(json.dumps(data, indent=2))
 
 
-def demo_phase3_system():
-    """Demonstration of complete Phase 3 system"""
-    print("=" * 70)
-    print("SENTINEL PHASE 3 MULTI-SENSOR FUSION DEMO")
-    print("=" * 70)
+def demo_phase3_system(seed: int = 0) -> None:
+    """Track a moving emitter for 10 s and print the fused picture."""
+    from sentinel.geolocation.simulate import simulate_tdoa
+    from sentinel.models.signal_generator import OPIRSignalGenerator
 
-    # Initialize system
-    print("\n1. Initializing SENTINEL system...")
+    rng = np.random.default_rng(seed)
     pipeline = SENTINELPhase3Pipeline()
-    print("   ✓ OPIR detector initialized")
-    print("   ✓ RF geolocation initialized")
-    print("   ✓ Sensor fusion engine initialized")
-    print(f"   ✓ Sensor network: {len(pipeline.sensors)} sensors")
+    generator = OPIRSignalGenerator(rng=rng)
+    start, velocity = np.array([5_000.0, 5_000.0, 500.0]), np.array([100.0, 50.0, 0])
 
-    # Generate synthetic scenario
-    print("\n2. Generating synthetic multi-sensor scenario...")
-    from ..geolocation.tdoa_fdoa import simulate_tdoa_measurements
-    from ..models.signal_generator import OPIRSignalGenerator
-
-    generator = OPIRSignalGenerator()
-
-    # Simulate moving emitter
-    emitter_positions = []
-    emitter_velocity = np.array([100.0, 50.0, 0.0])  # m/s
-    start_pos = np.array([5000.0, 5000.0, 500.0])
-
-    num_frames = 10
-
-    for frame in range(num_frames):
-        timestamp = frame * 1.0  # 1 second per frame
-        emitter_pos = start_pos + emitter_velocity * timestamp
-        emitter_positions.append(emitter_pos)
-
-        # Generate OPIR signals (multiple sensors)
-        opir_signals = []
-        for _ in range(2):  # 2 OPIR sensors
-            signal = generator.generate_launch_signature(start_time=2.0)
-            opir_signals.append(signal)
-
-        # Generate RF measurements
-        rf_measurements = [
-            simulate_tdoa_measurements(
-                emitter_pos=emitter_pos, sensors=pipeline.sensors, noise_std=1e-8
-            )
-        ]
-
-        # Process frame
+    print("SENTINEL multi-sensor demo")
+    for frame in range(10):
+        t = float(frame)
         result = pipeline.process_multi_sensor_frame(
-            opir_signals=opir_signals,
-            rf_measurements=rf_measurements,
+            opir_signals=[generator.generate_launch_signature(start_time=2.0)],
+            rf_measurements=[
+                simulate_tdoa(start + velocity * t, pipeline.receivers, 10e-9, rng)
+            ],
             sampling_rate=generator.sampling_rate,
-            timestamp=timestamp,
-        )
-
-        print(f"\n   Frame {frame}: t={timestamp:.1f}s")
-        print(f"      OPIR detections: {result['opir_detections']}")
-        print(f"      RF geolocations: {result['rf_geolocations']}")
-        print(f"      Fused tracks: {result['fused_tracks']}")
-
-    # Display final situation awareness
-    print("\n3. Final Situation Awareness:")
-    print("-" * 70)
-
-    sa = pipeline.get_situation_awareness()
-    for key, value in sa.items():
-        print(f"   {key}: {value}")
-
-    # Display track details
-    print("\n4. Track Details:")
-    print("-" * 70)
-
-    tracks = pipeline.fusion_engine.get_tracks()
-    for track in tracks:
-        print(f"\n   Track {track.track_id}:")
-        print(
-            f"      Position: [{track.position[0]:.1f}, {track.position[1]:.1f}, {track.position[2]:.1f}] m"
+            timestamp=t,
         )
         print(
-            f"      Velocity: [{track.velocity[0]:.1f}, {track.velocity[1]:.1f}, {track.velocity[2]:.1f}] m/s"
+            f"t={t:4.1f}s  OPIR detections={result['opir_detections']}  "
+            f"RF fixes={result['rf_geolocations']}  tracks={result['fused_tracks']}"
         )
-        print(f"      Confidence: {track.confidence:.3f}")
-        print(f"      Quality: {track.track_quality:.3f}")
-        print(f"      Event type: {track.event_type}")
-        print(f"      OPIR detections: {track.opir_detections}")
-        print(f"      RF detections: {track.rf_detections}")
 
-    print("\n" + "=" * 70)
-    print("PHASE 3 DEMO COMPLETE")
-    print("=" * 70)
+    truth = start + velocity * 9.0
+    for track in pipeline.fusion_engine.tracks:
+        error = np.linalg.norm(track.position - truth)
+        print(
+            f"track {track.id}: position error {error:.1f} m, "
+            f"velocity {np.round(track.velocity, 1)} m/s, "
+            f"RMS uncertainty {track.position_rms_uncertainty:.1f} m"
+        )
 
 
 if __name__ == "__main__":

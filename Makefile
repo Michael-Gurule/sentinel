@@ -33,10 +33,14 @@ typecheck:  ## Static type check (mypy, strict with legacy ratchet)
 test:  ## Run the test suite
 	MPLBACKEND=Agg $(PYTHON) -m pytest
 
-cov:  ## Run tests with coverage report
-	MPLBACKEND=Agg $(PYTHON) -m pytest --cov --cov-report=term-missing --cov-report=xml
+# Packages whose correctness the project's results depend on; gated at 85%.
+CORE_COVERAGE = src/sentinel/core/*,src/sentinel/geolocation/*,src/sentinel/tracking/*,src/sentinel/fusion/*
 
-check: lint typecheck test  ## Everything CI runs
+cov:  ## Run tests with coverage; enforce >=85% on core packages
+	MPLBACKEND=Agg $(PYTHON) -m pytest --cov --cov-report=term-missing --cov-report=xml
+	$(PYTHON) -m coverage report --include="$(CORE_COVERAGE)" --fail-under=85
+
+check: lint typecheck cov  ## Everything CI runs
 
 clean:  ## Remove caches and build artifacts
 	rm -rf .pytest_cache .mypy_cache .ruff_cache .hypothesis htmlcov .coverage coverage.xml build dist

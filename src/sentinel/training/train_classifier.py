@@ -12,7 +12,8 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, Dataset
 
-from ..models.cnn_classifier import OPIREventCNN
+from sentinel.models.cnn_classifier import OPIREventCNN
+from sentinel.models.taxonomy import preprocess_signal
 
 
 class OPIRDataset(Dataset):
@@ -37,7 +38,7 @@ class OPIRDataset(Dataset):
         label = self.labels[idx]
 
         # Normalize
-        signal = (signal - np.mean(signal)) / (np.std(signal) + 1e-8)
+        signal = preprocess_signal(signal)
 
         if self.transform:
             signal = self.transform(signal)
@@ -268,7 +269,7 @@ class ModelTrainer:
 
     def load_checkpoint(self, path: str):
         """Load model checkpoint"""
-        checkpoint = torch.load(path, map_location=self.device)
+        checkpoint = torch.load(path, map_location=self.device, weights_only=True)
         self.model.load_state_dict(checkpoint["model_state_dict"])
         self.optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
         self.history = checkpoint.get("history", self.history)
@@ -280,6 +281,7 @@ def prepare_data_loaders(
     train_split: float = 0.8,
     batch_size: int = 32,
     shuffle: bool = True,
+    rng: np.random.Generator | None = None,
 ) -> tuple[DataLoader, DataLoader]:
     """
     Prepare train and validation data loaders
@@ -299,7 +301,7 @@ def prepare_data_loaders(
     n_train = int(n_samples * train_split)
 
     if shuffle:
-        indices = np.random.permutation(n_samples)
+        indices = (rng or np.random.default_rng()).permutation(n_samples)
         signals = signals[indices]
         labels = labels[indices]
 
@@ -362,7 +364,7 @@ def train_model_from_data(
 
     # Initialize model
     print("\nInitializing model...")
-    model = OPIREventCNN(input_length=signals.shape[1])
+    model = OPIREventCNN()
 
     # Initialize trainer
     trainer = ModelTrainer(model=model, device=device, learning_rate=learning_rate)

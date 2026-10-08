@@ -58,32 +58,18 @@ select = [
 ]
 # The formatter owns line length; long f-strings/URLs are tolerated.
 ignore = ["E501"]
-# Greek letters are intentional in math/estimation output (e.g., σ).
-allowed-confusables = ["σ"]
+# Math notation in docstrings and output is intentional.
+allowed-confusables = ["σ", "α", "ν", "ρ", "γ", "×"]
 
 # Known-debt register (v1 code). Each entry is removed when the module is
 # rewritten; the lint must stay clean everywhere else.
-#   E722   bare `except:`             -> Phase 1 (typed errors, explicit status)
-#   B905   zip() without strict=       -> Phase 1 (length mismatches must raise)
-#   NPY002 global np.random state      -> Phase 2 (injected np.random.Generator)
+#   B905   zip() without strict=       -> Phase 3 (detection/evaluation rewrite)
+#   NPY002 global np.random state      -> Phase 2 (simulator rewrite)
 [tool.ruff.lint.per-file-ignores]
 "src/sentinel/detection/opir_detectors.py" = ["B905"]
-"src/sentinel/fusion/sensor_fusion.py" = ["E722"]
-"src/sentinel/geolocation/multilateration.py" = ["E722", "NPY002"]
-"src/sentinel/geolocation/tdoa_fdoa.py" = ["E722", "NPY002"]
-"src/sentinel/inference/opir_inference.py" = ["B905"]
 "src/sentinel/models/rf_generator.py" = ["NPY002"]
-"src/sentinel/models/signal_generator.py" = ["NPY002"]
-"src/sentinel/pipeline/phase2_pipeline.py" = ["NPY002"]
-"src/sentinel/training/train_classifier.py" = ["NPY002"]
 "src/sentinel/utils/geospatial.py" = ["NPY002"]
 "scripts/evaluate_cnn.py" = ["B905"]
-"scripts/generate_opir_dataset.py" = ["NPY002"]
-# v1 print-style tests are replaced wholesale in Phase 1.
-"tests/test_*.py" = ["E722", "B905", "NPY002"]
-
-[tool.ruff.lint.isort]
-known-first-party = ["sentinel"]
 
 [tool.mypy]
 python_version = "3.12"
@@ -92,23 +78,14 @@ strict = true
 warn_unreachable = true
 enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
 
-# Legacy ratchet: v1 modules type-checked leniently until rewritten.
+# Legacy ratchet: v1 modules type-checked leniently until rewritten
+# (detection, training loop -> Phase 3; RF generator, utils -> Phase 2).
 # Remove a module from this list when it is rewritten; new modules are
 # always strict.
 [[tool.mypy.overrides]]
 module = [
     "sentinel.detection.opir_detectors",
-    "sentinel.fusion.sensor_fusion",
-    "sentinel.geolocation.multilateration",
-    "sentinel.geolocation.tdoa_fdoa",
-    "sentinel.inference.opir_inference",
-    "sentinel.models.cnn_classifier",
     "sentinel.models.rf_generator",
-    "sentinel.models.signal_generator",
-    "sentinel.pipeline.phase2_pipeline",
-    "sentinel.pipeline.phase3_pipeline",
-    "sentinel.tracking.kalman_tracker",
-    "sentinel.training.datasets",
     "sentinel.training.train_classifier",
     "sentinel.utils.geospatial",
     "sentinel.utils.visualization",

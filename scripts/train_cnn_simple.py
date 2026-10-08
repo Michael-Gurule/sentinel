@@ -3,10 +3,10 @@ Simple Training Script for OPIR CNN Classifier
 Works with folder-based dataset structure
 """
 
-import torch
 from torch.utils.data import DataLoader
 
-from sentinel.models.cnn_classifier import OPIREventCNN
+from sentinel.models.cnn_classifier import OPIREventCNN, select_device
+from sentinel.models.taxonomy import INPUT_LENGTH
 from sentinel.training.datasets import FolderDataset
 from sentinel.training.train_classifier import ModelTrainer
 
@@ -22,12 +22,7 @@ def main():
     LEARNING_RATE = 0.001
 
     # Auto-detect device (MPS for Apple Silicon, CUDA for NVIDIA, CPU otherwise)
-    if torch.backends.mps.is_available():
-        DEVICE = "mps"
-    elif torch.cuda.is_available():
-        DEVICE = "cuda"
-    else:
-        DEVICE = "cpu"
+    DEVICE = str(select_device())
 
     print("\n" + "=" * 60)
     print("SENTINEL OPIR CNN Classifier Training")
@@ -46,25 +41,17 @@ def main():
         val_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=0
     )
 
-    # Get input length from first sample
-    sample_signal, _ = train_dataset[0]
-    input_length = sample_signal.shape[1]
-
     print("\nDataset Configuration:")
     print(f"  Training samples: {len(train_dataset)}")
     print(f"  Validation samples: {len(val_dataset)}")
-    print(f"  Input length: {input_length}")
+    print(f"  Input length: {INPUT_LENGTH}")
     print(f"  Classes: {train_dataset.class_names}")
     print(f"  Batch size: {BATCH_SIZE}")
     print(f"  Device: {DEVICE}")
 
     # ========== Initialize Model ==========
     print("\nInitializing CNN model...")
-    model = OPIREventCNN(
-        input_length=input_length,
-        num_classes=5,  # 5 classes
-        dropout_rate=0.3,
-    )
+    model = OPIREventCNN(dropout_rate=0.3)
 
     # ========== Initialize Trainer ==========
     trainer = ModelTrainer(model=model, device=DEVICE, learning_rate=LEARNING_RATE)

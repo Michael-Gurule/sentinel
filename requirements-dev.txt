@@ -4,6 +4,7 @@
 # Testing
 pytest==9.1.1
 pytest-cov==7.1.0
+hypothesis==6.168.5
 
 # Lint, format, type check
 ruff==0.16.10

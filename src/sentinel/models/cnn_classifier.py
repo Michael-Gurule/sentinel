@@ -1,14 +1,29 @@
 """
-CNN-based OPIR Event Classifier
-Classifies detected events into: missile_launch, explosion, wildfire, industrial
+1-D CNN for OPIR event classification, and a wrapper that applies the shared
+preprocessing and class taxonomy.
 """
 
-from typing import ClassVar
+from dataclasses import dataclass
+from pathlib import Path
 
 import numpy as np
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
+from torch import nn
+
+from sentinel.core.linalg import FloatArray
+from sentinel.models.taxonomy import EVENT_CLASSES, INPUT_LENGTH, preprocess_signal
+
+
+def select_device(preferred: str | None = None) -> torch.device:
+    """``preferred`` if given, else MPS, then CUDA, then CPU."""
+    if preferred is not None:
+        return torch.device(preferred)
+    if torch.backends.mps.is_available():
+        return torch.device("mps")
+    if torch.cuda.is_available():
+        return torch.device("cuda")
+    return torch.device("cpu")
 
 
 class OPIREventCNN(nn.Module):
@@ -18,8 +33,11 @@ class OPIREventCNN(nn.Module):
     """
 
     def __init__(
-        self, input_length: int = 256, num_classes: int = 4, dropout_rate: float = 0.3
-    ):
+        self,
+        input_length: int = INPUT_LENGTH,
+        num_classes: int = len(EVENT_CLASSES),
+        dropout_rate: float = 0.3,
+    ) -> None:
         """
         Args:
             input_length: Length of input time series
@@ -133,136 +151,88 @@ class OPIREventCNN(nn.Module):
         return x
 
 
+@dataclass(frozen=True, eq=False)
 class ClassificationResult:
-    """Container for classification results"""
+    """Predicted class with the full probability vector."""
 
-    def __init__(
-        self,
-        predicted_class: int,
-        class_name: str,
-        probabilities: np.ndarray,
-        confidence: float,
-    ):
-        self.predicted_class = predicted_class
-        self.class_name = class_name
-        self.probabilities = probabilities
-        self.confidence = confidence
+    predicted_class: int
+    class_name: str
+    probabilities: FloatArray
+    confidence: float
 
-    def to_dict(self) -> dict:
-        """Convert to dictionary"""
+    def to_dict(self) -> dict[str, object]:
         return {
-            "predicted_class": int(self.predicted_class),
+            "predicted_class": self.predicted_class,
             "class_name": self.class_name,
-            "confidence": float(self.confidence),
+            "confidence": self.confidence,
             "probabilities": {
-                "missile_launch": float(self.probabilities[0]),
-                "explosion": float(self.probabilities[1]),
-                "wildfire": float(self.probabilities[2]),
-                "industrial": float(self.probabilities[3]),
+                name: float(p)
+                for name, p in zip(EVENT_CLASSES, self.probabilities, strict=True)
             },
         }
 
 
+def load_state_dict(
+    model: nn.Module, path: str | Path, device: torch.device
+) -> dict[str, object]:
+    """Load weights from a checkpoint (or bare state dict) into ``model``.
+
+    Returns the checkpoint metadata (everything except the weights).
+    """
+    checkpoint = torch.load(path, map_location=device, weights_only=True)
+    if "model_state_dict" in checkpoint:
+        model.load_state_dict(checkpoint["model_state_dict"])
+        return {k: v for k, v in checkpoint.items() if k != "model_state_dict"}
+    model.load_state_dict(checkpoint)
+    return {}
+
+
 class OPIRClassifier:
-    """
-    Wrapper class for OPIR event classification
-    Handles model loading, preprocessing, and inference
+    """Preprocesses OPIR series and classifies them with :class:`OPIREventCNN`.
+
+    Without ``model_path`` the network has random weights; the pipeline uses
+    this until a model is trained on the Phase 2 dataset (audit defect C8).
     """
 
-    CLASS_NAMES: ClassVar[list[str]] = [
-        "missile_launch",
-        "explosion",
-        "wildfire",
-        "industrial",
-    ]
+    CLASS_NAMES = EVENT_CLASSES
 
-    def __init__(self, model_path: str | None = None, device: str = "cpu"):
-        """
-        Args:
-            model_path: Path to trained model weights
-            device: Device for inference ('cpu' or 'cuda')
-        """
+    def __init__(self, model_path: str | Path | None = None, device: str = "cpu"):
         self.device = torch.device(device)
         self.model = OPIREventCNN().to(self.device)
-
+        self.checkpoint_info: dict[str, object] = {}
         if model_path:
             self.load_model(model_path)
-
         self.model.eval()
 
-    def load_model(self, path: str):
-        """Load trained model weights"""
-        checkpoint = torch.load(path, map_location=self.device)
-        if "model_state_dict" in checkpoint:
-            self.model.load_state_dict(checkpoint["model_state_dict"])
-        else:
-            self.model.load_state_dict(checkpoint)
+    def load_model(self, path: str | Path) -> None:
+        self.checkpoint_info = load_state_dict(self.model, path, self.device)
         self.model.eval()
 
-    def preprocess(self, signal: np.ndarray) -> torch.Tensor:
-        """
-        Preprocess signal for model input
+    def preprocess(self, signals: FloatArray) -> torch.Tensor:
+        """``[time]`` or ``[batch, time]`` array → ``[batch, 1, INPUT_LENGTH]``."""
+        batch = np.atleast_2d(np.asarray(signals, dtype=np.float64))
+        processed = np.stack([preprocess_signal(s) for s in batch])
+        return torch.as_tensor(processed, dtype=torch.float32, device=self.device)[
+            :, None, :
+        ]
 
-        Args:
-            signal: Raw OPIR signal [time_steps]
-
-        Returns:
-            Preprocessed tensor [1, 1, 256]
-        """
-        # Normalize signal
-        signal = (signal - np.mean(signal)) / (np.std(signal) + 1e-8)
-
-        # Resize to model input length
-        if len(signal) != 256:
-            from scipy import interpolate
-
-            x_old = np.linspace(0, 1, len(signal))
-            x_new = np.linspace(0, 1, 256)
-            f = interpolate.interp1d(x_old, signal, kind="linear")
-            signal = f(x_new)
-
-        # Convert to tensor
-        tensor = torch.FloatTensor(signal).unsqueeze(0).unsqueeze(0)
-        return tensor.to(self.device)
-
-    def classify(self, signal: np.ndarray) -> ClassificationResult:
-        """
-        Classify OPIR event
-
-        Args:
-            signal: OPIR intensity time series
-
-        Returns:
-            ClassificationResult with predictions
-        """
-        # Preprocess
-        x = self.preprocess(signal)
-
-        # Predict
-        pred_class, probs = self.model.predict(x)
-
-        pred_class = pred_class.cpu().numpy()[0]
-        probs = probs.cpu().numpy()[0]
-
-        return ClassificationResult(
-            predicted_class=pred_class,
-            class_name=self.CLASS_NAMES[pred_class],
-            probabilities=probs,
-            confidence=float(probs[pred_class]),
-        )
-
-    def classify_batch(self, signals: np.ndarray) -> list:
-        """
-        Classify multiple signals
-
-        Args:
-            signals: Array of signals [batch_size, time_steps]
-
-        Returns:
-            List of ClassificationResult objects
-        """
+    def classify_batch(self, signals: FloatArray) -> list[ClassificationResult]:
+        """Classify a ``[batch, time]`` array in one forward pass."""
+        _, probabilities = self.model.predict(self.preprocess(signals))
+        probs = probabilities.cpu().numpy().astype(np.float64)
         results = []
-        for signal in signals:
-            result = self.classify(signal)
-            results.append(result)
+        for row in probs:
+            index = int(np.argmax(row))
+            results.append(
+                ClassificationResult(
+                    predicted_class=index,
+                    class_name=EVENT_CLASSES[index],
+                    probabilities=row,
+                    confidence=float(row[index]),
+                )
+            )
         return results
+
+    def classify(self, signal: FloatArray) -> ClassificationResult:
+        """Classify a single ``[time]`` series."""
+        return self.classify_batch(np.asarray(signal)[None, :])[0]

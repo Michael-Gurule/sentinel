@@ -1,12 +1,21 @@
 """
 OPIR Synthetic Signal Generator
 
-Generates realistic thermal event signatures for training and testing.
+Generates thermal event signatures (temperature in K vs. time) for training
+and testing. All randomness comes from an injected ``numpy.random.Generator``
+so scenarios are reproducible from a seed.
+
+The physics-informed scenario simulator in Phase 2 replaces this module.
 """
 
 from dataclasses import dataclass
+from typing import Any
 
 import numpy as np
+
+from sentinel.core.linalg import FloatArray
+
+EVENT_TYPES = ("launch", "explosion", "fire", "aircraft")
 
 
 @dataclass
@@ -22,14 +31,36 @@ class ThermalEvent:
 
 
 class OPIRSignalGenerator:
-    def __init__(self, duration=10.0, sampling_rate=100, sample_rate=None):
-        self.duration = duration
-        self.sampling_rate = sampling_rate  # samples per second
-        self.fs = sampling_rate  # alias for sampling_rate
-        self.num_samples = int(duration * sampling_rate)
+    """Synthetic single-pixel OPIR intensity time series."""
 
-        if sample_rate is not None:
-            sampling_rate = sample_rate
+    def __init__(
+        self,
+        duration_s: float = 10.0,
+        sample_rate_hz: float = 100.0,
+        rng: np.random.Generator | None = None,
+    ) -> None:
+        """
+        Args:
+            duration_s: Length of each generated series in seconds.
+            sample_rate_hz: Samples per second.
+            rng: Random generator; a fresh unseeded one if omitted.
+        """
+        if duration_s <= 0 or sample_rate_hz <= 0:
+            raise ValueError("duration_s and sample_rate_hz must be positive")
+        self.duration_s = duration_s
+        self.sample_rate_hz = sample_rate_hz
+        self.num_samples = round(duration_s * sample_rate_hz)
+        self.t: FloatArray = np.arange(self.num_samples) / sample_rate_hz
+        self.rng = rng if rng is not None else np.random.default_rng()
+
+    @property
+    def sampling_rate(self) -> float:
+        """Alias of ``sample_rate_hz`` used by detectors and pipelines."""
+        return self.sample_rate_hz
+
+    @property
+    def fs(self) -> float:
+        return self.sample_rate_hz
 
     def generate_launch_signature(
         self,
@@ -38,7 +69,7 @@ class OPIRSignalGenerator:
         rise_time: float = 3,
         sustain_duration: float = 30,
         decay_time: float = 40,
-    ) -> np.ndarray:
+    ) -> FloatArray:
         """
         Generate missile launch thermal signature
 
@@ -75,7 +106,7 @@ class OPIRSignalGenerator:
             signature[sustain_end:decay_end] = decay_curve
 
         # Add noise
-        noise = np.random.normal(0, peak_temp * 0.02, len(signature))
+        noise = self.rng.normal(0, peak_temp * 0.02, len(signature))
         signature = signature + noise
 
         return np.maximum(signature, 0)  # No negative temperatures
@@ -86,7 +117,7 @@ class OPIRSignalGenerator:
         peak_temp: float = 5000,
         flash_duration: float = 2,
         decay_time: float = 10,
-    ) -> np.ndarray:
+    ) -> FloatArray:
         """
         Generate explosion thermal signature
 
@@ -119,7 +150,7 @@ class OPIRSignalGenerator:
             signature[flash_end:decay_end] = peak_temp * 0.2 * np.exp(-t_decay)
 
         # Add noise
-        noise = np.random.normal(0, peak_temp * 0.05, len(signature))
+        noise = self.rng.normal(0, peak_temp * 0.05, len(signature))
         signature = signature + noise
 
         return np.maximum(signature, 0)
@@ -131,7 +162,7 @@ class OPIRSignalGenerator:
         growth_time: float = 60,
         sustain_duration: float = 180,
         decay_time: float = 60,
-    ) -> np.ndarray:
+    ) -> FloatArray:
         """
         Generate wildfire thermal signature
 
@@ -177,7 +208,7 @@ class OPIRSignalGenerator:
             signature[sustain_end:decay_end] = decay_curve
 
         # Add noise (fires are noisy)
-        noise = np.random.normal(0, peak_temp * 0.1, len(signature))
+        noise = self.rng.normal(0, peak_temp * 0.1, len(signature))
         signature = signature + noise
 
         return np.maximum(signature, 0)
@@ -188,7 +219,7 @@ class OPIRSignalGenerator:
         peak_temp: float = 1000,
         transit_duration: float = 30,
         velocity_mps: float = 250,
-    ) -> np.ndarray:
+    ) -> FloatArray:
         """
         Generate aircraft exhaust signature
 
@@ -210,7 +241,7 @@ class OPIRSignalGenerator:
             signature[start_idx:transit_end] = peak_temp * envelope
 
         # Add noise
-        noise = np.random.normal(0, peak_temp * 0.05, len(signature))
+        noise = self.rng.normal(0, peak_temp * 0.05, len(signature))
         signature = signature + noise
 
         return np.maximum(signature, 0)
@@ -220,7 +251,7 @@ class OPIRSignalGenerator:
         base_temp: float = 280,
         diurnal_amplitude: float = 15,
         noise_level: float = 5,
-    ) -> np.ndarray:
+    ) -> FloatArray:
         """
         Generate Earth background thermal signature
 
@@ -237,14 +268,14 @@ class OPIRSignalGenerator:
         background = (
             base_temp
             + diurnal_component
-            + np.random.normal(0, noise_level, self.num_samples)
+            + self.rng.normal(0, noise_level, self.num_samples)
         )
 
         return background
 
     def generate_scenario(
-        self, events: list[dict]
-    ) -> tuple[np.ndarray, list[ThermalEvent]]:
+        self, events: list[dict[str, Any]]
+    ) -> tuple[FloatArray, list[ThermalEvent]]:
         """
         Generate complete scenario with multiple events
 
@@ -317,6 +348,11 @@ class OPIRSignalGenerator:
                 rise_time = 1
                 duration = event.get("transit_duration", 30)
 
+            else:
+                raise ValueError(
+                    f"unknown event type {event_type!r}; expected one of {EVENT_TYPES}"
+                )
+
             # Add to scenario
             scenario = scenario + signature
 
@@ -334,36 +370,3 @@ class OPIRSignalGenerator:
             event_records.append(thermal_event)
 
         return scenario, event_records
-
-
-if __name__ == "__main__":
-    # Test the generator
-    import matplotlib.pyplot as plt
-
-    generator = OPIRSignalGenerator(sample_rate_hz=1.0, duration_s=300)
-
-    # Define scenario
-    events = [
-        {"type": "launch", "start_time": 50, "lat": 40.0, "lon": -100.0},
-        {"type": "explosion", "start_time": 150, "lat": 40.5, "lon": -100.5},
-        {"type": "aircraft", "start_time": 200, "lat": 41.0, "lon": -101.0},
-    ]
-
-    scenario, event_records = generator.generate_scenario(events)
-
-    # Plot
-    plt.figure(figsize=(15, 6))
-    plt.plot(generator.t, scenario)
-    plt.xlabel("Time (seconds)")
-    plt.ylabel("Temperature (K)")
-    plt.title("OPIR Thermal Scenario")
-    plt.grid(True)
-
-    # Mark events
-    for event in event_records:
-        plt.axvline(event.timestamp, color="r", linestyle="--", alpha=0.5)
-        plt.text(event.timestamp, plt.ylim()[1] * 0.9, event.event_type, rotation=90)
-
-    plt.tight_layout()
-    plt.savefig("opir_scenario_test.png")
-    print("✓ OPIR signal generator test complete")
