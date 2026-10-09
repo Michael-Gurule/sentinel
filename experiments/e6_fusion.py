@@ -27,7 +27,7 @@ from experiments.common import (
     SERIES,
     TEXT_SECONDARY,
     RunOptions,
-    parse_options,
+    run_experiment,
     style,
 )
 from experiments.fusion_common import (
@@ -326,4 +326,9 @@ def _scenario_figure(out: Path, scenario: ScenarioResult) -> None:
 
 
 if __name__ == "__main__":
-    run(parse_options(__doc__.splitlines()[0], report_dir=REPORT_DIR))
+    run_experiment(
+        "e6_fusion",
+        run,
+        (__doc__ or "e6_fusion").splitlines()[0],
+        report_dir=REPORT_DIR,
+    )

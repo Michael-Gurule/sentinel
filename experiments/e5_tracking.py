@@ -28,7 +28,7 @@ from experiments.common import (
     ROOT,
     SERIES,
     RunOptions,
-    parse_options,
+    run_experiment,
     style,
 )
 from experiments.fusion_common import (
@@ -246,4 +246,9 @@ def _figures(out: Path, report: dict[str, Any]) -> None:
 
 
 if __name__ == "__main__":
-    run(parse_options(__doc__.splitlines()[0], report_dir=REPORT_DIR))
+    run_experiment(
+        "e5_tracking",
+        run,
+        (__doc__ or "e5_tracking").splitlines()[0],
+        report_dir=REPORT_DIR,
+    )

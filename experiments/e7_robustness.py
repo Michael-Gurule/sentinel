@@ -30,7 +30,7 @@ from experiments.common import (
     ROOT,
     SERIES,
     RunOptions,
-    parse_options,
+    run_experiment,
     style,
 )
 from experiments.fusion_common import (
@@ -124,7 +124,9 @@ def rf_latency(scenarios: list[ScenarioResult], quick: bool) -> dict[str, Any]:
 
 
 def rf_bias(seeds: range, duration: float) -> dict[str, Any]:
-    """NEES of RF-updated aircraft tracks vs track age (all records pooled)."""
+    """NEES of RF-updated aircraft tracks vs track age (all records pooled),
+    under the filter covariance and under the reported covariance (filter +
+    the library's bias floor, present only for consider-covariance fixes)."""
     out: dict[str, Any] = {}
     low, high = mean_nees_bounds(3, 1_000)
     for level, (bias_ns, survey_m) in BIAS_LEVELS.items():
@@ -154,7 +156,7 @@ def rf_bias(seeds: range, duration: float) -> dict[str, Any]:
                         "age_s": (lo, hi),
                         "records": int(mask.sum()),
                         "nees": float(np.mean(records[mask, 2])),
-                        "nees_with_floor": float(np.mean(records[mask, 3])),
+                        "nees_reported": float(np.mean(records[mask, 3])),
                     }
                 )
             out[f"{level}/{'consider' if consider else 'naive'}"] = {
@@ -162,7 +164,7 @@ def rf_bias(seeds: range, duration: float) -> dict[str, Any]:
                 "survey_m": survey_m,
                 "consider_fixes": consider,
                 "nees_mean": float(np.mean(records[:, 2])),
-                "nees_with_floor_mean": float(np.mean(records[:, 3])),
+                "nees_reported_mean": float(np.mean(records[:, 3])),
                 "by_age": bins,
             }
     out["nees_reference"] = {"dof": 3, "mean": 3.0, "single_record_95": (low, high)}
@@ -277,7 +279,12 @@ def _figures(out: Path, report: dict[str, Any]) -> None:
     for color, key, field, label in (
         (MUTED, "30ns_10m/naive", "nees", "naive fixes"),
         (SERIES[1], "30ns_10m/consider", "nees", "consider fixes"),
-        (SERIES[0], "30ns_10m/consider", "nees_with_floor", "consider + bias floor"),
+        (
+            SERIES[0],
+            "30ns_10m/consider",
+            "nees_reported",
+            "consider, reported (+ bias floor)",
+        ),
     ):
         entry = bias[key]["by_age"]
         x = [0.5 * (b["age_s"][0] + b["age_s"][1]) for b in entry]
@@ -305,4 +312,9 @@ def _figures(out: Path, report: dict[str, Any]) -> None:
 
 
 if __name__ == "__main__":
-    run(parse_options(__doc__.splitlines()[0], report_dir=REPORT_DIR))
+    run_experiment(
+        "e7_robustness",
+        run,
+        (__doc__ or "e7_robustness").splitlines()[0],
+        report_dir=REPORT_DIR,
+    )

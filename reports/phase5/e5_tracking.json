@@ -74,10 +74,10 @@
         "value": 0.556667
       },
       "nees": {
-        "ci_high": 17.326238,
-        "ci_low": 8.99787,
+        "ci_high": 5.909657,
+        "ci_low": 4.340895,
         "runs": 10,
-        "value": 13.162054
+        "value": 5.125276
       },
       "never_tracked": {
         "ci_high": 0.0,
@@ -98,17 +98,17 @@
         "value": 1.0
       },
       "rmse": {
-        "ci_high": 367.719047,
+        "ci_high": 367.719046,
         "ci_low": 320.073068,
         "runs": 10,
         "value": 343.896057
       },
       "rmse_by_type": {
         "aircraft": {
-          "ci_high": 95.170237,
+          "ci_high": 95.170236,
           "ci_low": 31.791689,
           "runs": 10,
-          "value": 63.480963
+          "value": 63.480962
         },
         "fire": {
           "ci_high": 304.298866,
@@ -196,10 +196,10 @@
         "value": 0.175
       },
       "nees": {
-        "ci_high": 9.370594,
-        "ci_low": 4.867368,
+        "ci_high": 4.101948,
+        "ci_low": 2.912295,
         "runs": 10,
-        "value": 7.118981
+        "value": 3.507122
       },
       "never_tracked": {
         "ci_high": 0.0,
@@ -223,14 +223,14 @@
         "ci_high": 315.92897,
         "ci_low": 272.633297,
         "runs": 10,
-        "value": 294.281134
+        "value": 294.281133
       },
       "rmse_by_type": {
         "aircraft": {
-          "ci_high": 94.96133,
+          "ci_high": 94.961329,
           "ci_low": 32.686636,
           "runs": 10,
-          "value": 63.823983
+          "value": 63.823982
         },
         "fire": {
           "ci_high": 342.711304,
@@ -280,8 +280,8 @@
         "value": 0.0
       },
       "gospa": {
-        "ci_high": 749.063063,
-        "ci_low": 637.36959,
+        "ci_high": 749.063064,
+        "ci_low": 637.369589,
         "runs": 10,
         "value": 693.216326
       },
@@ -318,10 +318,10 @@
         "value": 0.116111
       },
       "nees": {
-        "ci_high": 14.288828,
-        "ci_low": 6.659902,
+        "ci_high": 3.765576,
+        "ci_low": 2.423145,
         "runs": 10,
-        "value": 10.474365
+        "value": 3.09436
       },
       "never_tracked": {
         "ci_high": 0.0,
@@ -349,10 +349,10 @@
       },
       "rmse_by_type": {
         "aircraft": {
-          "ci_high": 95.169843,
+          "ci_high": 95.169842,
           "ci_low": 31.798438,
           "runs": 10,
-          "value": 63.484141
+          "value": 63.48414
         },
         "fire": {
           "ci_high": 302.787456,
@@ -406,8 +406,8 @@
         "value": 0.0
       },
       "gospa": {
-        "ci_high": 749.063063,
-        "ci_low": 637.36959,
+        "ci_high": 749.063064,
+        "ci_low": 637.369589,
         "runs": 10,
         "value": 693.216326
       },
@@ -444,10 +444,10 @@
         "value": 0.116111
       },
       "nees": {
-        "ci_high": 14.288828,
-        "ci_low": 6.659902,
+        "ci_high": 3.765576,
+        "ci_low": 2.423145,
         "runs": 10,
-        "value": 10.474365
+        "value": 3.09436
       },
       "never_tracked": {
         "ci_high": 0.0,
@@ -475,10 +475,10 @@
       },
       "rmse_by_type": {
         "aircraft": {
-          "ci_high": 95.169843,
+          "ci_high": 95.169842,
           "ci_low": 31.798438,
           "runs": 10,
-          "value": 63.484141
+          "value": 63.48414
         },
         "fire": {
           "ci_high": 302.787456,
@@ -566,10 +566,10 @@
         "value": 0.092222
       },
       "nees": {
-        "ci_high": 14.281425,
-        "ci_low": 6.622775,
+        "ci_high": 3.763955,
+        "ci_low": 2.428074,
         "runs": 10,
-        "value": 10.4521
+        "value": 3.096014
       },
       "never_tracked": {
         "ci_high": 0.0,
@@ -591,13 +591,13 @@
       },
       "rmse": {
         "ci_high": 260.494923,
-        "ci_low": 239.367805,
+        "ci_low": 239.367804,
         "runs": 10,
         "value": 249.931364
       },
       "rmse_by_type": {
         "aircraft": {
-          "ci_high": 94.827556,
+          "ci_high": 94.827555,
           "ci_low": 31.892982,
           "runs": 10,
           "value": 63.360269
@@ -952,10 +952,10 @@
         "value": 0.051667
       },
       "nees": {
-        "ci_high": 14.152968,
-        "ci_low": 6.63812,
+        "ci_high": 3.747976,
+        "ci_low": 2.432882,
         "runs": 10,
-        "value": 10.395544
+        "value": 3.090429
       },
       "never_tracked": {
         "ci_high": 0.0,
@@ -983,10 +983,10 @@
       },
       "rmse_by_type": {
         "aircraft": {
-          "ci_high": 97.083436,
+          "ci_high": 97.083435,
           "ci_low": 31.534406,
           "runs": 10,
-          "value": 64.308921
+          "value": 64.30892
         },
         "fire": {
           "ci_high": 303.478878,
@@ -1079,10 +1079,10 @@
         "value": 0.085
       },
       "nees": {
-        "ci_high": 14.225186,
-        "ci_low": 6.643365,
+        "ci_high": 3.756396,
+        "ci_low": 2.426365,
         "runs": 10,
-        "value": 10.434276
+        "value": 3.091381
       },
       "never_tracked": {
         "ci_high": 0.0,
@@ -1110,7 +1110,7 @@
       },
       "rmse_by_type": {
         "aircraft": {
-          "ci_high": 94.999907,
+          "ci_high": 94.999906,
           "ci_low": 31.772689,
           "runs": 10,
           "value": 63.386298
@@ -1206,10 +1206,10 @@
         "value": 0.118333
       },
       "nees": {
-        "ci_high": 14.295279,
-        "ci_low": 6.667174,
+        "ci_high": 3.766818,
+        "ci_low": 2.426178,
         "runs": 10,
-        "value": 10.481227
+        "value": 3.096498
       },
       "never_tracked": {
         "ci_high": 0.0,
@@ -1237,7 +1237,7 @@
       },
       "rmse_by_type": {
         "aircraft": {
-          "ci_high": 95.176638,
+          "ci_high": 95.176637,
           "ci_low": 31.805028,
           "runs": 10,
           "value": 63.490833
@@ -1333,10 +1333,10 @@
         "value": 0.049444
       },
       "nees": {
-        "ci_high": 14.147273,
-        "ci_low": 6.630973,
+        "ci_high": 3.747205,
+        "ci_low": 2.430037,
         "runs": 10,
-        "value": 10.389123
+        "value": 3.088621
       },
       "never_tracked": {
         "ci_high": 0.0,
@@ -1364,7 +1364,7 @@
       },
       "rmse_by_type": {
         "aircraft": {
-          "ci_high": 97.076652,
+          "ci_high": 97.07665,
           "ci_low": 31.527581,
           "runs": 10,
           "value": 64.302116
@@ -1423,7 +1423,7 @@
       },
       "gospa": {
         "ci_high": 751.332133,
-        "ci_low": 618.449789,
+        "ci_low": 618.449788,
         "runs": 10,
         "value": 684.890961
       },
@@ -1460,10 +1460,10 @@
         "value": 0.082778
       },
       "nees": {
-        "ci_high": 14.219503,
-        "ci_low": 6.636235,
+        "ci_high": 3.756067,
+        "ci_low": 2.423735,
         "runs": 10,
-        "value": 10.427869
+        "value": 3.089901
       },
       "never_tracked": {
         "ci_high": 0.0,
@@ -1473,7 +1473,7 @@
       },
       "ospa": {
         "ci_high": 376.527278,
-        "ci_low": 293.897865,
+        "ci_low": 293.897864,
         "runs": 10,
         "value": 335.212571
       },
@@ -1491,10 +1491,10 @@
       },
       "rmse_by_type": {
         "aircraft": {
-          "ci_high": 94.992677,
+          "ci_high": 94.992676,
           "ci_low": 31.765516,
           "runs": 10,
-          "value": 63.379097
+          "value": 63.379096
         },
         "fire": {
           "ci_high": 300.14369,
@@ -1549,8 +1549,8 @@
         "value": 0.0
       },
       "gospa": {
-        "ci_high": 749.063063,
-        "ci_low": 637.36959,
+        "ci_high": 749.063064,
+        "ci_low": 637.369589,
         "runs": 10,
         "value": 693.216326
       },
@@ -1587,10 +1587,10 @@
         "value": 0.116111
       },
       "nees": {
-        "ci_high": 14.288828,
-        "ci_low": 6.659902,
+        "ci_high": 3.765576,
+        "ci_low": 2.423145,
         "runs": 10,
-        "value": 10.474365
+        "value": 3.09436
       },
       "never_tracked": {
         "ci_high": 0.0,
@@ -1618,10 +1618,10 @@
       },
       "rmse_by_type": {
         "aircraft": {
-          "ci_high": 95.169843,
+          "ci_high": 95.169842,
           "ci_low": 31.798438,
           "runs": 10,
-          "value": 63.484141
+          "value": 63.48414
         },
         "fire": {
           "ci_high": 302.787456,
@@ -1714,10 +1714,10 @@
         "value": 0.050556
       },
       "nees": {
-        "ci_high": 14.153539,
-        "ci_low": 6.654659,
+        "ci_high": 3.751212,
+        "ci_low": 2.433688,
         "runs": 10,
-        "value": 10.404099
+        "value": 3.09245
       },
       "never_tracked": {
         "ci_high": 0.0,
@@ -1745,7 +1745,7 @@
       },
       "rmse_by_type": {
         "aircraft": {
-          "ci_high": 97.16806,
+          "ci_high": 97.168059,
           "ci_low": 31.520573,
           "runs": 10,
           "value": 64.344316
@@ -1804,7 +1804,7 @@
       },
       "gospa": {
         "ci_high": 861.991282,
-        "ci_low": 657.767686,
+        "ci_low": 657.767685,
         "runs": 10,
         "value": 759.879484
       },
@@ -1841,10 +1841,10 @@
         "value": 0.083889
       },
       "nees": {
-        "ci_high": 14.21752,
-        "ci_low": 6.641862,
+        "ci_high": 3.752599,
+        "ci_low": 2.424314,
         "runs": 10,
-        "value": 10.429691
+        "value": 3.088456
       },
       "never_tracked": {
         "ci_high": 0.0,
@@ -1872,7 +1872,7 @@
       },
       "rmse_by_type": {
         "aircraft": {
-          "ci_high": 94.998451,
+          "ci_high": 94.99845,
           "ci_low": 31.769878,
           "runs": 10,
           "value": 63.384164
@@ -1933,7 +1933,7 @@
         "ci_high": 810.490368,
         "ci_low": 639.823339,
         "runs": 10,
-        "value": 725.156854
+        "value": 725.156853
       },
       "id_switches": {
         "ci_high": 0.326216,
@@ -1968,10 +1968,10 @@
         "value": 0.117222
       },
       "nees": {
-        "ci_high": 14.286189,
-        "ci_low": 6.665621,
+        "ci_high": 3.760124,
+        "ci_low": 2.424785,
         "runs": 10,
-        "value": 10.475905
+        "value": 3.092455
       },
       "never_tracked": {
         "ci_high": 0.0,
@@ -1999,7 +1999,7 @@
       },
       "rmse_by_type": {
         "aircraft": {
-          "ci_high": 95.175418,
+          "ci_high": 95.175417,
           "ci_low": 31.803866,
           "runs": 10,
           "value": 63.489642
@@ -2058,7 +2058,7 @@
       },
       "gospa": {
         "ci_high": 4069.998333,
-        "ci_low": 3602.951322,
+        "ci_low": 3602.951321,
         "runs": 10,
         "value": 3836.474827
       },
@@ -2095,10 +2095,10 @@
         "value": 0.057222
       },
       "nees": {
-        "ci_high": 14.17141,
-        "ci_low": 6.635431,
+        "ci_high": 3.733201,
+        "ci_low": 2.452859,
         "runs": 10,
-        "value": 10.40342
+        "value": 3.09303
       },
       "never_tracked": {
         "ci_high": 0.0,
@@ -2126,7 +2126,7 @@
       },
       "rmse_by_type": {
         "aircraft": {
-          "ci_high": 97.166563,
+          "ci_high": 97.166562,
           "ci_low": 31.534893,
           "runs": 10,
           "value": 64.350728
@@ -2185,7 +2185,7 @@
       },
       "gospa": {
         "ci_high": 1147.41315,
-        "ci_low": 921.744088,
+        "ci_low": 921.744087,
         "runs": 10,
         "value": 1034.578619
       },
@@ -2222,10 +2222,10 @@
         "value": 0.090556
       },
       "nees": {
-        "ci_high": 14.236853,
-        "ci_low": 6.646322,
+        "ci_high": 3.73919,
+        "ci_low": 2.430616,
         "runs": 10,
-        "value": 10.441587
+        "value": 3.084903
       },
       "never_tracked": {
         "ci_high": 0.0,
@@ -2247,13 +2247,13 @@
       },
       "rmse": {
         "ci_high": 250.526829,
-        "ci_low": 235.392809,
+        "ci_low": 235.392808,
         "runs": 10,
         "value": 242.959819
       },
       "rmse_by_type": {
         "aircraft": {
-          "ci_high": 95.149767,
+          "ci_high": 95.149766,
           "ci_low": 31.762634,
           "runs": 10,
           "value": 63.4562
@@ -2311,7 +2311,7 @@
         "value": 0.0
       },
       "gospa": {
-        "ci_high": 918.674058,
+        "ci_high": 918.674059,
         "ci_low": 697.778263,
         "runs": 10,
         "value": 808.226161
@@ -2349,10 +2349,10 @@
         "value": 0.123889
       },
       "nees": {
-        "ci_high": 14.301383,
-        "ci_low": 6.668614,
+        "ci_high": 3.743846,
+        "ci_low": 2.430249,
         "runs": 10,
-        "value": 10.484998
+        "value": 3.087048
       },
       "never_tracked": {
         "ci_high": 0.0,
@@ -2380,7 +2380,7 @@
       },
       "rmse_by_type": {
         "aircraft": {
-          "ci_high": 95.385576,
+          "ci_high": 95.385575,
           "ci_low": 31.783869,
           "runs": 10,
           "value": 63.584722

@@ -23,6 +23,8 @@ from sentinel.core import GeometryError, InsufficientMeasurementsError, nees
 from sentinel.eval import Snapshot, evaluate_tracking, gospa, seed_summary
 from sentinel.fusion import (
     FusionEngine,
+    accept_fix,
+    extrapolate,
     fuse_track_lists,
     measurements_from_reports,
     rf_measurement,
@@ -184,8 +186,8 @@ class RunOutput:
     )
     """Truth id → (time, posterior of its matched track) over time."""
     track_ages: list[tuple[float, float, float, float]] = field(default_factory=list)
-    """(time, track age, position NEES, NEES with a bias floor) for matched
-    RF-updated aircraft tracks (E7 bias study)."""
+    """(time, track age, NEES under the filter covariance, NEES under the
+    reported covariance) for matched RF-updated aircraft tracks (E7)."""
 
 
 def _first_reports(
@@ -238,8 +240,8 @@ def _classify_windows(
 
 def _rf_measurements(
     result: ScenarioResult, t: float, systematic: SystematicErrors | None
-) -> list[Measurement]:
-    out: list[Measurement] = []
+) -> list[LinearMeasurement]:
+    out: list[LinearMeasurement] = []
     for _, scan in result.rf_scans:
         if abs(scan.t - t) > 1e-9:
             continue
@@ -249,7 +251,7 @@ def _rf_measurements(
             )
         except (GeometryError, InsufficientMeasurementsError):
             continue
-        if fix.converged and fix.fits():
+        if accept_fix(fix):
             out.append(rf_measurement(fix))
     return out
 
@@ -327,7 +329,7 @@ def run_fusion(
     """
     opts = options or FusionOptions()
     frame = result.config.origin.frame()
-    levels, bias_ratio = _systematic_levels(result)
+    levels = _systematic_levels(result)
     systematic = levels if opts.use_systematic else None
     rng = np.random.default_rng(opts.clutter_seed)
     first_report = _first_reports(result, frame) if opts.classifier else {}
@@ -372,7 +374,7 @@ def run_fusion(
             taken = float(t - opts.rf_delay_s)
             rf_meas = (
                 [
-                    _extrapolate(m, opts.rf_delay_s, central.tracker.motion_model)
+                    extrapolate(m, opts.rf_delay_s, central.tracker.motion_model)
                     for m in _rf_measurements(result, taken, systematic)
                 ]
                 if taken >= 0 and mode != "opir" and _rf_active(opts, taken)
@@ -384,7 +386,7 @@ def run_fusion(
             central.process([*rf_meas, *opir_meas], process_t)
             tracks = central.confirmed_tracks
             ids = tuple(tr.id for tr in tracks)
-            states = [tr.state for tr in tracks]
+            states = [tr.reported for tr in tracks]
             posteriors = [tr.class_posterior for tr in tracks]
         else:
             rf_engine.process(rf_meas, process_t)
@@ -392,8 +394,8 @@ def run_fusion(
             opir_tracks = opir_engine.confirmed_tracks
             rf_tracks = rf_engine.confirmed_tracks
             fused = fuse_track_lists(
-                [tr.state for tr in opir_tracks],
-                [tr.state for tr in rf_tracks],
+                [tr.reported for tr in opir_tracks],
+                [tr.reported for tr in rf_tracks],
                 method="naive" if mode == "t2t_naive" else "ci",
                 labels=("opir", "rf"),
             )
@@ -428,47 +430,19 @@ def run_fusion(
         out.snapshots.append(snapshot)
         _record_classes(out, snapshot, posteriors, cutoff=2_000.0)
         if mode in ("rf", "centralized") and not lag:
-            _record_ages(
-                out, snapshot, central, truth, rf_meas, bias_ratio, opts.use_systematic
-            )
+            _record_ages(out, snapshot, central, truth)
     return out
 
 
-def _extrapolate(
-    measurement: Measurement, dt: float, model: ConstantVelocity
-) -> Measurement:
-    """Propagate a position-velocity fix ``dt`` seconds forward."""
-    assert isinstance(measurement, LinearMeasurement)
-    assert measurement.dim == 6
-    f = model.transition(dt)
-    return LinearMeasurement(
-        f @ measurement.value,
-        f @ measurement.covariance @ f.T + model.process_noise(dt),
-        measurement.matrix,
-        measurement.source,
-        measurement.label,
-        measurement.class_probabilities,
-    )
-
-
-def _systematic_levels(result: ScenarioResult) -> tuple[SystematicErrors, float]:
-    """The network's systematic-error levels, and the ratio of their TDOA
-    variance to the random timing variance.
-
-    Clock bias and survey error have the same (I + 11ᵀ) covariance structure
-    as random timing noise (docs/geolocation.md), so to first order the
-    systematic part of a fix's position covariance is ``ratio`` times its
-    random part.
-    """
+def _systematic_levels(result: ScenarioResult) -> SystematicErrors:
+    """The network's systematic-error levels (identical for every receiver)."""
     assert result.config.rf is not None
     receiver = result.config.rf.receivers[0]
-    levels = SystematicErrors(
+    return SystematicErrors(
         receiver.position_error_std_m,
         receiver.clock_bias_std_ns * 1e-9,
         receiver.lo_offset_std_hz,
     )
-    ratio = levels.tdoa_variance / (receiver.toa_std_ns * 1e-9) ** 2
-    return levels, ratio
 
 
 def _observable(
@@ -511,42 +485,28 @@ def _record_ages(
     snapshot: Snapshot,
     engine: FusionEngine,
     truth: dict[str, np.ndarray],
-    rf_meas: Sequence[Measurement],
-    bias_ratio: float,
-    consider: bool,
 ) -> None:
-    """Record NEES of RF-updated aircraft tracks against track age.
-
-    The bias floor adds the systematic part of the nearest RF fix's position
-    covariance to the track covariance: a filter that treats fixes as
-    independent averages random error away but never the shared receiver
-    bias. Fixes solved with the consider covariance already contain it
-    (fraction ratio / (1 + ratio)).
-    """
+    """Record the NEES of RF-updated aircraft tracks against track age, under
+    the filter covariance and under the reported covariance (filter + bias
+    floor; the floor exists only when fixes were solved with the network's
+    systematic levels)."""
     tracks = engine.confirmed_tracks
     truth_ids = [t for t in truth if t.startswith("aircraft")]
-    fixes = [m for m in rf_meas if m.source == "rf"]
-    if not tracks or not truth_ids or not fixes:
+    if not tracks or not truth_ids:
         return
     positions = np.array([tr.position for tr in tracks])
     match = gospa(np.array([truth[t] for t in truth_ids]), positions, 2_000.0)
-    fix_positions = np.array([m.value[:3] for m in fixes])
     for r, c in match.assignments:
         tr = tracks[c]
         if tr.hits_by_source.get("rf", 0) == 0:
             continue
         error = tr.position - truth[truth_ids[r]]
-        nearest = fixes[
-            int(np.argmin(np.linalg.norm(fix_positions - tr.position, axis=1)))
-        ]
-        fraction = bias_ratio / (1.0 + bias_ratio) if consider else bias_ratio
-        floor = fraction * nearest.covariance[:3, :3]
         out.track_ages.append(
             (
                 snapshot.time,
                 snapshot.time - tr.created,
+                nees(error, tr.state.covariance[:3, :3]),
                 nees(error, tr.position_covariance),
-                nees(error, tr.position_covariance + floor),
             )
         )
 
