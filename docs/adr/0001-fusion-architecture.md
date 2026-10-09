@@ -1,6 +1,6 @@
 # ADR 0001: Centralized measurement-level fusion
 
-- **Status:** accepted (Phase 5)
+- **Status:** accepted (Phase 5); amended in Phase 6 with the bias-floor results
 - **Evidence:** experiments E5–E7, [`docs/fusion.md`](../fusion.md)
 
 ## Context
@@ -75,9 +75,37 @@ Option 1, centralized fusion. T2T is kept in the library
 - **Time-correlated RF bias is not white noise.** The consider covariance
   makes each fix consistent, but a filter averaging many fixes from the same
   biased network becomes overconfident: NEES grows with track age to about
-  100. Reported covariances therefore need a bias floor (E7, NEES ≈ 3 at all
-  ages). Moving that floor from the experiments into the library is Phase 6
-  work.
+  100. Reported covariances therefore carry a bias floor (E7, NEES ≈ 3 at all
+  ages; in the library since Phase 6).
 - **When to revisit:** if sensors are fused across a network with limited
   bandwidth (track lists, not measurements), switch to T2T with CI, which is
   the safe choice when track correlations are unknown.
+
+## Amendment (Phase 6): the bias floor changes the accuracy comparison
+
+Once tracks report the RF bias floor and T2T fuses those reported
+estimates, E6 gives:
+
+| Architecture | GOSPA (m) | Aircraft RMSE | NEES | Identity switches per run |
+|---|---|---|---|---|
+| **Centralized** | 693 [637, 749] | 63 m | 3.1 | **0.3** |
+| T2T naive | 689 [638, 741] | **53 m** | 3.1 | 1.9 |
+| T2T CI | 692 [640, 744] | 57 m | 3.1 | 1.9 |
+
+The rationale's claim that centralized fusion gives "the best aircraft
+accuracy" no longer holds. Its premise was independent sensor noise. The RF
+fixes share a time-correlated bias, so the centralized filter, which treats
+them as independent, gives RF too much weight relative to OPIR. T2T fusion
+of the reported estimates sees the RF track's bias floor and weights the two
+correctly.
+
+**The decision stands**, for the reasons that do not depend on that premise:
+
+- GOSPA is equal within its confidence interval.
+- Single-satellite rays can only be used centrally (RF-outage coverage).
+- Identities are about 6× more stable.
+
+**The proper remedy** is to model the bias inside the centralized filter
+(Schmidt-Kalman consider states, or bias states augmented per RF network),
+not to switch architectures. It is recorded as Phase 8 stretch work, and
+this comparison is its benchmark.

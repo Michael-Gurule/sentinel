@@ -88,59 +88,26 @@ centralized fusion was chosen over track-to-track fusion.
 
 ```
 sentinel/
-│
 ├── src/sentinel/
-│   ├── models/
-│   │   ├── signal_generator.py       # OPIR thermal signature generation
-│   │   ├── rf_generator.py           # RF signal generation
-│   │   └── cnn_classifier.py         # Event classification CNN
-│   │
-│   ├── detection/
-│   │   └── opir_detectors.py         # 4 detection algorithms
-│   │
-│   ├── tracking/
-│   │   └── kalman_tracker.py         # Multi-target Kalman tracking
-│   │
-│   ├── geolocation/
-│   │   ├── tdoa_fdoa.py              # TDOA/FDOA geolocation
-│   │   └── multilateration.py        # Spherical/hyperbolic positioning
-│   │
-│   ├── fusion/
-│   │   └── sensor_fusion.py          # Multi-sensor fusion engine
-│   │
-│   ├── training/
-│   │   └── train_classifier.py       # CNN training pipeline
-│   │
-│   └── pipeline/
-│       ├── phase2_pipeline.py        # OPIR detection pipeline
-│       └── phase3_pipeline.py        # Full multi-sensor pipeline
-│
-├── scripts/
-│   └── generate_opir_dataset.py      # Training data generation
-│
-├── tests/
-│   ├── test_0_generator.py           # Signal generator tests
-│   ├── test_1_detection.py           # Detection algorithm tests
-│   ├── test_2_cnn.py                 # CNN architecture tests
-│   ├── test_3_classifier.py          # Classifier wrapper tests
-│   ├── test_4_kalman.py              # Kalman filter tests
-│   ├── test_5_tracker.py             # Multi-target tracking tests
-│   ├── test_6_tdoa_fdoa.py           # TDOA/FDOA geolocation tests
-│   ├── test_7_multilateration.py     # Multilateration tests
-│   ├── test_8_sensor_fusion.py       # Sensor fusion tests
-│   └── test_9_full_system.py         # Complete system integration test
-│
-├── data/
-│   ├── raw/
-│   ├── processed/
-│   └── synthetic/
-│       └── opir/
-│           ├── train/                # Training data (5 classes)
-│           ├── validation/           # Validation data
-│           └── test/                 # Test data
-│
-└── outputs/
-    └── models/                       # Trained model checkpoints
+│   ├── core/            # linear algebra, χ² statistics, errors, structured logging
+│   ├── sim/             # WGS-84 geometry, trajectories, OPIR sensor model, RF network, scenarios
+│   ├── data/            # deterministic dataset builder + hashed manifests
+│   ├── detection/       # CFAR, CUSUM, step GLRT with calibrated thresholds
+│   ├── classification/  # features/baselines, CNN/TCN, calibration, conformal, ONNX backend
+│   ├── geolocation/     # TDOA/FDOA ML, Chan-Ho, CRLB, DOP, systematic-error covariance
+│   ├── tracking/        # EKF, IMM, GNN, M-of-N lifecycle, class posteriors, bias floor
+│   ├── fusion/          # OPIR line-of-sight geolocation, fusion engine, T2T fusion
+│   ├── eval/            # metrics, GOSPA/OSPA tracking evaluation, reports
+│   ├── pipeline/        # PipelineConfig, stage protocols, SentinelPipeline, scenario runner
+│   ├── runs.py          # JSON run registry
+│   └── cli.py           # `sentinel` command line
+├── configs/             # scenario, dataset, and pipeline YAML
+├── experiments/         # E1–E7 (one script per question) + shared harness
+├── benchmarks/          # per-stage latency budgets (`make bench`)
+├── tests/               # unit, property, integration, characterization (v1 audit)
+├── reports/             # experiment JSON + figures (versioned)
+├── models/              # the shipped, calibrated classifier artifact
+└── docs/                # data/model cards, methods write-ups, ADRs
 ```
 
 ## Installation
@@ -169,13 +136,40 @@ pytest
 ### Quick Start: Full System Demo
 
 ```bash
-python -m sentinel.pipeline.phase3_pipeline
+sentinel run configs/scenario/multi_int.yaml   # or: make demo
 ```
 
-Runs the example scenario frame by frame: CFAR detection and classification
-of each OPIR pixel window, geolocation of its line of sight, RF TDOA/FDOA
-fixes, and centralized fusion. A radar at the launch site starts an RF track,
-and the launch's OPIR detections update it and label it a launch.
+Simulates a launch cued by a fire-control radar, two aircraft with datalinks,
+and a wildfire, observed in stereo by a GEO and a Molniya OPIR satellite and
+by a five-receiver RF network. It then runs every frame through CFAR
+detection, calibrated classification, OPIR line-of-sight geolocation, RF
+TDOA/FDOA fixes, and centralized fusion. The output is the GOSPA error against
+truth and each confirmed track's class and sources. The run is recorded in
+`runs/` with its configuration, seed, and git commit.
+
+### Command Line
+
+| Command | Purpose |
+|---|---|
+| `sentinel simulate SCENARIO [--seed N]` | Simulate a scenario; summarize what each sensor saw |
+| `sentinel run SCENARIO [--pipeline YAML] [--seed N]` | Full pipeline, scored against truth, recorded as a run |
+| `sentinel export-onnx [ARTIFACT]` | Export the classifier for ONNX Runtime |
+| `sentinel data build / verify` | Build the dataset, or check it against its manifest |
+| `sentinel runs list / show ID` | Inspect the run registry |
+
+Global options: `--log-level`, and `--log-json` for one JSON event per line.
+`python -m sentinel` is equivalent.
+
+### Configuration and Runs
+
+Every tunable number of the processing chain is a field of `PipelineConfig`,
+a validated pydantic model. Each section names the experiment that set its
+default. `configs/pipeline/default.yaml` is the deployed configuration;
+unknown or out-of-range values fail at load time. Each `sentinel run` and each
+experiment launched from the command line writes `runs/<id>/run.json`. The
+record holds the configuration and its hash, the seed, the git commit (marked
+when the tree is dirty), package versions, timing, metrics, and artifacts. See
+[ADR 0002](docs/adr/0002-configuration-cli-and-run-registry.md).
 
 ### RF Geolocation (TDOA)
 
@@ -242,30 +236,27 @@ Without FDOA the velocity is not observable, and `solve_tdoa_fdoa` returns
 import numpy as np
 
 from sentinel.geolocation import simulate_tdoa
-from sentinel.pipeline.phase3_pipeline import SENTINELPhase3Pipeline
+from sentinel.pipeline import RFObservation, SensorFrame, SentinelPipeline
 
-pipeline = SENTINELPhase3Pipeline()
+pipeline = SentinelPipeline()  # defaults from PipelineConfig
 rng = np.random.default_rng(0)
 start, velocity = np.array([5e3, 5e3, 500.0]), np.array([100.0, 50.0, 0.0])
 
 for t in range(10):
     truth = start + velocity * t
-    pipeline.process_multi_sensor_frame(
-        opir_signals=[],
-        rf_measurements=[simulate_tdoa(truth, pipeline.receivers, 10e-9, rng)],
-        sampling_rate=100.0,
-        timestamp=float(t),
-    )
+    tdoa = simulate_tdoa(truth, pipeline.receivers, 10e-9, rng)
+    result = pipeline.process_frame(SensorFrame(float(t), rf=[RFObservation(tdoa)]))
 
-print(pipeline.get_situation_awareness())
+print(pipeline.summary())
 ```
 
 Tracks are maintained by an IMM filter (quiet and maneuvering
 constant-velocity models), with χ² gating on the innovation covariance,
 global-nearest-neighbor assignment, and M-of-N confirmation. OPIR windows
 passed as `OPIRObservation` with their line of sight are geolocated (stereo
-or angle-only) and fused in the same update; plain arrays are only detected
-and classified.
+or angle-only) and fused in the same update. Any stage can be replaced by
+passing a component that satisfies its protocol in `sentinel.pipeline.stages`,
+such as `SentinelPipeline(config, classifier=...)`.
 
 ### OPIR Detection & Classification
 
@@ -275,8 +266,7 @@ import numpy as np
 from sentinel.classification import EventClassifier
 from sentinel.data.config import Priors
 from sentinel.data.generate import generate_sample
-from sentinel.detection import CFARDetector
-from sentinel.pipeline.phase3_pipeline import CFAR_THRESHOLD_PFA_1E2
+from sentinel.detection import CFAR_THRESHOLD_PFA_1E2, CFARDetector
 
 # One simulated 64 s pixel window (10 Hz) containing a launch.
 sample = generate_sample("launch", Priors(), 64.0, np.random.default_rng(3))
@@ -331,8 +321,11 @@ domain-shift test sets, and limitations.
 
 ```bash
 make experiments   # E1–E7, in order
-make e5 e6 e7      # tracking and fusion only (~20 min, no dataset needed)
+make e5 e6 e7      # tracking and fusion only (~10 min, no dataset needed)
 ```
+
+Each experiment writes its JSON report and figures under `reports/` and
+records the run in `runs/`.
 
 | Experiment | Question | Reports |
 |---|---|---|
@@ -347,16 +340,18 @@ make e5 e6 e7      # tracking and fusion only (~20 min, no dataset needed)
 ## Testing
 
 ```bash
-make check   # lint, format check, strict type check, tests, coverage gate
+make check   # lint, format check, strict type check, tests, coverage gate, latency budgets
 make test    # tests only
+make bench   # per-stage latency benchmarks
 ```
 
 | Suite | Contents |
 |---|---|
 | `tests/unit/` | Per-module tests, including Monte Carlo consistency checks (NEES/NIS within χ² bounds) and exactness on noiseless data |
 | `tests/property/` | Hypothesis property tests: covariance stays PSD, GNN matches brute force, estimates are invariant to measurement order and translation |
-| `tests/integration/` | End-to-end pipeline scenarios |
+| `tests/integration/` | End-to-end pipeline scenarios, the CLI, and experiment smoke runs |
 | `tests/characterization/` | One regression test per defect found in the v1 audit (all fixed) |
+| `benchmarks/` | Latency budget per stage: a 30-target tracker scan, stereo pairing, RF fix, CFAR, classifier (PyTorch and ONNX Runtime) |
 
 ## Results
 
@@ -371,18 +366,24 @@ the [model card](docs/model_card.md). Geolocation methods and results are in
 **Fusion (E5–E7).** Centralized fusion of OPIR and RF on a multi-target
 scenario (2 launches, 3 aircraft with datalinks, 1 fire; 10 seeds):
 
-| Architecture | GOSPA (m) | Aircraft RMSE | Launches / fires tracked |
-|---|---|---|---|
-| RF only | 1961 | 74 m | no |
-| OPIR only | 877 | 286 m | yes (413 m / 276 m RMSE) |
-| **Centralized fusion** | **693** | **63 m** | yes |
-| Track-to-track, covariance intersection | 710 | 73 m | yes |
+| Architecture | GOSPA (m) | Aircraft RMSE | Launches / fires tracked | NEES (3 = consistent) |
+|---|---|---|---|---|
+| RF only | 1961 | 74 m | no | 3.2 |
+| OPIR only | 877 | 286 m | yes (413 m / 276 m RMSE) | 2.7 |
+| **Centralized fusion** | **693** | 63 m | yes | 3.1 |
+| Track-to-track, covariance intersection | 692 | 57 m | yes | 3.1 |
+
+Track-to-track fusion places aircraft better because the centralized filter
+treats biased RF fixes as independent and gives OPIR too little weight.
+Centralized fusion is still preferred: GOSPA is equal, identities are 6× more
+stable, and only it can use single-satellite rays. Estimating the bias in the
+filter is the planned remedy ([ADR 0001](docs/adr/0001-fusion-architecture.md)).
 
 - **Stereo ghosts:** two satellites can pair rays from different targets. Deferring ambiguous pairs to angle-only updates cuts false tracks from 0.31 to 0.09 per scan.
 - **Motion model:** an IMM beats a single constant-velocity model (GOSPA 693 m vs 889 m at the best single process noise).
 - **Track classification:** using the classifier only on windows inside its training domain is what makes track labels reliable: posterior ECE falls from 0.13–0.20 to 0.05, and at the default pooling weight every target ends correctly labelled.
 - **Robustness:** OPIR keeps 100% of aircraft tracked through an RF outage (RF alone: 17%). Extrapolating late RF fixes loses nothing up to 2 s of latency.
-- **RF bias:** a fixed 30 ns clock bias makes RF tracks overconfident as they age (NEES 21 → 113), even with consider-covariance fixes. A bias floor on the reported covariance restores NEES ≈ 3.
+- **RF bias:** a fixed 30 ns clock bias makes RF tracks overconfident as they age (NEES 21 → 113), even with consider-covariance fixes. The library carries each fix's systematic covariance to the track as a floor on its reported covariance, which restores NEES 3.2–3.8 at every age.
 
 **Geolocation (E4).** The ML TDOA estimator stays within 3% of the Cramér-Rao
 bound from 1 to 100 ns of timing noise (for example 8.0 m RMSE against an

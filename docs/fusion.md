@@ -82,14 +82,20 @@ every ghost and kept 89% of the correct pairs.
   - Duplicate tracks on one target, which alternate in claiming its single
     measurement, are merged when their positions agree at χ²(3) = 0.9 under
     the summed covariance.
+- **Reported covariance.** A measurement can carry the systematic part of
+  its covariance, an error shared by every measurement from that sensor
+  (RF network bias). The track keeps it as a bias floor and reports filter
+  covariance + floor (`Track.reported`). Gating and merging use the filter
+  covariance (details under the E7 bias results).
 - **Class posterior.** Each OPIR measurement can carry calibrated classifier
   probabilities (E3). They are pooled log-linearly into the track posterior:
   log π ← log π + w·(log p − log prior), with tempering weight w ≤ 1.
 
 ### Track-to-track fusion (`sentinel.fusion.t2t`)
 
-Separate OPIR and RF trackers; confirmed tracks are paired by a χ²(3) gate
-on the summed position covariance and GNN. Matched pairs are fused either
+Separate OPIR and RF trackers; their confirmed tracks' *reported* estimates
+(including any RF bias floor) are paired by a χ²(3) gate on the summed
+position covariance and GNN. Matched pairs are fused either
 **naively**, as if independent, P = (P₁⁻¹ + P₂⁻¹)⁻¹, or by **covariance
 intersection**, P⁻¹ = ωP₁⁻¹ + (1−ω)P₂⁻¹ with ω chosen to minimize tr P. CI
 is consistent for any unknown cross-correlation. A unit test shows the naive
@@ -100,30 +106,40 @@ within it.
 
 ### Architectures (E6)
 
-| Architecture | GOSPA (m) | False tracks / scan | Aircraft RMSE | Launch RMSE | Fire RMSE | NEES |
-|---|---|---|---|---|---|---|
-| RF only | 1961 [1938, 1985] | 0.00 | 74 m | not seen | not seen | 16.3 |
-| OPIR only | 877 [822, 931] | 0.08 | 286 m | 413 m | 276 m | **2.7** |
-| **Centralized** | **693** [637, 749] | 0.09 | **63 m** | 413 m | 276 m | 10.5 |
-| T2T naive | 706 [647, 765] | 0.10 | 67 m | 413 m | 276 m | 10.7 |
-| T2T CI | 710 [648, 771] | 0.10 | 73 m | 413 m | 276 m | 10.8 |
+| Architecture | GOSPA (m) | False tracks / scan | Aircraft RMSE | Launch RMSE | Fire RMSE | NEES | Identity switches per run |
+|---|---|---|---|---|---|---|---|
+| RF only | 1961 [1938, 1985] | 0.00 | 74 m | not seen | not seen | 3.2 | 0.0 |
+| OPIR only | 877 [822, 931] | 0.08 | 286 m | 413 m | 276 m | 2.7 | 0.3 |
+| **Centralized** | 693 [637, 749] | 0.09 | 63 m | 413 m | 276 m | 3.1 | **0.3** |
+| T2T naive | 689 [638, 741] | 0.09 | **53 m** | 413 m | 276 m | 3.1 | 1.9 |
+| T2T CI | 692 [640, 744] | 0.09 | 57 m | 413 m | 276 m | 3.1 | 1.9 |
+
+Reported covariances include the RF bias floor (below). Track-to-track (T2T)
+fusion combines the trackers' *reported* estimates, which is what a
+distributed node would transmit.
 
 ![Architectures](../reports/phase5/figures/e6_architectures.png)
 
 - **Fusion is mostly about coverage.** RF never sees the launches or the
   fire. OPIR sees everything, but places aircraft about 4× worse than RF (286 m vs 74 m).
   Centralized fusion gets both.
-- **Aircraft accuracy improves modestly** (74 → 63 m), because OPIR stereo
-  is about 4× less precise than RF. The gain is largest where the RF
-  geometry is weak, with aircraft outside the receiver network.
-- **T2T loses information and identity.** Naive T2T is close to
-  centralized here because the two trackers' errors are nearly independent.
-  CI gives up information that, in this case, was not correlated: its
-  aircraft accuracy equals RF alone. Pairing tracks after the fact switches
-  identities about 9× as often as centralized fusion (2.7 vs 0.3 per run).
-- **OPIR tracks are consistent** (NEES 2.7 against 3). The high NEES of every
-  RF-fed architecture comes from the time-correlated RF bias (E7 below), not
-  from fusion.
+- **Aircraft accuracy improves** (74 → 53–63 m), although OPIR stereo is
+  about 4× less precise than RF. The gain is largest where the RF geometry
+  is weak, with aircraft outside the receiver network.
+- **T2T now places aircraft better than centralized fusion** (53 m vs 63 m).
+  The cause is the RF bias. The centralized filter treats every biased RF fix
+  as independent, so it trusts its RF information more than it should and
+  gives OPIR too little weight. A T2T fusion of *reported* estimates sees
+  the RF track's bias floor and weights OPIR correctly. Overall GOSPA is the
+  same within its confidence interval. The principled fix for centralized
+  fusion is to estimate the bias in the filter (a Schmidt-Kalman or
+  augmented-state filter), which is listed as a stretch item.
+- **T2T still churns identity.** Pairing tracks after the fact switches
+  identities about 6× as often (1.9 vs 0.3 per run). It also cannot use
+  single-satellite rays (the RF outage results below).
+- **Every architecture is consistent** (NEES 2.7–3.2 against 3) once the
+  library carries the RF bias floor. Before Phase 6, every RF-fed
+  architecture reported NEES 10–16.
 
 ![Scenario](../reports/phase5/figures/e6_scenario.png)
 
@@ -247,22 +263,32 @@ were independent. Its covariance shrinks toward zero while the bias stays.
 
 | 30 ns clock bias + 10 m survey | NEES, track age 0–10 s | 30–60 s | 120–180 s |
 |---|---|---|---|
-| naive fixes | 256 | 540 | 501 |
-| consider fixes | 21 | 77 | 113 |
-| **consider fixes + bias floor** | **3.3** | **3.2** | **3.4** |
+| naive fixes | 246 | 519 | 469 |
+| consider fixes, filter covariance | 21 | 77 | 113 |
+| **consider fixes, reported covariance (with bias floor)** | **3.8** | **3.4** | **3.5** |
 
 ![Latency and bias](../reports/phase5/figures/e7_latency_bias.png)
 
-Clock bias and survey error have the same (I + 11ᵀ) structure as random
-timing noise (docs/geolocation.md). To first order, the systematic part of a
-fix's position covariance is therefore k/(1+k) of the consider covariance,
-where k = σ_sys²/σ_toa². Adding that part back as a floor on the reported
-track covariance restores consistency at every age. At the default 5 ns /
-2 m levels, the floor brings NEES from 7.5–19 down to 2.6–3.3. It does not
-rescue naive fixes (NEES about 11): gating and IMM mode weights computed with
-too-small fix covariances already misweight the measurements. In E5–E7 the
-floor lives in the experiment harness; moving it into the library (a
-systematic covariance on each RF fix, carried to the track) is Phase 6 work.
+**How the library carries the bias floor:**
+
+1. The solver returns the first-order systematic part of each fix's
+   covariance, A Σ_sys Aᵀ with A = P Jᵀ C⁻¹
+   (`GeolocationResult.systematic_covariance`). For TDOA it equals k/(1+k) of
+   the consider covariance, k = σ_sys²/σ_toa², because clock bias and survey
+   error share the random noise's (I + 11ᵀ) structure. A unit test checks
+   this, and a Monte Carlo test checks it against bias-only errors.
+2. The RF measurement carries that systematic part to the track
+   (`Track.bias_floor`).
+3. Tracks report filter covariance + floor (`Track.reported`). Gating and
+   duplicate merging still use the filter covariance, because two tracks
+   sharing a bias do not differ by it.
+
+This restores consistency at every track age. At the default 5 ns / 2 m
+levels, NEES drops from 7.5–19 to 2.6–3.4. The floor is conservative for very
+young tracks: it double-counts the bias at the first fix, and that excess
+fades as 1/n. Fixes solved without systematic levels carry no floor and stay
+overconfident. That is why the deployed configuration sets the network's
+levels.
 
 ## Limits
 
@@ -276,6 +302,9 @@ systematic covariance on each RF fix, carried to the track) is Phase 6 work.
 - **Launch dynamics.** Launches are tracked with constant-velocity models,
   which explains the 413 m launch RMSE. A boost model, or IMM with a
   constant-acceleration mode, is a stretch item.
-- **Bias floor.** The floor uses the nearest RF fix's geometry and assumes
-  the bias stays fixed over a track's life. Estimating the bias states
-  (Schmidt–Kalman) is the principled extension.
+- **Bias floor, not bias estimation.** The floor is the latest fix's
+  systematic covariance and assumes the bias stays fixed over a track's
+  life. It makes reported uncertainty honest, but it does not let the
+  centralized filter weight RF and OPIR correctly (T2T beats centralized on
+  aircraft for that reason). Estimating the bias states (Schmidt-Kalman) is
+  the principled extension.
