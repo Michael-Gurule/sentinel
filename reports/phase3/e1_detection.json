@@ -1,0 +1,1255 @@
+{
+  "background_windows": {
+    "calibration": 20000,
+    "evaluation": 20000
+  },
+  "dataset": {
+    "config_sha256": "8279544b1c49ad8528f4e1688ea4c342b3bb2bbdd06fcb8a1b60d76741e95e4a",
+    "dataset": "opir_v2",
+    "root_seed": 20261008,
+    "version": "2.0.0"
+  },
+  "event_windows": 2400,
+  "experiment": "E1 detection",
+  "glint_fraction_evaluation": 0.24135,
+  "quick": false,
+  "results": {
+    "cfar": {
+      "pfa_0.001": {
+        "analytic": {
+          "pd": {
+            "ci_high": 0.732589,
+            "ci_low": 0.696053,
+            "value": 0.714583
+          },
+          "pd_by_class": {
+            "aircraft": {
+              "ci_high": 0.505832,
+              "ci_low": 0.424514,
+              "value": 0.465
+            },
+            "explosion": {
+              "ci_high": 0.990813,
+              "ci_low": 0.967434,
+              "value": 0.981667
+            },
+            "fire": {
+              "ci_high": 0.490804,
+              "ci_low": 0.409691,
+              "value": 0.45
+            },
+            "launch": {
+              "ci_high": 0.975548,
+              "ci_low": 0.943034,
+              "value": 0.961667
+            }
+          },
+          "pd_by_snr": {
+            "2-5": {
+              "ci_high": 0.462093,
+              "ci_low": 0.35661,
+              "value": 0.408571
+            },
+            "20-100": {
+              "ci_high": 0.982284,
+              "ci_low": 0.954659,
+              "value": 0.970724
+            },
+            "5-20": {
+              "ci_high": 0.740841,
+              "ci_low": 0.663758,
+              "value": 0.703375
+            },
+            "<2": {
+              "ci_high": 0.331362,
+              "ci_low": 0.241132,
+              "value": 0.284653
+            },
+            ">100": {
+              "ci_high": 0.998572,
+              "ci_low": 0.979933,
+              "value": 0.993088
+            }
+          },
+          "pfa_all_background": {
+            "ci_high": 0.272636,
+            "ci_low": 0.260332,
+            "value": 0.26645
+          },
+          "pfa_glint_free": {
+            "ci_high": 0.045227,
+            "ci_low": 0.038783,
+            "value": 0.041917
+          },
+          "threshold": 4.652438
+        },
+        "calibrated_all_background": {
+          "pd": {
+            "ci_high": 0.104363,
+            "ci_low": 0.08081,
+            "value": 0.092083
+          },
+          "pd_by_class": {
+            "aircraft": {
+              "ci_high": 0.006129,
+              "ci_low": 0.0,
+              "value": 0.0
+            },
+            "explosion": {
+              "ci_high": 0.408335,
+              "ci_low": 0.329635,
+              "value": 0.368333
+            },
+            "fire": {
+              "ci_high": 0.006129,
+              "ci_low": 0.0,
+              "value": 0.0
+            },
+            "launch": {
+              "ci_high": 0.006129,
+              "ci_low": 0.0,
+              "value": 0.0
+            }
+          },
+          "pd_by_snr": {
+            "2-5": {
+              "ci_high": 0.010484,
+              "ci_low": 0.0,
+              "value": 0.0
+            },
+            "20-100": {
+              "ci_high": 0.011087,
+              "ci_low": 0.000373,
+              "value": 0.003082
+            },
+            "5-20": {
+              "ci_high": 0.006531,
+              "ci_low": 0.0,
+              "value": 0.0
+            },
+            "<2": {
+              "ci_high": 0.009089,
+              "ci_low": 0.0,
+              "value": 0.0
+            },
+            ">100": {
+              "ci_high": 0.552629,
+              "ci_low": 0.456525,
+              "value": 0.504608
+            }
+          },
+          "pfa_all_background": {
+            "ci_high": 0.001544,
+            "ci_low": 0.000611,
+            "value": 0.001
+          },
+          "pfa_glint_free": {
+            "ci_high": 0.000243,
+            "ci_low": 0.0,
+            "value": 0.0
+          },
+          "threshold": 230.389049
+        },
+        "calibrated_glint_free": {
+          "pd": {
+            "ci_high": 0.630815,
+            "ci_low": 0.591413,
+            "value": 0.61125
+          },
+          "pd_by_class": {
+            "aircraft": {
+              "ci_high": 0.379454,
+              "ci_low": 0.302131,
+              "value": 0.34
+            },
+            "explosion": {
+              "ci_high": 0.980829,
+              "ci_low": 0.950989,
+              "value": 0.968333
+            },
+            "fire": {
+              "ci_high": 0.328113,
+              "ci_low": 0.253969,
+              "value": 0.29
+            },
+            "launch": {
+              "ci_high": 0.874566,
+              "ci_low": 0.815305,
+              "value": 0.846667
+            }
+          },
+          "pd_by_snr": {
+            "2-5": {
+              "ci_high": 0.306297,
+              "ci_low": 0.212151,
+              "value": 0.257143
+            },
+            "20-100": {
+              "ci_high": 0.919095,
+              "ci_low": 0.870751,
+              "value": 0.896764
+            },
+            "5-20": {
+              "ci_high": 0.535909,
+              "ci_low": 0.451723,
+              "value": 0.493783
+            },
+            "<2": {
+              "ci_high": 0.274381,
+              "ci_low": 0.190018,
+              "value": 0.230198
+            },
+            ">100": {
+              "ci_high": 0.988897,
+              "ci_low": 0.958035,
+              "value": 0.976959
+            }
+          },
+          "pfa_all_background": {
+            "ci_high": 0.233677,
+            "ci_low": 0.222002,
+            "value": 0.2278
+          },
+          "pfa_glint_free": {
+            "ci_high": 0.001874,
+            "ci_low": 0.000703,
+            "value": 0.001186
+          },
+          "threshold": 6.351329
+        }
+      },
+      "pfa_0.01": {
+        "analytic": {
+          "pd": {
+            "ci_high": 0.790356,
+            "ci_low": 0.756474,
+            "value": 0.77375
+          },
+          "pd_by_class": {
+            "aircraft": {
+              "ci_high": 0.588664,
+              "ci_low": 0.507525,
+              "value": 0.548333
+            },
+            "explosion": {
+              "ci_high": 0.995297,
+              "ci_low": 0.976111,
+              "value": 0.988333
+            },
+            "fire": {
+              "ci_high": 0.613296,
+              "ci_low": 0.532645,
+              "value": 0.573333
+            },
+            "launch": {
+              "ci_high": 0.993119,
+              "ci_low": 0.971717,
+              "value": 0.985
+            }
+          },
+          "pd_by_snr": {
+            "2-5": {
+              "ci_high": 0.579044,
+              "ci_low": 0.471945,
+              "value": 0.525714
+            },
+            "20-100": {
+              "ci_high": 0.989292,
+              "ci_low": 0.96599,
+              "value": 0.979969
+            },
+            "5-20": {
+              "ci_high": 0.839895,
+              "ci_low": 0.773173,
+              "value": 0.808171
+            },
+            "<2": {
+              "ci_high": 0.417922,
+              "ci_low": 0.321639,
+              "value": 0.368812
+            },
+            ">100": {
+              "ci_high": 0.999942,
+              "ci_low": 0.98723,
+              "value": 0.997696
+            }
+          },
+          "pfa_all_background": {
+            "ci_high": 0.336616,
+            "ci_low": 0.323533,
+            "value": 0.33005
+          },
+          "pfa_glint_free": {
+            "ci_high": 0.128916,
+            "ci_low": 0.118378,
+            "value": 0.123575
+          },
+          "threshold": 4.152046
+        },
+        "calibrated_all_background": {
+          "pd": {
+            "ci_high": 0.127135,
+            "ci_low": 0.101316,
+            "value": 0.11375
+          },
+          "pd_by_class": {
+            "aircraft": {
+              "ci_high": 0.011989,
+              "ci_low": 0.000404,
+              "value": 0.003333
+            },
+            "explosion": {
+              "ci_high": 0.485786,
+              "ci_low": 0.404757,
+              "value": 0.445
+            },
+            "fire": {
+              "ci_high": 0.011989,
+              "ci_low": 0.000404,
+              "value": 0.003333
+            },
+            "launch": {
+              "ci_high": 0.011989,
+              "ci_low": 0.000404,
+              "value": 0.003333
+            }
+          },
+          "pd_by_snr": {
+            "2-5": {
+              "ci_high": 0.029002,
+              "ci_low": 0.003122,
+              "value": 0.011429
+            },
+            "20-100": {
+              "ci_high": 0.028153,
+              "ci_low": 0.007413,
+              "value": 0.015408
+            },
+            "5-20": {
+              "ci_high": 0.006531,
+              "ci_low": 0.0,
+              "value": 0.0
+            },
+            "<2": {
+              "ci_high": 0.013713,
+              "ci_low": 6.3e-05,
+              "value": 0.002475
+            },
+            ">100": {
+              "ci_high": 0.641033,
+              "ci_low": 0.54661,
+              "value": 0.59447
+            }
+          },
+          "pfa_all_background": {
+            "ci_high": 0.011958,
+            "ci_low": 0.009087,
+            "value": 0.01045
+          },
+          "pfa_glint_free": {
+            "ci_high": 0.000243,
+            "ci_low": 0.0,
+            "value": 0.0
+          },
+          "threshold": 154.073582
+        },
+        "calibrated_glint_free": {
+          "pd": {
+            "ci_high": 0.681829,
+            "ci_low": 0.643606,
+            "value": 0.662917
+          },
+          "pd_by_class": {
+            "aircraft": {
+              "ci_high": 0.430324,
+              "ci_low": 0.350764,
+              "value": 0.39
+            },
+            "explosion": {
+              "ci_high": 0.987186,
+              "ci_low": 0.96116,
+              "value": 0.976667
+            },
+            "fire": {
+              "ci_high": 0.404945,
+              "ci_low": 0.326391,
+              "value": 0.365
+            },
+            "launch": {
+              "ci_high": 0.940428,
+              "ci_low": 0.895329,
+              "value": 0.92
+            }
+          },
+          "pd_by_snr": {
+            "2-5": {
+              "ci_high": 0.383443,
+              "ci_low": 0.282296,
+              "value": 0.331429
+            },
+            "20-100": {
+              "ci_high": 0.955607,
+              "ci_low": 0.917016,
+              "value": 0.938367
+            },
+            "5-20": {
+              "ci_high": 0.63761,
+              "ci_low": 0.554974,
+              "value": 0.596803
+            },
+            "<2": {
+              "ci_high": 0.292606,
+              "ci_low": 0.206187,
+              "value": 0.247525
+            },
+            ">100": {
+              "ci_high": 0.997483,
+              "ci_low": 0.976571,
+              "value": 0.990783
+            }
+          },
+          "pfa_all_background": {
+            "ci_high": 0.245326,
+            "ci_low": 0.23345,
+            "value": 0.23935
+          },
+          "pfa_glint_free": {
+            "ci_high": 0.011164,
+            "ci_low": 0.008009,
+            "value": 0.009491
+          },
+          "threshold": 5.273201
+        }
+      }
+    },
+    "cusum": {
+      "pfa_0.001": {
+        "analytic": {
+          "pd": {
+            "ci_high": 0.98269,
+            "ci_low": 0.970274,
+            "value": 0.977083
+          },
+          "pd_by_class": {
+            "aircraft": {
+              "ci_high": 0.960441,
+              "ci_low": 0.921711,
+              "value": 0.943333
+            },
+            "explosion": {
+              "ci_high": 0.997289,
+              "ci_low": 0.980661,
+              "value": 0.991667
+            },
+            "fire": {
+              "ci_high": 0.984683,
+              "ci_low": 0.957056,
+              "value": 0.973333
+            },
+            "launch": {
+              "ci_high": 1.0,
+              "ci_low": 0.993871,
+              "value": 1.0
+            }
+          },
+          "pd_by_snr": {
+            "2-5": {
+              "ci_high": 0.984209,
+              "ci_low": 0.944462,
+              "value": 0.968571
+            },
+            "20-100": {
+              "ci_high": 0.998318,
+              "ci_low": 0.984295,
+              "value": 0.993837
+            },
+            "5-20": {
+              "ci_high": 0.9989,
+              "ci_low": 0.984507,
+              "value": 0.994671
+            },
+            "<2": {
+              "ci_high": 0.934696,
+              "ci_low": 0.875974,
+              "value": 0.908416
+            },
+            ">100": {
+              "ci_high": 1.0,
+              "ci_low": 0.991536,
+              "value": 1.0
+            }
+          },
+          "pfa_all_background": {
+            "ci_high": 0.812351,
+            "ci_low": 0.80136,
+            "value": 0.8069
+          },
+          "pfa_glint_free": {
+            "ci_high": 0.761395,
+            "ci_low": 0.747635,
+            "value": 0.754564
+          },
+          "threshold": 11.393792
+        },
+        "calibrated_all_background": {
+          "pd": {
+            "ci_high": 0.161459,
+            "ci_low": 0.132742,
+            "value": 0.146667
+          },
+          "pd_by_class": {
+            "aircraft": {
+              "ci_high": 0.009251,
+              "ci_low": 4.2e-05,
+              "value": 0.001667
+            },
+            "explosion": {
+              "ci_high": 0.328113,
+              "ci_low": 0.253969,
+              "value": 0.29
+            },
+            "fire": {
+              "ci_high": 0.016981,
+              "ci_low": 0.001819,
+              "value": 0.006667
+            },
+            "launch": {
+              "ci_high": 0.326393,
+              "ci_low": 0.252372,
+              "value": 0.288333
+            }
+          },
+          "pd_by_snr": {
+            "2-5": {
+              "ci_high": 0.010484,
+              "ci_low": 0.0,
+              "value": 0.0
+            },
+            "20-100": {
+              "ci_high": 0.154389,
+              "ci_low": 0.101763,
+              "value": 0.126348
+            },
+            "5-20": {
+              "ci_high": 0.006531,
+              "ci_low": 0.0,
+              "value": 0.0
+            },
+            "<2": {
+              "ci_high": 0.013713,
+              "ci_low": 6.3e-05,
+              "value": 0.002475
+            },
+            ">100": {
+              "ci_high": 0.665685,
+              "ci_low": 0.572302,
+              "value": 0.619816
+            }
+          },
+          "pfa_all_background": {
+            "ci_high": 0.001904,
+            "ci_low": 0.000849,
+            "value": 0.0013
+          },
+          "pfa_glint_free": {
+            "ci_high": 0.000243,
+            "ci_low": 0.0,
+            "value": 0.0
+          },
+          "threshold": 2103.106662
+        },
+        "calibrated_glint_free": {
+          "pd": {
+            "ci_high": 0.493956,
+            "ci_low": 0.453608,
+            "value": 0.47375
+          },
+          "pd_by_class": {
+            "aircraft": {
+              "ci_high": 0.130508,
+              "ci_low": 0.080146,
+              "value": 0.103333
+            },
+            "explosion": {
+              "ci_high": 0.624756,
+              "ci_low": 0.544403,
+              "value": 0.585
+            },
+            "fire": {
+              "ci_high": 0.353846,
+              "ci_low": 0.277987,
+              "value": 0.315
+            },
+            "launch": {
+              "ci_high": 0.91539,
+              "ci_low": 0.864009,
+              "value": 0.891667
+            }
+          },
+          "pd_by_snr": {
+            "2-5": {
+              "ci_high": 0.086875,
+              "ci_low": 0.03525,
+              "value": 0.057143
+            },
+            "20-100": {
+              "ci_high": 0.771509,
+              "ci_low": 0.702426,
+              "value": 0.738059
+            },
+            "5-20": {
+              "ci_high": 0.39815,
+              "ci_low": 0.317392,
+              "value": 0.357016
+            },
+            "<2": {
+              "ci_high": 0.078362,
+              "ci_low": 0.032461,
+              "value": 0.05198
+            },
+            ">100": {
+              "ci_high": 0.975237,
+              "ci_low": 0.935243,
+              "value": 0.958525
+            }
+          },
+          "pfa_all_background": {
+            "ci_high": 0.040846,
+            "ci_low": 0.035489,
+            "value": 0.0381
+          },
+          "pfa_glint_free": {
+            "ci_high": 0.00251,
+            "ci_low": 0.00112,
+            "value": 0.001714
+          },
+          "threshold": 609.49194
+        }
+      },
+      "pfa_0.01": {
+        "analytic": {
+          "pd": {
+            "ci_high": 0.987004,
+            "ci_low": 0.975942,
+            "value": 0.982083
+          },
+          "pd_by_class": {
+            "aircraft": {
+              "ci_high": 0.971501,
+              "ci_low": 0.937149,
+              "value": 0.956667
+            },
+            "explosion": {
+              "ci_high": 0.997289,
+              "ci_low": 0.980661,
+              "value": 0.991667
+            },
+            "fire": {
+              "ci_high": 0.989624,
+              "ci_low": 0.965325,
+              "value": 0.98
+            },
+            "launch": {
+              "ci_high": 1.0,
+              "ci_low": 0.993871,
+              "value": 1.0
+            }
+          },
+          "pd_by_snr": {
+            "2-5": {
+              "ci_high": 0.991922,
+              "ci_low": 0.959228,
+              "value": 0.98
+            },
+            "20-100": {
+              "ci_high": 0.998318,
+              "ci_low": 0.984295,
+              "value": 0.993837
+            },
+            "5-20": {
+              "ci_high": 0.999569,
+              "ci_low": 0.987227,
+              "value": 0.996448
+            },
+            "<2": {
+              "ci_high": 0.949341,
+              "ci_low": 0.895688,
+              "value": 0.925743
+            },
+            ">100": {
+              "ci_high": 1.0,
+              "ci_low": 0.991536,
+              "value": 1.0
+            }
+          },
+          "pfa_all_background": {
+            "ci_high": 0.848165,
+            "ci_low": 0.838035,
+            "value": 0.84315
+          },
+          "pfa_glint_free": {
+            "ci_high": 0.806834,
+            "ci_low": 0.794052,
+            "value": 0.800501
+          },
+          "threshold": 9.087035
+        },
+        "calibrated_all_background": {
+          "pd": {
+            "ci_high": 0.316237,
+            "ci_low": 0.279258,
+            "value": 0.2975
+          },
+          "pd_by_class": {
+            "aircraft": {
+              "ci_high": 0.03884,
+              "ci_low": 0.012814,
+              "value": 0.023333
+            },
+            "explosion": {
+              "ci_high": 0.457278,
+              "ci_low": 0.37688,
+              "value": 0.416667
+            },
+            "fire": {
+              "ci_high": 0.152345,
+              "ci_low": 0.098097,
+              "value": 0.123333
+            },
+            "launch": {
+              "ci_high": 0.665497,
+              "ci_low": 0.586583,
+              "value": 0.626667
+            }
+          },
+          "pd_by_snr": {
+            "2-5": {
+              "ci_high": 0.029002,
+              "ci_low": 0.003122,
+              "value": 0.011429
+            },
+            "20-100": {
+              "ci_high": 0.527649,
+              "ci_low": 0.449344,
+              "value": 0.488444
+            },
+            "5-20": {
+              "ci_high": 0.043563,
+              "ci_low": 0.014987,
+              "value": 0.026643
+            },
+            "<2": {
+              "ci_high": 0.028644,
+              "ci_low": 0.00403,
+              "value": 0.012376
+            },
+            ">100": {
+              "ci_high": 0.890753,
+              "ci_low": 0.823144,
+              "value": 0.859447
+            }
+          },
+          "pfa_all_background": {
+            "ci_high": 0.013076,
+            "ci_low": 0.010069,
+            "value": 0.0115
+          },
+          "pfa_glint_free": {
+            "ci_high": 0.000243,
+            "ci_low": 0.0,
+            "value": 0.0
+          },
+          "threshold": 1116.596025
+        },
+        "calibrated_glint_free": {
+          "pd": {
+            "ci_high": 0.577499,
+            "ci_low": 0.537361,
+            "value": 0.5575
+          },
+          "pd_by_class": {
+            "aircraft": {
+              "ci_high": 0.209586,
+              "ci_low": 0.14697,
+              "value": 0.176667
+            },
+            "explosion": {
+              "ci_high": 0.701095,
+              "ci_low": 0.623954,
+              "value": 0.663333
+            },
+            "fire": {
+              "ci_high": 0.465676,
+              "ci_low": 0.385065,
+              "value": 0.425
+            },
+            "launch": {
+              "ci_high": 0.978206,
+              "ci_low": 0.946995,
+              "value": 0.965
+            }
+          },
+          "pd_by_snr": {
+            "2-5": {
+              "ci_high": 0.177689,
+              "ci_low": 0.102879,
+              "value": 0.137143
+            },
+            "20-100": {
+              "ci_high": 0.841372,
+              "ci_low": 0.779795,
+              "value": 0.812018
+            },
+            "5-20": {
+              "ci_high": 0.581718,
+              "ci_low": 0.497789,
+              "value": 0.539964
+            },
+            "<2": {
+              "ci_high": 0.126816,
+              "ci_low": 0.067423,
+              "value": 0.094059
+            },
+            ">100": {
+              "ci_high": 0.983956,
+              "ci_low": 0.949323,
+              "value": 0.970046
+            }
+          },
+          "pfa_all_background": {
+            "ci_high": 0.076539,
+            "ci_low": 0.069285,
+            "value": 0.07285
+          },
+          "pfa_glint_free": {
+            "ci_high": 0.013362,
+            "ci_low": 0.009896,
+            "value": 0.011534
+          },
+          "threshold": 418.367181
+        }
+      }
+    },
+    "glrt": {
+      "pfa_0.001": {
+        "analytic": {
+          "pd": {
+            "ci_high": 0.921937,
+            "ci_low": 0.898716,
+            "value": 0.910833
+          },
+          "pd_by_class": {
+            "aircraft": {
+              "ci_high": 0.829738,
+              "ci_low": 0.76396,
+              "value": 0.798333
+            },
+            "explosion": {
+              "ci_high": 0.927253,
+              "ci_low": 0.878669,
+              "value": 0.905
+            },
+            "fire": {
+              "ci_high": 0.957627,
+              "ci_low": 0.917899,
+              "value": 0.94
+            },
+            "launch": {
+              "ci_high": 1.0,
+              "ci_low": 0.993871,
+              "value": 1.0
+            }
+          },
+          "pd_by_snr": {
+            "2-5": {
+              "ci_high": 0.904651,
+              "ci_low": 0.831766,
+              "value": 0.871429
+            },
+            "20-100": {
+              "ci_high": 0.966033,
+              "ci_low": 0.931104,
+              "value": 0.950693
+            },
+            "5-20": {
+              "ci_high": 0.934919,
+              "ci_low": 0.886569,
+              "value": 0.912966
+            },
+            "<2": {
+              "ci_high": 0.823763,
+              "ci_low": 0.741317,
+              "value": 0.784653
+            },
+            ">100": {
+              "ci_high": 0.999942,
+              "ci_low": 0.98723,
+              "value": 0.997696
+            }
+          },
+          "pfa_all_background": {
+            "ci_high": 0.624293,
+            "ci_low": 0.610773,
+            "value": 0.61755
+          },
+          "pfa_glint_free": {
+            "ci_high": 0.562994,
+            "ci_low": 0.547115,
+            "value": 0.555065
+          },
+          "threshold": 4.649133
+        },
+        "calibrated_all_background": {
+          "pd": {
+            "ci_high": 0.204561,
+            "ci_low": 0.172871,
+            "value": 0.188333
+          },
+          "pd_by_class": {
+            "aircraft": {
+              "ci_high": 0.019339,
+              "ci_low": 0.002711,
+              "value": 0.008333
+            },
+            "explosion": {
+              "ci_high": 0.134165,
+              "ci_low": 0.08312,
+              "value": 0.106667
+            },
+            "fire": {
+              "ci_high": 0.137815,
+              "ci_low": 0.086101,
+              "value": 0.11
+            },
+            "launch": {
+              "ci_high": 0.568886,
+              "ci_low": 0.487501,
+              "value": 0.528333
+            }
+          },
+          "pd_by_snr": {
+            "2-5": {
+              "ci_high": 0.010484,
+              "ci_low": 0.0,
+              "value": 0.0
+            },
+            "20-100": {
+              "ci_high": 0.405104,
+              "ci_low": 0.329551,
+              "value": 0.366718
+            },
+            "5-20": {
+              "ci_high": 0.036936,
+              "ci_low": 0.011061,
+              "value": 0.021314
+            },
+            "<2": {
+              "ci_high": 0.009089,
+              "ci_low": 0.0,
+              "value": 0.0
+            },
+            ">100": {
+              "ci_high": 0.513617,
+              "ci_low": 0.417733,
+              "value": 0.465438
+            }
+          },
+          "pfa_all_background": {
+            "ci_high": 0.000721,
+            "ci_low": 0.000141,
+            "value": 0.00035
+          },
+          "pfa_glint_free": {
+            "ci_high": 0.000243,
+            "ci_low": 0.0,
+            "value": 0.0
+          },
+          "threshold": 287.903676
+        },
+        "calibrated_glint_free": {
+          "pd": {
+            "ci_high": 0.408587,
+            "ci_low": 0.369185,
+            "value": 0.38875
+          },
+          "pd_by_class": {
+            "aircraft": {
+              "ci_high": 0.104671,
+              "ci_low": 0.059572,
+              "value": 0.08
+            },
+            "explosion": {
+              "ci_high": 0.348709,
+              "ci_low": 0.273173,
+              "value": 0.31
+            },
+            "fire": {
+              "ci_high": 0.307432,
+              "ci_low": 0.234849,
+              "value": 0.27
+            },
+            "launch": {
+              "ci_high": 0.918368,
+              "ci_low": 0.867663,
+              "value": 0.895
+            }
+          },
+          "pd_by_snr": {
+            "2-5": {
+              "ci_high": 0.080063,
+              "ci_low": 0.030761,
+              "value": 0.051429
+            },
+            "20-100": {
+              "ci_high": 0.67645,
+              "ci_low": 0.601165,
+              "value": 0.639445
+            },
+            "5-20": {
+              "ci_high": 0.352701,
+              "ci_low": 0.274501,
+              "value": 0.312611
+            },
+            "<2": {
+              "ci_high": 0.032044,
+              "ci_low": 0.005469,
+              "value": 0.014851
+            },
+            ">100": {
+              "ci_high": 0.773797,
+              "ci_low": 0.688436,
+              "value": 0.732719
+            }
+          },
+          "pfa_all_background": {
+            "ci_high": 0.018573,
+            "ci_low": 0.01497,
+            "value": 0.0167
+          },
+          "pfa_glint_free": {
+            "ci_high": 0.00251,
+            "ci_low": 0.00112,
+            "value": 0.001714
+          },
+          "threshold": 98.203363
+        }
+      },
+      "pfa_0.01": {
+        "analytic": {
+          "pd": {
+            "ci_high": 0.930935,
+            "ci_low": 0.90886,
+            "value": 0.920417
+          },
+          "pd_by_class": {
+            "aircraft": {
+              "ci_high": 0.849937,
+              "ci_low": 0.786874,
+              "value": 0.82
+            },
+            "explosion": {
+              "ci_high": 0.936059,
+              "ci_low": 0.889754,
+              "value": 0.915
+            },
+            "fire": {
+              "ci_high": 0.963238,
+              "ci_low": 0.92554,
+              "value": 0.946667
+            },
+            "launch": {
+              "ci_high": 1.0,
+              "ci_low": 0.993871,
+              "value": 1.0
+            }
+          },
+          "pd_by_snr": {
+            "2-5": {
+              "ci_high": 0.922014,
+              "ci_low": 0.854031,
+              "value": 0.891429
+            },
+            "20-100": {
+              "ci_high": 0.968598,
+              "ci_low": 0.934666,
+              "value": 0.953775
+            },
+            "5-20": {
+              "ci_high": 0.942642,
+              "ci_low": 0.896502,
+              "value": 0.921847
+            },
+            "<2": {
+              "ci_high": 0.844287,
+              "ci_low": 0.765009,
+              "value": 0.806931
+            },
+            ">100": {
+              "ci_high": 0.999942,
+              "ci_low": 0.98723,
+              "value": 0.997696
+            }
+          },
+          "pfa_all_background": {
+            "ci_high": 0.654224,
+            "ci_low": 0.640933,
+            "value": 0.6476
+          },
+          "pfa_glint_free": {
+            "ci_high": 0.598428,
+            "ci_low": 0.582715,
+            "value": 0.590589
+          },
+          "threshold": 4.14941
+        },
+        "calibrated_all_background": {
+          "pd": {
+            "ci_high": 0.361455,
+            "ci_low": 0.323097,
+            "value": 0.342083
+          },
+          "pd_by_class": {
+            "aircraft": {
+              "ci_high": 0.080197,
+              "ci_low": 0.040964,
+              "value": 0.058333
+            },
+            "explosion": {
+              "ci_high": 0.288395,
+              "ci_low": 0.217403,
+              "value": 0.251667
+            },
+            "fire": {
+              "ci_high": 0.257064,
+              "ci_low": 0.189036,
+              "value": 0.221667
+            },
+            "launch": {
+              "ci_high": 0.865362,
+              "ci_low": 0.804612,
+              "value": 0.836667
+            }
+          },
+          "pd_by_snr": {
+            "2-5": {
+              "ci_high": 0.036938,
+              "ci_low": 0.006316,
+              "value": 0.017143
+            },
+            "20-100": {
+              "ci_high": 0.643364,
+              "ci_low": 0.566765,
+              "value": 0.605547
+            },
+            "5-20": {
+              "ci_high": 0.258656,
+              "ci_low": 0.188341,
+              "value": 0.222025
+            },
+            "<2": {
+              "ci_high": 0.028644,
+              "ci_low": 0.00403,
+              "value": 0.012376
+            },
+            ">100": {
+              "ci_high": 0.716795,
+              "ci_low": 0.626451,
+              "value": 0.672811
+            }
+          },
+          "pfa_all_background": {
+            "ci_high": 0.010515,
+            "ci_low": 0.007831,
+            "value": 0.0091
+          },
+          "pfa_glint_free": {
+            "ci_high": 0.001297,
+            "ci_low": 0.000362,
+            "value": 0.000725
+          },
+          "threshold": 125.392702
+        },
+        "calibrated_glint_free": {
+          "pd": {
+            "ci_high": 0.511876,
+            "ci_low": 0.471478,
+            "value": 0.491667
+          },
+          "pd_by_class": {
+            "aircraft": {
+              "ci_high": 0.211356,
+              "ci_low": 0.148516,
+              "value": 0.178333
+            },
+            "explosion": {
+              "ci_high": 0.458959,
+              "ci_low": 0.378516,
+              "value": 0.418333
+            },
+            "fire": {
+              "ci_high": 0.430324,
+              "ci_low": 0.350764,
+              "value": 0.39
+            },
+            "launch": {
+              "ci_high": 0.989624,
+              "ci_low": 0.965325,
+              "value": 0.98
+            }
+          },
+          "pd_by_snr": {
+            "2-5": {
+              "ci_high": 0.183967,
+              "ci_low": 0.107926,
+              "value": 0.142857
+            },
+            "20-100": {
+              "ci_high": 0.715294,
+              "ci_low": 0.642077,
+              "value": 0.679507
+            },
+            "5-20": {
+              "ci_high": 0.565901,
+              "ci_low": 0.481803,
+              "value": 0.523979
+            },
+            "<2": {
+              "ci_high": 0.101466,
+              "ci_low": 0.048598,
+              "value": 0.071782
+            },
+            ">100": {
+              "ci_high": 0.874144,
+              "ci_low": 0.803153,
+              "value": 0.841014
+            }
+          },
+          "pfa_all_background": {
+            "ci_high": 0.048119,
+            "ci_low": 0.042314,
+            "value": 0.04515
+          },
+          "pfa_glint_free": {
+            "ci_high": 0.013786,
+            "ci_low": 0.010263,
+            "value": 0.011929
+          },
+          "threshold": 60.314391
+        }
+      }
+    },
+    "v1_multi_method": {
+      "note": "binary output; thresholds fixed in v1 temperature units",
+      "pd": {
+        "ci_high": 1.0,
+        "ci_low": 0.998464,
+        "value": 1.0
+      },
+      "pfa_all_background": {
+        "ci_high": 1.0,
+        "ci_low": 0.998157,
+        "value": 1.0
+      }
+    }
+  }
+}

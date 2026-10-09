@@ -13,7 +13,6 @@ import numpy as np
 
 from sentinel.core.linalg import FloatArray
 from sentinel.data.config import Priors
-from sentinel.models.taxonomy import EVENT_CLASSES
 from sentinel.sim.geometry import GeostationaryPlatform, LocalFrame
 from sentinel.sim.opir.sensor import OPIRSensor, SceneConditions, frame_times, observe
 from sentinel.sim.scenario import (
@@ -24,6 +23,7 @@ from sentinel.sim.scenario import (
     SceneConfig,
 )
 from sentinel.sim.trajectories import Stationary
+from sentinel.taxonomy import EVENT_CLASSES
 
 METADATA_FIELDS = (
     "onset_s",

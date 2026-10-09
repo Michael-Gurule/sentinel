@@ -36,6 +36,9 @@ testpaths = ["tests"]
 # importlib mode keeps the repo root off sys.path, so tests exercise the
 # installed `sentinel` package rather than whatever happens to be on disk.
 addopts = ["-ra", "--strict-markers", "--import-mode=importlib"]
+# The repo root is importable for `experiments` (not part of the package);
+# `sentinel` still resolves to the installed src/ package.
+pythonpath = ["."]
 # An expected failure that starts passing must fail the run (forces the
 # marker to be removed together with the fix).
 xfail_strict = true
@@ -63,12 +66,10 @@ ignore = ["E501"]
 # Math notation in docstrings and output is intentional.
 allowed-confusables = ["σ", "α", "ν", "ρ", "γ", "×", "–"]
 
-# Known-debt register (v1 code). Each entry is removed when the module is
-# rewritten; the lint must stay clean everywhere else.
-#   B905   zip() without strict=       -> Phase 3 (detection/evaluation rewrite)
+# Known-debt register. The v1 package code has been fully rewritten; the only
+# entry left is the frozen v1 detector copy kept as the E1 baseline.
 [tool.ruff.lint.per-file-ignores]
-"src/sentinel/detection/opir_detectors.py" = ["B905"]
-"scripts/evaluate_cnn.py" = ["B905"]
+"experiments/legacy/v1_detectors.py" = ["B905"]
 
 [tool.mypy]
 python_version = "3.12"
@@ -83,16 +84,10 @@ init_forbid_extra = true
 init_typed = true
 warn_required_dynamic_aliases = true
 
-# Legacy ratchet: v1 modules type-checked leniently until rewritten
-# (detection, training loop -> Phase 3).
-# Remove a module from this list when it is rewritten; new modules are
-# always strict.
+# Third-party packages without type information.
 [[tool.mypy.overrides]]
-module = [
-    "sentinel.detection.opir_detectors",
-    "sentinel.training.train_classifier",
-]
-ignore_errors = true
+module = ["sklearn.*"]
+ignore_missing_imports = true
 
 [tool.coverage.run]
 source = ["sentinel"]

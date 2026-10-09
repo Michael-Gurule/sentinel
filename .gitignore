@@ -56,9 +56,10 @@ data/opir_v2/
 assets/
 REFACTOR_PLAN.md
 
-# Model artifacts and run outputs
+# Model artifacts and run outputs (the selected classifier under models/ is versioned)
 *.pth
 *.pt
+!models/**/weights.pt
 *.onnx
 *.pkl
 outputs/

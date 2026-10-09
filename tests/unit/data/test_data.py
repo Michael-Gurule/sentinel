@@ -15,7 +15,7 @@ from sentinel.data import (
 from sentinel.data.build import compare_manifests, main, sample_rng
 from sentinel.data.config import Priors, Range, SplitConfig, deep_merge
 from sentinel.data.generate import generate_sample, params_to_json
-from sentinel.models.taxonomy import EVENT_CLASSES
+from sentinel.taxonomy import EVENT_CLASSES
 
 
 def tiny_config(**changes) -> DatasetConfig:

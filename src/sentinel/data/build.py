@@ -29,8 +29,8 @@ import numpy as np
 
 from sentinel.data.config import DatasetConfig, Priors, load_dataset_config
 from sentinel.data.generate import METADATA_FIELDS, generate_sample, params_to_json
-from sentinel.models.taxonomy import EVENT_CLASSES
 from sentinel.sim.opir.sensor import frame_times
+from sentinel.taxonomy import EVENT_CLASSES
 
 MANIFEST_NAME = "manifest.json"
 _CHUNK = 200
@@ -82,6 +82,50 @@ def _generate_chunk(
         metadata.append(sample.metadata)
         params.append(params_to_json(sample.params))
     return np.stack(signals), metadata, params
+
+
+def generate_samples(
+    root_seed: int,
+    stream: str,
+    label: str,
+    count: int,
+    priors: Priors,
+    window_s: float,
+    workers: int = 1,
+) -> tuple[np.ndarray, dict[str, np.ndarray]]:
+    """Generate ``count`` samples of one class on a named seed stream.
+
+    Uses the dataset seeding scheme, so a ``stream`` name that is not a split
+    name yields samples independent of every split (e.g. extra background
+    windows for false-alarm estimation).
+
+    Returns:
+        Signals (count, T) and numeric metadata arrays keyed by field name.
+    """
+    class_index = EVENT_CLASSES.index(label)
+    priors_json = priors.model_dump_json()
+    tasks = [
+        (
+            root_seed,
+            stream,
+            class_index,
+            start,
+            min(start + _CHUNK, count),
+            priors_json,
+            window_s,
+        )
+        for start in range(0, count, _CHUNK)
+    ]
+    if workers > 1:
+        with ProcessPoolExecutor(max_workers=workers) as pool:
+            results = list(pool.map(_generate_chunk, tasks))
+    else:
+        results = [_generate_chunk(task) for task in tasks]
+    signals = np.concatenate([r[0] for r in results])
+    metadata = [m for r in results for m in r[1]]
+    return signals, {
+        f: np.array([m[f] for m in metadata], dtype=np.float64) for f in METADATA_FIELDS
+    }
 
 
 def build_split(

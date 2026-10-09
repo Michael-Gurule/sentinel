@@ -4,7 +4,7 @@ PYTHON ?= python
 ENV_NAME ?= sentinel
 
 .DEFAULT_GOAL := help
-.PHONY: help env env-update hooks lint format typecheck test cov check data data-verify data-figures clean
+.PHONY: help env env-update hooks lint format typecheck test cov check data data-verify data-figures experiments e1 e2 e3 clean
 
 help:  ## List available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | \
@@ -34,7 +34,7 @@ test:  ## Run the test suite
 	MPLBACKEND=Agg $(PYTHON) -m pytest
 
 # Packages whose correctness the project's results depend on; gated at 85%.
-CORE_COVERAGE = src/sentinel/core/*,src/sentinel/geolocation/*,src/sentinel/tracking/*,src/sentinel/fusion/*,src/sentinel/sim/*,src/sentinel/data/*
+CORE_COVERAGE = src/sentinel/core/*,src/sentinel/geolocation/*,src/sentinel/tracking/*,src/sentinel/fusion/*,src/sentinel/sim/*,src/sentinel/data/*,src/sentinel/detection/*,src/sentinel/classification/*,src/sentinel/eval/*
 
 cov:  ## Run tests with coverage; enforce >=85% on core packages
 	MPLBACKEND=Agg $(PYTHON) -m pytest --cov --cov-report=term-missing --cov-report=xml
@@ -57,6 +57,17 @@ data-verify:  ## Rebuild the dataset and check it against the versioned manifest
 
 data-figures:  ## Render data-card figures from the built dataset
 	$(PYTHON) scripts/plot_dataset.py --data $(DATASET_DIR) --out docs/figures
+
+e1:  ## E1 detection experiment (needs `make data`)
+	$(PYTHON) -m experiments.e1_detection --workers $(WORKERS)
+
+e2:  ## E2 classification experiment (~1 h on Apple MPS)
+	$(PYTHON) -m experiments.e2_classification
+
+e3:  ## E3 uncertainty experiment (needs E1 and E2); exports models/opir_event_classifier
+	$(PYTHON) -m experiments.e3_uncertainty --workers $(WORKERS)
+
+experiments: e1 e2 e3  ## Run all Phase 3 experiments in order
 
 clean:  ## Remove caches and build artifacts
 	rm -rf .pytest_cache .mypy_cache .ruff_cache .hypothesis htmlcov .coverage coverage.xml build dist

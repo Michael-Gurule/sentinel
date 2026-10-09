@@ -1,0 +1,56 @@
+{
+  "classes": [
+    "launch",
+    "explosion",
+    "fire",
+    "aircraft",
+    "background"
+  ],
+  "conformal": {
+    "alpha": 0.1,
+    "method": "lac",
+    "threshold": 0.7640647691106394
+  },
+  "dataset": {
+    "config_sha256": "8279544b1c49ad8528f4e1688ea4c342b3bb2bbdd06fcb8a1b60d76741e95e4a",
+    "dataset": "opir_v2",
+    "root_seed": 20261008,
+    "version": "2.0.0"
+  },
+  "metrics": {
+    "selected_seed": 3,
+    "shift_macro_f1": {
+      "shift_clutter": 0.596745,
+      "shift_low_snr": 0.677134,
+      "shift_params": 0.754258
+    },
+    "test_conformal_coverage": 0.903,
+    "test_ece_after_temperature": 0.014996008306901634,
+    "test_macro_f1": 0.814741,
+    "validation_macro_f1": 0.819081
+  },
+  "model": "tcn",
+  "model_kwargs": {},
+  "name": "opir_event_classifier",
+  "preprocess": {
+    "length": null,
+    "normalization": "noise_asinh"
+  },
+  "temperature": 1.1040091550918276,
+  "training": {
+    "augment": true,
+    "batch_size": 128,
+    "epochs": 40,
+    "learning_rate": 0.003,
+    "max_shift_fraction": 0.1,
+    "model": "tcn",
+    "model_kwargs": {},
+    "patience": 8,
+    "preprocess": {
+      "length": null,
+      "normalization": "noise_asinh"
+    },
+    "seed": 3,
+    "weight_decay": 0.01
+  }
+}

@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from sentinel.data import load_split
-from sentinel.models.taxonomy import EVENT_CLASSES
+from sentinel.taxonomy import EVENT_CLASSES
 
 # Reference palette (light mode): one series hue, muted ink, recessive grid.
 SERIES = "#2a78d6"

@@ -15,35 +15,34 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-import torch
 
+from sentinel.classification import ModelArtifact, TrainConfig
 from sentinel.core import GeometryError
 from sentinel.core.constants import SPEED_OF_LIGHT
 from sentinel.data import build_dataset, load_dataset_config
-from sentinel.detection.opir_detectors import (
-    AnomalyDetector,
-    MultiMethodDetector,
-    RiseTimeDetector,
-    TemporalDifferenceDetector,
-)
+from sentinel.data.build import generate_samples
+from sentinel.data.config import Priors
+from sentinel.detection import CFARDetector, CUSUMDetector, StepGLRTDetector
 from sentinel.fusion import FusionEngine
 from sentinel.geolocation import (
     Receiver,
     TDOAMeasurement,
     chan_ho,
     difference_covariance,
-    simulate_tdoa,
     solve_ranges,
     tdoa_dop,
 )
 from sentinel.geolocation.models import range_difference_model
-from sentinel.inference.opir_inference import OPIRInference
-from sentinel.models.cnn_classifier import OPIRClassifier
-from sentinel.models.signal_generator import OPIRSignalGenerator
-from sentinel.pipeline.phase3_pipeline import SENTINELPhase3Pipeline
+from sentinel.pipeline.phase3_pipeline import (
+    CFAR_THRESHOLD_PFA_1E2,
+    SENTINELPhase3Pipeline,
+)
+from sentinel.sim import load_scenario, simulate_scenario
+from sentinel.taxonomy import EVENT_CLASSES
 from sentinel.tracking import ConstantVelocity, LinearMeasurement
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+REPORTS = REPO_ROOT / "reports" / "phase3"
 
 # Non-coplanar sensor layout (meters, local ENU) and an emitter inside it.
 SENSORS = np.array(
@@ -56,6 +55,7 @@ SENSORS = np.array(
     ]
 )
 EMITTER = np.array([3_000.0, 4_000.0, 800.0])
+FS = 10.0
 
 
 def known_defect(defect_id: str, reason: str, **kwargs):
@@ -63,9 +63,11 @@ def known_defect(defect_id: str, reason: str, **kwargs):
     return pytest.mark.xfail(strict=True, reason=f"{defect_id}: {reason}", **kwargs)
 
 
-@pytest.fixture(autouse=True)
-def _seed_torch():
-    torch.manual_seed(1234)
+def _windows(
+    label: str, count: int, **scene: object
+) -> tuple[np.ndarray, dict[str, np.ndarray]]:
+    priors = Priors.model_validate({"scene": scene}) if scene else Priors()
+    return generate_samples(11, f"characterization_{label}", label, count, priors, 64.0)
 
 
 # --------------------------------------------------------------------------
@@ -77,38 +79,29 @@ def _seed_torch():
     "reports cannot update fused tracks",
 )
 def test_c1_opir_contributes_to_fused_tracks():
-    rng = np.random.default_rng(0)
+    result = simulate_scenario(
+        load_scenario(REPO_ROOT / "configs/scenario/launch_with_radar.yaml"), seed=0
+    )
     pipeline = SENTINELPhase3Pipeline()
-    generator = OPIRSignalGenerator(rng=rng)
-    start, velocity = np.array([5_000.0, 5_000.0, 500.0]), np.array([100.0, 50.0, 0])
-
-    for frame in range(5):
-        t = float(frame)
-        pipeline.process_multi_sensor_frame(
-            opir_signals=[generator.generate_launch_signature(start_time=2.0)],
-            rf_measurements=[
-                simulate_tdoa(start + velocity * t, pipeline.receivers, 10e-9, rng)
-            ],
-            sampling_rate=generator.sampling_rate,
-            timestamp=t,
-        )
+    launch = result.opir["launch-1"].measured
+    for emitter, scan in result.rf_scans:
+        if emitter != "radar-1":
+            continue
+        end = round(scan.t * FS) + 1
+        window = launch[max(0, end - 640) : end] if end > 20 else launch[:640]
+        fix = pipeline.process_rf_measurements(scan.tdoa, scan.receivers)
+        pipeline.process_multi_sensor_frame([window], [], FS, scan.t)
+        if fix is not None:
+            pipeline.fusion_engine.process([fix], scan.t)
 
     tracks = pipeline.fusion_engine.tracks
     assert tracks, "expected at least one fused track"
     assert any({"opir", "rf"} <= t.hits_by_source.keys() for t in tracks)
-    assert any(t.label is not None for t in tracks)
 
 
 # --------------------------------------------------------------------------
-# C3 (fixed in Phase 1): the dataset could not be regenerated
+# C3 (fixed in Phases 1-2): the dataset could not be regenerated
 # --------------------------------------------------------------------------
-def test_c3_generator_produces_background_scenario():
-    generator = OPIRSignalGenerator(duration_s=10.0, sample_rate_hz=10)
-    scenario, events = generator.generate_scenario([])
-    assert scenario.shape == (generator.num_samples,)
-    assert events == []
-
-
 def test_c3_dataset_is_reproducible_from_committed_code(tmp_path):
     config = load_dataset_config(REPO_ROOT / "configs/dataset/opir_v2.yaml").scaled(
         0.002
@@ -128,73 +121,86 @@ def test_c3_versioned_manifest_matches_committed_config():
 
 
 # --------------------------------------------------------------------------
-# C4 (fixed in Phase 1): classifier contracts disagreed
+# C4 (fixed in Phases 1, 3): classifier contracts disagreed
 # --------------------------------------------------------------------------
-def test_c4_classifier_contracts_agree():
-    assert list(OPIRClassifier.CLASS_NAMES) == list(OPIRInference.CLASS_NAMES)
-    assert OPIRClassifier().model.input_length == 100
-
-
-# --------------------------------------------------------------------------
-# C5 (open, Phase 3): v1 detectors raise false alarms on background
-# --------------------------------------------------------------------------
-@known_defect(
-    "C5",
-    "RiseTimeDetector uses an absolute rate threshold, TemporalDifference "
-    "estimates its baseline from 5 samples, and MAD scores use 3-sample windows",
-)
-def test_c5_false_alarm_rate_on_background_noise():
-    detector = MultiMethodDetector()
-    rng = np.random.default_rng(7)
-    trials = 100
-    false_alarms = sum(
-        detector.detect(280.0 + rng.normal(0.0, 5.0, 1_000), 100.0).detected
-        for _ in range(trials)
+def test_c4_artifact_carries_the_training_contract():
+    """Class order and preprocessing travel with the weights, so inference
+    cannot silently use a different taxonomy or transform than training."""
+    config = TrainConfig(
+        model="tcn", preprocess={"normalization": "zscore", "length": 100}
     )
-    # Generous bound; the design target (Pfa ~1e-3) is set in Phase 3.
-    assert false_alarms / trials <= 0.05
-
-
-@known_defect(
-    "C5",
-    "moving-average smoothing with mode='same' pulls edge samples down, "
-    "creating a spurious rise at t=0 on a constant signal",
-)
-def test_c5_rise_time_detector_ignores_constant_signal():
-    assert not RiseTimeDetector().detect(np.full(500, 280.0), 100.0).detected
-
-
-@known_defect(
-    "C5",
-    "MAD scores start after only 3 samples, so the first frames of pure "
-    "noise exceed the threshold",
-)
-def test_c5_mad_detector_does_not_fire_before_the_event():
-    generator = OPIRSignalGenerator(rng=np.random.default_rng(0))
-    signal = generator.generate_launch_signature(start_time=2.0)
-    result = AnomalyDetector(method="mad").detect(signal, 100.0)
-    assert result.detection_time >= 2.0
+    artifact = ModelArtifact(name="x", model=config.model, preprocess=config.preprocess)
+    restored = ModelArtifact.model_validate_json(artifact.model_dump_json())
+    assert restored.classes == EVENT_CLASSES
+    assert restored.preprocess == config.preprocess
+    shipped = REPO_ROOT / "models/opir_event_classifier/artifact.json"
+    if shipped.exists():
+        exported = ModelArtifact.model_validate_json(shipped.read_text())
+        assert exported.classes == EVENT_CLASSES
 
 
 # --------------------------------------------------------------------------
-# H11 (open, Phase 3): temporal differencing misses the events it targets
+# C5 (fixed in Phase 3): detectors raised false alarms on background
 # --------------------------------------------------------------------------
-@known_defect(
-    "H11",
-    "requires 3 consecutive above-threshold frame differences; a launch rise "
-    "gives at most 2 at 1 Hz and an explosion step gives 1",
+def test_c5_false_alarm_rate_on_glint_free_background():
+    """The pipeline's CFAR threshold holds its design rate (1e-2) on new background."""
+    background, _ = _windows("background", 400, glint_probability=0.0)
+    alarms = CFARDetector().score(background, FS).score > CFAR_THRESHOLD_PFA_1E2
+    assert alarms.mean() <= 0.03
+
+
+@pytest.mark.parametrize(
+    "detector", [CFARDetector(), CUSUMDetector(), StepGLRTDetector()]
 )
+def test_c5_detectors_ignore_constant_signal(detector):
+    threshold = detector.analytic_threshold(1e-2, 640, FS)
+    assert detector.score(np.full(640, 280.0), FS).score[0] < threshold
+
+
+def test_c5_detection_does_not_precede_the_event():
+    launches, meta = _windows("launch", 20, glint_probability=0.0)
+    scores = CFARDetector().score(launches, FS)
+    detected = scores.score > CFAR_THRESHOLD_PFA_1E2
+    assert detected.mean() > 0.5
+    onset_s = scores.onset_index[detected] / FS
+    assert np.all(onset_s >= meta["onset_s"][detected] - 0.5)
+
+
+# --------------------------------------------------------------------------
+# H11 (fixed in Phase 3): the v1 temporal-difference detector missed launches
+# and explosions; the replacement detectors catch them
+# --------------------------------------------------------------------------
 @pytest.mark.parametrize("event", ["launch", "explosion"])
-def test_h11_temporal_difference_detects_target_events(event):
-    gen = OPIRSignalGenerator(
-        duration_s=100.0, sample_rate_hz=1.0, rng=np.random.default_rng(0)
-    )
-    signal = (
-        gen.generate_launch_signature(start_time=20.0)
-        if event == "launch"
-        else gen.generate_explosion_signature(start_time=20.0)
-    )
-    assert TemporalDifferenceDetector().detect(signal, 1.0).detected
+def test_h11_detectors_catch_target_events(event):
+    signals, meta = _windows(event, 30, glint_probability=0.0)
+    bright = meta["peak_snr"] > 10.0
+    assert bright.sum() >= 10
+    scores = CFARDetector().score(signals[bright], FS).score
+    assert np.mean(scores > CFAR_THRESHOLD_PFA_1E2) >= 0.9
+
+
+# --------------------------------------------------------------------------
+# C8 (fixed in Phase 3): the headline result was 100% on a toy task
+# --------------------------------------------------------------------------
+def test_c8_reported_results_are_honest():
+    """Results come with baselines, seed CIs, and shift sets, and are not
+    the trivially perfect accuracy of a separable toy problem."""
+    report = json.loads((REPORTS / "e2_classification.json").read_text())
+    summary = report["summary"]
+    assert {"logistic", "gbm", "cnn", "tcn"} <= set(summary)
+    best = summary[report["selected_model"]]["test"]["macro_f1"]
+    assert best["value"] < 0.99
+    assert best["ci_low"] <= best["value"] <= best["ci_high"]
+    for shift in ("shift_low_snr", "shift_params", "shift_clutter"):
+        assert shift in summary[report["selected_model"]]
+
+
+def test_pipeline_threshold_matches_e1_report():
+    report = json.loads((REPORTS / "e1_detection.json").read_text())
+    calibrated = report["results"]["cfar"]["pfa_0.01"]["calibrated_glint_free"][
+        "threshold"
+    ]
+    assert calibrated == pytest.approx(CFAR_THRESHOLD_PFA_1E2, abs=0.01)
 
 
 # --------------------------------------------------------------------------
