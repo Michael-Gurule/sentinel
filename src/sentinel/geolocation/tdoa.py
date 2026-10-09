@@ -18,6 +18,7 @@ from sentinel.geolocation.models import (
     receiver_lookup,
     tdoa_to_range_difference,
 )
+from sentinel.geolocation.systematic import SystematicErrors, inflate_tdoa
 
 
 def initial_position(
@@ -38,6 +39,7 @@ def solve_tdoa(
     measurement: TDOAMeasurement,
     initial: FloatArray | None = None,
     max_nfev: int = 200,
+    systematic: SystematicErrors | None = None,
 ) -> GeolocationResult:
     """Emitter position from reference-sensor TDOAs (iterative ML).
 
@@ -45,10 +47,18 @@ def solve_tdoa(
     differences are weighted correctly. Initialized with Chan-Ho when at least
     four TDOAs are available.
 
+    Args:
+        systematic: Receiver clock-bias / survey-error levels to fold into the
+            measurement covariance (see :mod:`sentinel.geolocation.systematic`).
+            Without it the reported covariance assumes perfectly synchronized,
+            perfectly surveyed receivers.
+
     Raises:
         InsufficientMeasurementsError: fewer than three TDOAs.
         GeometryError: position not observable from the given geometry.
     """
+    if systematic is not None:
+        measurement = inflate_tdoa(measurement, systematic)
     m = len(measurement)
     if m < 3:
         raise InsufficientMeasurementsError(f"3-D TDOA needs >= 3 TDOAs, got {m}")

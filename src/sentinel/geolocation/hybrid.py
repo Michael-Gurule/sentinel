@@ -21,6 +21,7 @@ from sentinel.geolocation.models import (
     receiver_lookup,
     tdoa_to_range_difference,
 )
+from sentinel.geolocation.systematic import SystematicErrors, inflate_fdoa, inflate_tdoa
 from sentinel.geolocation.tdoa import solve_tdoa
 
 
@@ -30,6 +31,7 @@ def solve_tdoa_fdoa(
     fdoa: FDOAMeasurement | None = None,
     initial: FloatArray | None = None,
     max_nfev: int = 400,
+    systematic: SystematicErrors | None = None,
 ) -> GeolocationResult:
     """Emitter position and, when FDOA is available, velocity.
 
@@ -48,7 +50,10 @@ def solve_tdoa_fdoa(
     """
     if fdoa is None:
         start = None if initial is None else np.asarray(initial)[:3]
-        return solve_tdoa(receivers, tdoa, initial=start)
+        return solve_tdoa(receivers, tdoa, initial=start, systematic=systematic)
+    if systematic is not None:
+        tdoa = inflate_tdoa(tdoa, systematic)
+        fdoa = inflate_fdoa(fdoa, systematic)
 
     num_measurements = len(tdoa) + len(fdoa)
     if num_measurements < 6:
