@@ -74,13 +74,13 @@ class RunOptions:
     workers: int
 
 
-def parse_options(description: str) -> RunOptions:
+def parse_options(description: str, report_dir: Path = REPORT_DIR) -> RunOptions:
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument(
         "--quick", action="store_true", help="Tiny smoke run (CPU, no figures)"
     )
     parser.add_argument("--data", type=Path, default=DATA_DIR)
-    parser.add_argument("--reports", type=Path, default=REPORT_DIR)
+    parser.add_argument("--reports", type=Path, default=report_dir)
     parser.add_argument("--models", type=Path, default=MODEL_DIR)
     parser.add_argument("--device", default=None, help="Torch device (default: auto)")
     parser.add_argument("--workers", type=int, default=4)

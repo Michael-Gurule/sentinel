@@ -3,7 +3,7 @@
 import json
 
 import pytest
-from experiments import e1_detection, e2_classification, e3_uncertainty
+from experiments import e1_detection, e2_classification, e3_uncertainty, e4_geolocation
 from experiments.common import RunOptions
 
 from sentinel.data import build_dataset, load_dataset_config
@@ -39,3 +39,11 @@ def test_experiments_chain(options):
     assert artifact["temperature"] > 0
     for name in ("e1_detection", "e2_classification", "e3_uncertainty"):
         assert (options.report_dir / f"{name}.json").exists()
+
+
+def test_e4_geolocation_quick(options):
+    report = e4_geolocation.run(options)
+    sweep = report["noise_sweep"]["10ns"]
+    assert sweep["ml"]["rmse"] < 3 * sweep["crlb_rms"]
+    assert set(report["dop_maps"]) == {"mixed_altitude", "ground_only", "compact_2km"}
+    assert (options.report_dir / "e4_geolocation.json").exists()
