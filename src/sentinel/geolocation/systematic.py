@@ -20,7 +20,9 @@ needs no position estimate.
 
 Caveat: over a single realization the bias is *constant*, so averaging many
 scans of the same network does not reduce it. A tracker fusing consecutive
-scans must model the bias as correlated across time (Phase 5).
+scans must model the bias as correlated across time: E7 shows track NEES
+growing with track age unless the systematic part of the fix covariance is
+kept as a floor on the reported track covariance (docs/fusion.md).
 """
 
 from dataclasses import dataclass

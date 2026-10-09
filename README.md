@@ -23,24 +23,21 @@ SENTINEL-XF is a production-grade Machine Learning platform designed for Defense
 
 ## Why Sensor Fusion Matters: The Multiplicative Effect
 
-Consider a scenario: An OPIR satellite detects a thermal anomaly consistent with a missile launch. Confidence: 70%. Simultaneously, an RF geolocation system identifies an emitter at coordinates with 50-meter uncertainty. Confidence: 80%.
+OPIR satellites see every hot event (launches, fires, aircraft) but measure
+only a direction; two satellites triangulate to a few hundred meters. RF
+TDOA/FDOA geolocation measures position and velocity to tens of meters, but
+only for targets that emit. Neither sensor alone gives the full picture.
 
-**Naive approach**: Report both independently.
-
-> **Result:** Analysts must manually correlate information, introducing delays and potential errors.
-
-**Fusion approach**: Combine measurements using covariance weighting.
-
-> **Result**: Single track with 95% confidence, 15-meter position uncertainty, and classified event type.
-
-The mathematics is straightforward but powerful. Using covariance intersection, the fused position uncertainty becomes:
-<br>
-
-<p align="center">
-<img src="https://latex.codecogs.com/png.latex?%5Chuge%20P_{fused}%20=%20(P_{OPIR}^{-1}%20+%20P_{RF}^{-1})^{-1}">
-</p>  
-
-Where `P` represents position covariance matrices. The fused uncertainty is **always lower** than either individual measurement. This isn't just combining data; it's extracting information that neither sensor could provide alone.
+SENTINEL fuses them at the measurement level: one tracker takes OPIR stereo
+positions, single-satellite lines of sight, and RF fixes, each with its own
+covariance. On the multi-target benchmark (E6, 10 seeds), fusion cuts the
+GOSPA tracking error from 877 m (OPIR only) and 1961 m (RF only) to 693 m.
+It tracks launches and fires that RF cannot see, improves aircraft accuracy
+over RF alone (63 m vs 74 m), and puts a calibrated class label on each track.
+When the RF network goes down, OPIR lines of sight keep every aircraft track
+alive (E7). The [fusion write-up](docs/fusion.md) has the methods and
+results, and [ADR 0001](docs/adr/0001-fusion-architecture.md) records why
+centralized fusion was chosen over track-to-track fusion.
 
 ---
 
@@ -77,11 +74,13 @@ Where `P` represents position covariance matrices. The fused uncertainty is **al
   - Sensor motion compensation
 - **Hybrid TDOA/FDOA**: Combined time and frequency measurements
   - Improved accuracy through complementary data
-- **Sensor Fusion Engine**: Multi-sensor track management
-  - Data association with Mahalanobis distance gating
-  - Covariance-weighted measurement fusion
-  - Track quality scoring and confidence estimation
-  - Uncertainty quantification (CEP, position/velocity covariance)
+- **OPIR geolocation**: stereo triangulation (GEO + HEO), line-of-sight
+  (angle-only) EKF updates, and altitude intersection, all with covariance
+- **Sensor Fusion Engine**: centralized measurement-level fusion
+  - IMM tracking (quiet + maneuvering constant-velocity models), χ² gating, GNN assignment
+  - M-of-N track confirmation and duplicate-track merging
+  - Track class posteriors pooled from calibrated classifier outputs
+  - Track-to-track fusion (naive and covariance intersection) for comparison
 
 ---
 
@@ -173,8 +172,10 @@ pytest
 python -m sentinel.pipeline.phase3_pipeline
 ```
 
-Tracks a moving RF emitter for 10 s while running OPIR detection and
-classification on each frame.
+Runs the example scenario frame by frame: CFAR detection and classification
+of each OPIR pixel window, geolocation of its line of sight, RF TDOA/FDOA
+fixes, and centralized fusion. A radar at the launch site starts an RF track,
+and the launch's OPIR detections update it and label it a launch.
 
 ### RF Geolocation (TDOA)
 
@@ -259,11 +260,12 @@ for t in range(10):
 print(pipeline.get_situation_awareness())
 ```
 
-Tracks are maintained by a Kalman filter with a constant-velocity
-(white-noise acceleration) model, χ² gating on the innovation covariance, and
-global-nearest-neighbor assignment. OPIR reports are detected and classified
-but not yet fused into tracks: that requires OPIR geolocation, which is on the
-roadmap.
+Tracks are maintained by an IMM filter (quiet and maneuvering
+constant-velocity models), with χ² gating on the innovation covariance,
+global-nearest-neighbor assignment, and M-of-N confirmation. OPIR windows
+passed as `OPIRObservation` with their line of sight are geolocated (stereo
+or angle-only) and fused in the same update; plain arrays are only detected
+and classified.
 
 ### OPIR Detection & Classification
 
@@ -328,12 +330,19 @@ domain-shift test sets, and limitations.
 ### Running the Experiments
 
 ```bash
-make experiments   # E1 detection, E2 classification (~1 h on Apple MPS), E3 calibration + model export, E4 geolocation
+make experiments   # E1–E7, in order
+make e5 e6 e7      # tracking and fusion only (~20 min, no dataset needed)
 ```
 
-Each experiment writes a JSON report and figures to `reports/phase3/` (E1–E3)
-or `reports/phase4/` (E4). E3
-exports the calibrated classifier to `models/opir_event_classifier/`.
+| Experiment | Question | Reports |
+|---|---|---|
+| E1 | Detection at a calibrated false-alarm rate | `reports/phase3/` |
+| E2 | Classification vs baselines, under domain shift (~1 h on Apple MPS) | `reports/phase3/` |
+| E3 | Calibration, conformal sets, OOD; exports `models/opir_event_classifier/` | `reports/phase3/` |
+| E4 | Geolocation vs the Cramér-Rao bound, geometry, systematic errors | `reports/phase4/` |
+| E5 | Tracking under clutter, stereo ghosts, motion models | `reports/phase5/` |
+| E6 | Fusion architectures and track classification | `reports/phase5/` |
+| E7 | Sensor outages, RF latency, time-correlated RF bias | `reports/phase5/` |
 
 ## Testing
 
@@ -347,7 +356,7 @@ make test    # tests only
 | `tests/unit/` | Per-module tests, including Monte Carlo consistency checks (NEES/NIS within χ² bounds) and exactness on noiseless data |
 | `tests/property/` | Hypothesis property tests: covariance stays PSD, GNN matches brute force, estimates are invariant to measurement order and translation |
 | `tests/integration/` | End-to-end pipeline scenarios |
-| `tests/characterization/` | One test per defect found in the v1 audit; open defects are strict expected failures |
+| `tests/characterization/` | One regression test per defect found in the v1 audit (all fixed) |
 
 ## Results
 
@@ -356,7 +365,24 @@ All numbers are measured on the simulated `opir_v2` dataset
 (`make experiments`). Reports with confidence intervals are in
 [`reports/phase3/`](reports/phase3/). The shipped classifier is documented in
 the [model card](docs/model_card.md). Geolocation methods and results are in
-[docs/geolocation.md](docs/geolocation.md). Fusion benchmarks follow in a later phase.
+[docs/geolocation.md](docs/geolocation.md), and tracking and fusion in
+[docs/fusion.md](docs/fusion.md).
+
+**Fusion (E5–E7).** Centralized fusion of OPIR and RF on a multi-target
+scenario (2 launches, 3 aircraft with datalinks, 1 fire; 10 seeds):
+
+| Architecture | GOSPA (m) | Aircraft RMSE | Launches / fires tracked |
+|---|---|---|---|
+| RF only | 1961 | 74 m | no |
+| OPIR only | 877 | 286 m | yes (413 m / 276 m RMSE) |
+| **Centralized fusion** | **693** | **63 m** | yes |
+| Track-to-track, covariance intersection | 710 | 73 m | yes |
+
+- **Stereo ghosts:** two satellites can pair rays from different targets. Deferring ambiguous pairs to angle-only updates cuts false tracks from 0.31 to 0.09 per scan.
+- **Motion model:** an IMM beats a single constant-velocity model (GOSPA 693 m vs 889 m at the best single process noise).
+- **Track classification:** using the classifier only on windows inside its training domain is what makes track labels reliable: posterior ECE falls from 0.13–0.20 to 0.05, and at the default pooling weight every target ends correctly labelled.
+- **Robustness:** OPIR keeps 100% of aircraft tracked through an RF outage (RF alone: 17%). Extrapolating late RF fixes loses nothing up to 2 s of latency.
+- **RF bias:** a fixed 30 ns clock bias makes RF tracks overconfident as they age (NEES 21 → 113), even with consider-covariance fixes. A bias floor on the reported covariance restores NEES ≈ 3.
 
 **Geolocation (E4).** The ML TDOA estimator stays within 3% of the Cramér-Rao
 bound from 1 to 100 ns of timing noise (for example 8.0 m RMSE against an
@@ -418,10 +444,10 @@ alarms and are handled by the classifier.
 
 **Sensor Fusion:**
 
-- Mahalanobis distance gating for data association
-- Covariance intersection for multi-sensor fusion
-- Extended Kalman filtering for track propagation
-- Track quality scoring based on confidence, uncertainty, and sensor diversity
+- Centralized measurement-level fusion with χ² gating on the innovation covariance
+- Extended Kalman (line-of-sight) updates and IMM filtering
+- Covariance intersection for track-to-track fusion under unknown correlation
+- GOSPA/OSPA, purity, fragmentation, and NEES for evaluation
 
 ## References
 
