@@ -1,7 +1,14 @@
 """Multi-sensor (OPIR + RF) fusion."""
 
 from sentinel.fusion.engine import FusionEngine
-from sentinel.fusion.measurements import SensorType, opir_measurement, rf_measurement
+from sentinel.fusion.measurements import (
+    FIT_PROBABILITY,
+    SensorType,
+    accept_fix,
+    extrapolate,
+    opir_measurement,
+    rf_measurement,
+)
 from sentinel.fusion.opir_geoloc import (
     LineOfSightMeasurement,
     associate_stereo,
@@ -17,12 +24,15 @@ from sentinel.fusion.t2t import (
 )
 
 __all__ = [
+    "FIT_PROBABILITY",
     "FusedEstimate",
     "FusionEngine",
     "LineOfSightMeasurement",
     "SensorType",
+    "accept_fix",
     "associate_stereo",
     "covariance_intersection",
+    "extrapolate",
     "fuse_track_lists",
     "intersect_altitude",
     "measurements_from_reports",

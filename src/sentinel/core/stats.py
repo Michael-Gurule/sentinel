@@ -1,8 +1,11 @@
 """Chi-square gates and consistency bounds."""
 
+from functools import lru_cache
+
 from scipy.stats import chi2
 
 
+@lru_cache(maxsize=256)
 def chi2_gate(dof: int, probability: float = 0.99) -> float:
     """Gate threshold on a squared Mahalanobis distance.
 

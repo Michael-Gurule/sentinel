@@ -29,6 +29,8 @@ class FusionEngine:
         class_weight: float = 0.3,
         merge_probability: float | None = 0.9,
         imm: bool = True,
+        imm_noise: tuple[float, float] = (25.0, 1_600.0),
+        imm_sojourn_s: tuple[float, float] = (60.0, 10.0),
     ) -> None:
         """
         Args:
@@ -39,9 +41,12 @@ class FusionEngine:
             initial_velocity_std: Velocity prior (m/s) for position-only births.
             confirm_hits, confirm_window: M-of-N track confirmation.
             class_weight: Tempering weight for pooling class evidence on tracks.
-            imm: Track with an IMM of a quiet (q = 25) and a maneuvering
-                (q = 1600, ≈40 m/s² over 1 s) constant-velocity model, so both
-                steady targets and boosting launches are followed.
+            imm: Track with an IMM of a quiet and a maneuvering
+                constant-velocity model, so both steady targets and boosting
+                launches are followed.
+            imm_noise: Process-noise intensities (m²/s³) of the quiet and
+                maneuvering models; the default 1600 is ≈40 m/s² over 1 s.
+            imm_sojourn_s: Mean time each IMM mode persists, s.
         """
         self.tracker = MultiTargetTracker(
             motion_model or ConstantVelocity(noise_intensity=25.0),
@@ -53,13 +58,11 @@ class FusionEngine:
             class_weight=class_weight,
             merge_probability=merge_probability,
             imm_models=(
-                [
-                    ConstantVelocity(noise_intensity=25.0),
-                    ConstantVelocity(noise_intensity=1_600.0),
-                ]
+                [ConstantVelocity(noise_intensity=q) for q in imm_noise]
                 if imm
                 else None
             ),
+            imm_sojourn_s=imm_sojourn_s,
         )
 
     @property

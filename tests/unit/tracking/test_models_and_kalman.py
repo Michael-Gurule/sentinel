@@ -3,6 +3,7 @@ import pytest
 
 from sentinel.core import is_psd
 from sentinel.tracking import ConstantVelocity, Gaussian, innovation, predict, update
+from sentinel.tracking.kalman import batch_nis
 
 H = np.hstack([np.eye(3), np.zeros((3, 3))])
 
@@ -84,3 +85,21 @@ class TestKalman:
         state = Gaussian(np.array([1.0, 2, 3, 0, 0, 0]), np.eye(6))
         innov = innovation(state, np.array([1.0, 2, 3]), H, np.eye(3))
         assert innov.nis == 0.0
+
+
+def test_batch_nis_matches_single_innovations(rng):
+    matrix = np.hstack([np.eye(3), np.zeros((3, 3))])
+    noise = np.eye(3) * 4.0
+    z = rng.normal(0, 10, 3)
+    states = [
+        Gaussian(rng.normal(0, 10, 6), np.diag(rng.uniform(1, 50, 6))) for _ in range(5)
+    ]
+    expected = [innovation(s, z, matrix, noise).nis for s in states]
+    got = batch_nis(
+        z,
+        np.array([matrix @ s.mean for s in states]),
+        np.broadcast_to(matrix, (5, 3, 6)),
+        np.array([s.covariance for s in states]),
+        noise,
+    )
+    np.testing.assert_allclose(got, expected, rtol=1e-10)

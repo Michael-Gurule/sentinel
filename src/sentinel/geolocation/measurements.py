@@ -15,9 +15,9 @@ Conventions (local Cartesian frame, SI units):
 from dataclasses import dataclass, field
 
 import numpy as np
-from scipy.stats import chi2
 
 from sentinel.core.linalg import FloatArray, is_psd
+from sentinel.core.stats import chi2_gate
 
 
 def _as_vector(value: FloatArray, size: int, name: str) -> FloatArray:
@@ -102,6 +102,11 @@ class GeolocationResult:
         num_measurements: Number of scalar measurements used.
         converged: Whether the solver met its convergence criteria.
         method: Name of the estimator that produced the result.
+        systematic_covariance: The part of ``state_covariance`` due to
+            receiver errors that are fixed over a scenario (clock bias,
+            survey error, LO offsets), when the solver was given their
+            levels; ``None`` otherwise. Fixes from one network share this
+            error, so averaging them does not reduce it.
     """
 
     position: FloatArray
@@ -114,6 +119,7 @@ class GeolocationResult:
     num_measurements: int
     converged: bool
     method: str
+    systematic_covariance: FloatArray | None = None
 
     def fits(self, probability: float = 0.999) -> bool:
         """χ² goodness-of-fit test of the residuals at the solution.
@@ -125,4 +131,4 @@ class GeolocationResult:
         """
         if self.dof < 1:
             return True
-        return bool(self.chi2 <= float(chi2.ppf(probability, self.dof)))
+        return bool(self.chi2 <= chi2_gate(self.dof, probability))

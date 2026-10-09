@@ -12,7 +12,7 @@ from sentinel.fusion import (
     naive_fusion,
     triangulate,
 )
-from sentinel.fusion.opir_geoloc import perpendicular_basis
+from sentinel.fusion.opir_geoloc import perpendicular_basis, stereo_miss_distances
 from sentinel.sim.opir.reports import OPIRReport
 from sentinel.tracking import (
     ConstantVelocity,
@@ -163,3 +163,38 @@ def test_fuse_track_lists():
     assert next(f for f in fused if f.sources == ("opir",)).indices == (1, None)
     with pytest.raises(ValueError, match="method"):
         fuse_track_lists(a, b, method="mean")
+
+
+def _reference_miss(a, b):
+    """Definition: weighted squared perpendicular distances at the WLS point."""
+    x, _ = triangulate([a[0], b[0]], [a[1], b[1]], [a[2], b[2]])
+    total = 0.0
+    for s, u, std in (a, b):
+        d = x - s
+        perpendicular = d - (d @ u) * u
+        total += perpendicular @ perpendicular / (std * np.linalg.norm(d)) ** 2
+    return total
+
+
+def test_vectorized_miss_distances_match_the_definition(rng):
+    targets = rng.uniform(-30_000, 30_000, (6, 3)) + np.array([0, 0, 35_000])
+    rays_a = [(GEO, noisy_los(GEO, t, rng), SIGMA) for t in targets]
+    rays_b = [(HEO, noisy_los(HEO, t, rng), SIGMA) for t in targets[::-1]]
+    fast = stereo_miss_distances(rays_a, rays_b)
+    slow = np.array([[_reference_miss(a, b) for b in rays_b] for a in rays_a])
+    np.testing.assert_allclose(fast, slow, rtol=1e-6)
+    parallel = (HEO, rays_a[0][1], SIGMA)
+    assert np.isinf(stereo_miss_distances(rays_a[:1], [parallel])[0, 0])
+    assert stereo_miss_distances([], rays_b).shape == (0, 6)
+
+
+def test_batched_linearization_matches_single(rng):
+    los = LineOfSightMeasurement(GEO, noisy_los(GEO, TARGET, rng), SIGMA)
+    means = np.column_stack(
+        [TARGET + rng.normal(0, 1_000, (4, 3)), rng.normal(0, 100, (4, 3))]
+    )
+    h, jac = los.linearize_many(means)
+    for k, mean in enumerate(means):
+        h1, jac1 = los.linearize(mean)
+        np.testing.assert_allclose(h[k], h1, atol=1e-15)
+        np.testing.assert_allclose(jac[k], jac1, rtol=1e-9, atol=1e-20)

@@ -30,12 +30,12 @@ from typing import Protocol, runtime_checkable
 
 import numpy as np
 
-from sentinel.core.linalg import FloatArray, mahalanobis_sq
+from sentinel.core.linalg import FloatArray
 from sentinel.core.stats import chi2_gate
 from sentinel.tracking.assignment import assign_gnn
 from sentinel.tracking.classes import pool_class_evidence
 from sentinel.tracking.imm import IMMState, imm_predict, imm_update
-from sentinel.tracking.kalman import Gaussian, innovation, predict, update
+from sentinel.tracking.kalman import Gaussian, batch_nis, predict, update
 from sentinel.tracking.models import ConstantVelocity
 
 
@@ -59,10 +59,20 @@ class Measurement(Protocol):
     def class_probabilities(self) -> FloatArray | None: ...
 
     @property
+    def systematic_covariance(self) -> FloatArray | None:
+        """Part of ``covariance`` from errors shared by every measurement of
+        this sensor (e.g. RF network bias); ``None`` if there is none."""
+        ...
+
+    @property
     def dim(self) -> int: ...
 
     def linearize(self, mean: FloatArray) -> tuple[FloatArray, FloatArray]:
         """Predicted measurement h(x) and Jacobian H at state ``mean``."""
+        ...
+
+    def linearize_many(self, means: FloatArray) -> tuple[FloatArray, FloatArray]:
+        """``linearize`` for K states at once: h (K, d) and H (K, d, 6)."""
         ...
 
     def initial_state(self, velocity_std: float) -> Gaussian | None:
@@ -82,6 +92,9 @@ class LinearMeasurement:
         label: Optional class label carried to the track (e.g. event type).
         class_probabilities: Optional calibrated class probabilities, pooled
             into the track's class posterior.
+        systematic_covariance: Part of R that is fixed over a scenario and
+            shared by every measurement from this sensor (it does not average
+            out); kept on the track as a floor on its reported covariance.
     """
 
     value: FloatArray
@@ -90,6 +103,7 @@ class LinearMeasurement:
     source: str
     label: str | None = None
     class_probabilities: FloatArray | None = None
+    systematic_covariance: FloatArray | None = None
 
     def __post_init__(self) -> None:
         value = np.asarray(self.value, dtype=np.float64)
@@ -98,6 +112,11 @@ class LinearMeasurement:
         k = value.size
         if value.shape != (k,) or covariance.shape != (k, k) or matrix.shape[0] != k:
             raise ValueError("value, covariance, and matrix dimensions disagree")
+        if self.systematic_covariance is not None:
+            systematic = np.asarray(self.systematic_covariance, dtype=np.float64)
+            if systematic.shape != (k, k):
+                raise ValueError("systematic_covariance must match covariance")
+            object.__setattr__(self, "systematic_covariance", systematic)
         object.__setattr__(self, "value", value)
         object.__setattr__(self, "covariance", covariance)
         object.__setattr__(self, "matrix", matrix)
@@ -109,6 +128,12 @@ class LinearMeasurement:
 
     def linearize(self, mean: FloatArray) -> tuple[FloatArray, FloatArray]:
         return self.matrix @ mean, self.matrix
+
+    def linearize_many(self, means: FloatArray) -> tuple[FloatArray, FloatArray]:
+        means = np.asarray(means, dtype=np.float64)
+        return means @ self.matrix.T, np.broadcast_to(
+            self.matrix, (means.shape[0], *self.matrix.shape)
+        )
 
     def initial_state(self, velocity_std: float) -> Gaussian | None:
         """Start from a position or position/velocity measurement."""
@@ -130,10 +155,19 @@ class LinearMeasurement:
         source: str,
         label: str | None = None,
         class_probabilities: FloatArray | None = None,
+        systematic_covariance: FloatArray | None = None,
     ) -> "LinearMeasurement":
         """A 3-D position measurement."""
         matrix = np.hstack([np.eye(3), np.zeros((3, 3))])
-        return cls(position, covariance, matrix, source, label, class_probabilities)
+        return cls(
+            position,
+            covariance,
+            matrix,
+            source,
+            label,
+            class_probabilities,
+            systematic_covariance,
+        )
 
     @classmethod
     def position_velocity(
@@ -142,9 +176,17 @@ class LinearMeasurement:
         covariance: FloatArray,
         source: str,
         label: str | None = None,
+        systematic_covariance: FloatArray | None = None,
     ) -> "LinearMeasurement":
         """A joint position/velocity measurement ``[x, y, z, vx, vy, vz]``."""
-        return cls(state, covariance, np.eye(6), source, label)
+        return cls(
+            state,
+            covariance,
+            np.eye(6),
+            source,
+            label,
+            systematic_covariance=systematic_covariance,
+        )
 
 
 class TrackStatus(StrEnum):
@@ -161,6 +203,11 @@ class Track:
         scan_hits: Per-scan update history (most recent last).
         class_posterior: Pooled class posterior, or ``None`` without class evidence.
         confirmed_at: Time of confirmation, or ``None``.
+        bias_floor: State-space covariance of the systematic error carried by
+            the most recent measurement that had one (e.g. RF network bias).
+            The filter averages measurements as if their errors were
+            independent, so its covariance ``state.covariance`` shrinks below
+            this shared error; the *reported* covariance adds it back.
     """
 
     id: int
@@ -175,6 +222,7 @@ class Track:
     confirmed_at: float | None = None
     imm: IMMState | None = None
     """Per-model estimates when the tracker runs an IMM; ``state`` is their combination."""
+    bias_floor: FloatArray | None = None
 
     @property
     def position(self) -> FloatArray:
@@ -185,12 +233,25 @@ class Track:
         return self.state.mean[3:]
 
     @property
+    def covariance(self) -> FloatArray:
+        """Reported covariance: filter covariance plus the bias floor."""
+        if self.bias_floor is None:
+            return self.state.covariance
+        return self.state.covariance + self.bias_floor
+
+    @property
+    def reported(self) -> Gaussian:
+        """The track estimate with its reported covariance (for output and
+        track-to-track fusion; gating uses the filter's ``state``)."""
+        return Gaussian(self.state.mean, self.covariance)
+
+    @property
     def position_covariance(self) -> FloatArray:
-        return self.state.covariance[:3, :3]
+        return self.covariance[:3, :3]
 
     @property
     def velocity_covariance(self) -> FloatArray:
-        return self.state.covariance[3:, 3:]
+        return self.covariance[3:, 3:]
 
     @property
     def position_rms_uncertainty(self) -> float:
@@ -281,30 +342,39 @@ class MultiTargetTracker:
     def gate_threshold(self, dof: int) -> float:
         return chi2_gate(dof, self.gate_probability)
 
-    def _innovation_nis(self, track: Track, measurement: Measurement) -> float:
-        """NIS of ``measurement`` for ``track``.
+    @staticmethod
+    def _nis_matrix(
+        tracks: Sequence[Track], measurements: Sequence[Measurement]
+    ) -> np.ndarray:
+        """NIS of every measurement for every track, shape (tracks, measurements).
 
         For an IMM track this is the smallest NIS over its modes: a
         measurement consistent with *any* motion mode is admitted, otherwise
         the quiet mode's narrow gate would reject the very measurements that
-        should shift probability to the maneuver mode.
+        should shift probability to the maneuver mode. Each measurement is
+        linearized against all track/mode states in one vectorized call.
         """
-        states = track.imm.states if track.imm is not None else [track.state]
-        values = []
-        for state in states:
-            predicted, matrix = measurement.linearize(state.mean)
-            values.append(
-                innovation(
-                    state, measurement.value, matrix, measurement.covariance, predicted
-                ).nis
-            )
-        return float(min(values))
+        out = np.full((len(tracks), len(measurements)), np.inf)
+        owners, means, covariances = [], [], []
+        for i, track in enumerate(tracks):
+            for state in track.imm.states if track.imm is not None else [track.state]:
+                owners.append(i)
+                means.append(state.mean)
+                covariances.append(state.covariance)
+        if not owners:
+            return out
+        owner = np.asarray(owners)
+        mean, covariance = np.asarray(means), np.asarray(covariances)
+        for j, m in enumerate(measurements):
+            predicted, matrices = m.linearize_many(mean)
+            nis = batch_nis(m.value, predicted, matrices, covariance, m.covariance)
+            np.minimum.at(out[:, j], owner, nis)
+        return out
 
     def in_gate(self, track: Track, measurement: Measurement) -> bool:
         """Whether ``measurement`` falls in ``track``'s χ² gate."""
-        return self._innovation_nis(track, measurement) <= self.gate_threshold(
-            measurement.dim
-        )
+        nis = self._nis_matrix([track], [measurement])[0, 0]
+        return bool(nis <= self.gate_threshold(measurement.dim))
 
     def step(
         self, measurements: Sequence[Measurement], timestamp: float
@@ -366,11 +436,21 @@ class MultiTargetTracker:
                 [state] * len(self.imm_models), self.imm_initial.copy()
             )
         self._absorb_class(track, measurement)
+        self._absorb_floor(track, measurement)
         if self.confirm_hits == 1:
             track.status, track.confirmed_at = TrackStatus.CONFIRMED, timestamp
         self._next_id += 1
         self._tracks.append(track)
         return track
+
+    @staticmethod
+    def _absorb_floor(track: Track, measurement: Measurement) -> None:
+        if measurement.systematic_covariance is None:
+            return
+        # Hᵀ Σ H places Σ in the state components the measurement observes;
+        # exact for the selection matrices of position(/velocity) fixes.
+        _, matrix = measurement.linearize(track.state.mean)
+        track.bias_floor = matrix.T @ measurement.systematic_covariance @ matrix
 
     def _absorb_class(self, track: Track, measurement: Measurement) -> None:
         if measurement.label is not None:
@@ -387,12 +467,8 @@ class MultiTargetTracker:
     ) -> set[int]:
         threshold = self.gate_threshold(measurements[0].dim)
 
-        cost = np.full((len(self._tracks), len(measurements)), np.inf)
-        for i, track in enumerate(self._tracks):
-            for j, m in enumerate(measurements):
-                nis = self._innovation_nis(track, m)
-                if nis <= threshold:
-                    cost[i, j] = nis
+        nis = self._nis_matrix(self._tracks, measurements)
+        cost = np.where(nis <= threshold, nis, np.inf)
 
         assigned: set[int] = set()
         updated: set[int] = set()
@@ -409,6 +485,7 @@ class MultiTargetTracker:
             track.last_update = timestamp
             track.hits_by_source[m.source] = track.hits_by_source.get(m.source, 0) + 1
             self._absorb_class(track, m)
+            self._absorb_floor(track, m)
             assigned.add(j)
             updated.add(track.id)
 
@@ -426,23 +503,27 @@ class MultiTargetTracker:
         Two tracks on one target alternate in claiming its single measurement
         per scan, so neither coasts long enough to be deleted. Treating the
         pair as independent (summing covariances) makes the test conservative.
+        Filter covariances are used, not reported ones: a bias shared by both
+        tracks' measurements cancels in their difference.
         """
         if self.merge_threshold is None or len(self._tracks) < 2:
             return
         ranked = sorted(self._tracks, key=lambda t: (-t.hits, t.created, t.id))
-        kept: list[Track] = []
-        for track in ranked:
-            duplicate = any(
-                mahalanobis_sq(
-                    track.position - other.position,
-                    track.position_covariance + other.position_covariance,
-                )
-                <= self.merge_threshold
-                for other in kept
-            )
-            if not duplicate:
-                kept.append(track)
-        kept_ids = {t.id for t in kept}
+        positions = np.array([t.position for t in ranked])
+        covariances = np.array([t.state.covariance[:3, :3] for t in ranked])
+        difference = positions[:, None, :] - positions[None, :, :]
+        summed = covariances[:, None] + covariances[None, :]
+        distance = np.einsum(
+            "ijk,ijk->ij",
+            difference,
+            np.linalg.solve(summed, difference[..., None])[..., 0],
+        )
+        close = distance <= self.merge_threshold
+        kept: list[int] = []
+        for i in range(len(ranked)):
+            if not close[i, kept].any():
+                kept.append(i)
+        kept_ids = {ranked[i].id for i in kept}
         self._tracks = [t for t in self._tracks if t.id in kept_ids]
 
     def _end_scan(self, updated: set[int], timestamp: float) -> None:

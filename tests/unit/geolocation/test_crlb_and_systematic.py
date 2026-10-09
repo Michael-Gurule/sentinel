@@ -6,6 +6,7 @@ from sentinel.core.constants import SPEED_OF_LIGHT
 from sentinel.geolocation import (
     FDOAMeasurement,
     SystematicErrors,
+    TDOAMeasurement,
     difference_covariance,
     inflate_fdoa,
     inflate_tdoa,
@@ -18,8 +19,7 @@ from sentinel.geolocation import (
     tdoa_dop,
     tdoa_fdoa_crlb,
 )
-from sentinel.pipeline.phase3_pipeline import default_receiver_network
-from sentinel.sim.rf.network import ReceiverModel, RFNetwork
+from sentinel.sim.rf.network import ReceiverModel, RFNetwork, default_receiver_network
 from sentinel.sim.trajectories import Stationary
 
 
@@ -143,3 +143,68 @@ class TestSystematic:
         assert np.trace(robust.state_covariance) > np.trace(plain.state_covariance)
         only_tdoa = solve_tdoa_fdoa(moving_receivers, tdoa, systematic=sys)
         assert only_tdoa.velocity is None
+
+    def test_systematic_part_of_the_covariance(self, receivers, emitter, rng):
+        """Clock bias has the random noise's (I + 11ᵀ) structure, so its share
+        of the TDOA covariance is k / (1 + k), k = σ_sys² / σ_toa²."""
+        m = simulate_tdoa(emitter, receivers, 10e-9, rng)
+        sys = SystematicErrors(clock_bias_std=20e-9)
+        result = solve_tdoa(receivers, m, systematic=sys)
+        k = sys.tdoa_variance / (10e-9) ** 2
+        assert result.systematic_covariance is not None
+        np.testing.assert_allclose(
+            result.systematic_covariance,
+            k / (1 + k) * result.position_covariance,
+            rtol=1e-6,
+            atol=1e-9,
+        )
+        assert solve_tdoa(receivers, m).systematic_covariance is None
+
+    def test_systematic_covariance_predicts_bias_only_errors(self, rng):
+        """Data with clock bias but (almost) no random noise: the error is the
+        systematic part alone and is consistent with ``systematic_covariance``."""
+        receivers = default_receiver_network()
+        emitter = np.array([5_000.0, 5_000.0, 500.0])
+        systematic = SystematicErrors(clock_bias_std=30e-9)
+        runs, values = 300, []
+        for _ in range(runs):
+            network = RFNetwork(
+                [
+                    ReceiverModel(
+                        r.id,
+                        Stationary(r.position),
+                        toa_std=1e-12,
+                        clock_bias_std=30e-9,
+                    )
+                    for r in receivers
+                ],
+                rng,
+            )
+            scan = network.scan(0.0, emitter, np.zeros(3), rng)
+            measurement = TDOAMeasurement(
+                reference=scan.tdoa.reference,
+                others=scan.tdoa.others,
+                values=scan.tdoa.values,
+                covariance=difference_covariance(len(scan.tdoa), 10e-9),
+            )
+            fix = solve_tdoa(scan.receivers, measurement, systematic=systematic)
+            assert fix.systematic_covariance is not None
+            values.append(nees(fix.position - emitter, fix.systematic_covariance))
+        low, high = mean_nees_bounds(3, runs, confidence=0.99)
+        assert low <= np.mean(values) <= high
+
+    def test_hybrid_systematic_covariance_is_part_of_the_total(
+        self, moving_receivers, emitter, emitter_velocity, rng
+    ):
+        tdoa = simulate_tdoa(emitter, moving_receivers, 10e-9, rng)
+        fdoa = simulate_fdoa(emitter, emitter_velocity, moving_receivers, 1e9, 1.0, rng)
+        fix = solve_tdoa_fdoa(
+            moving_receivers, tdoa, fdoa, systematic=SystematicErrors(5.0, 5e-9, 1.0)
+        )
+        assert fix.systematic_covariance is not None
+        assert fix.systematic_covariance.shape == (6, 6)
+        assert np.linalg.eigvalsh(fix.systematic_covariance)[0] > -1e-9
+        assert (
+            np.linalg.eigvalsh(fix.state_covariance - fix.systematic_covariance)[0]
+            > -1e-9
+        )

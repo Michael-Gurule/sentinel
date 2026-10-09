@@ -51,6 +51,9 @@ def solve_tdoa_fdoa(
     if fdoa is None:
         start = None if initial is None else np.asarray(initial)[:3]
         return solve_tdoa(receivers, tdoa, initial=start, systematic=systematic)
+    random_covariance = block_diag(
+        tdoa_to_range_difference(tdoa)[1], fdoa_to_range_rate_difference(fdoa)[1]
+    )
     if systematic is not None:
         tdoa = inflate_tdoa(tdoa, systematic)
         fdoa = inflate_fdoa(fdoa, systematic)
@@ -90,7 +93,14 @@ def solve_tdoa_fdoa(
     else:
         start = np.asarray(initial, dtype=np.float64)
 
-    solution = solve_whitened(model, observations, covariance, start, max_nfev)
+    solution = solve_whitened(
+        model,
+        observations,
+        covariance,
+        start,
+        max_nfev,
+        covariance - random_covariance if systematic is not None else None,
+    )
     return GeolocationResult(
         position=solution.state[:3],
         position_covariance=solution.covariance[:3, :3],
@@ -102,4 +112,5 @@ def solve_tdoa_fdoa(
         num_measurements=num_measurements,
         converged=solution.converged,
         method="tdoa_fdoa_ml",
+        systematic_covariance=solution.systematic_covariance,
     )

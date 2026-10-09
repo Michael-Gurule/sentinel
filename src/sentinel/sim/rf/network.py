@@ -153,3 +153,19 @@ class RFNetwork:
             fdoa=fdoa,
             true_receivers=truth,
         )
+
+
+def default_receiver_network() -> list[Receiver]:
+    """Five stationary receivers at mixed altitudes (an example network).
+
+    Altitude diversity keeps the vertical geometry observable; five receivers
+    give four TDOAs, enough for the closed-form Chan-Ho initializer.
+    """
+    positions = [
+        [0.0, 0.0, 500.0],  # ground station
+        [10_000.0, 0.0, 1_500.0],  # low-altitude ISR aircraft
+        [10_000.0, 10_000.0, 1_000.0],  # medium-altitude platform
+        [0.0, 10_000.0, 2_000.0],  # high-altitude ISR
+        [5_000.0, -4_000.0, 6_000.0],  # stand-off high-altitude platform
+    ]
+    return [Receiver(i, np.array(p)) for i, p in enumerate(positions)]

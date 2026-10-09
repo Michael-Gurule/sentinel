@@ -17,6 +17,7 @@ altitude plane is adequate within a few hundred kilometers of the origin.
 
 from collections.abc import Sequence
 from dataclasses import dataclass
+from functools import cached_property
 from typing import Protocol
 
 import numpy as np
@@ -55,7 +56,7 @@ class LineOfSightMeasurement:
     label: str | None = None
     class_probabilities: FloatArray | None = None
 
-    @property
+    @cached_property
     def basis(self) -> FloatArray:
         return perpendicular_basis(self.line_of_sight)
 
@@ -71,6 +72,11 @@ class LineOfSightMeasurement:
     def dim(self) -> int:
         return 2
 
+    @property
+    def systematic_covariance(self) -> None:
+        """Pointing biases are not modeled."""
+        return None
+
     def linearize(self, mean: FloatArray) -> tuple[FloatArray, FloatArray]:
         delta = np.asarray(mean[:3]) - self.sensor_position
         r = float(np.linalg.norm(delta))
@@ -79,6 +85,16 @@ class LineOfSightMeasurement:
         jacobian = np.zeros((2, 6))
         jacobian[:, :3] = e @ (np.eye(3) - np.outer(u, u)) / r
         return e @ u, jacobian
+
+    def linearize_many(self, means: FloatArray) -> tuple[FloatArray, FloatArray]:
+        delta = np.asarray(means)[:, :3] - self.sensor_position
+        r = np.linalg.norm(delta, axis=1)
+        u = delta / r[:, None]
+        e = self.basis
+        projector = np.eye(3)[None] - u[:, :, None] * u[:, None, :]
+        jacobian = np.zeros((len(r), 2, 6))
+        jacobian[:, :, :3] = (e[None] @ projector) / r[:, None, None]
+        return u @ e.T, jacobian
 
     def initial_state(self, velocity_std: float) -> Gaussian | None:
         del velocity_std
@@ -162,6 +178,41 @@ def intersect_altitude(
     return position, 0.5 * (covariance + covariance.T)
 
 
+Ray = tuple[FloatArray, FloatArray, float]
+"""(sensor position, unit line of sight, angle standard deviation)."""
+
+
+def stereo_miss_distances(rays_a: Sequence[Ray], rays_b: Sequence[Ray]) -> np.ndarray:
+    """Normalized squared miss distance of every ray pair, shape (|a|, |b|).
+
+    For two rays the weighted least-squares point lies on their common
+    perpendicular, and the minimum of Σ ‖Pᵢ(x - sᵢ)‖² / (σᵢrᵢ)² is
+    d² / ((σₐrₐ)² + (σ_b r_b)²), with d the distance between the lines and r
+    the ranges to its feet. It is χ² with 1 dof when both rays see the same
+    target. Parallel rays, or a closest point behind a sensor, give ``inf``.
+    """
+    if not rays_a or not rays_b:
+        return np.zeros((len(rays_a), len(rays_b)))
+    sa, ua, std_a = (np.array(x, dtype=np.float64) for x in zip(*rays_a, strict=True))
+    sb, ub, std_b = (np.array(x, dtype=np.float64) for x in zip(*rays_b, strict=True))
+    ua = ua / np.linalg.norm(ua, axis=1, keepdims=True)
+    ub = ub / np.linalg.norm(ub, axis=1, keepdims=True)
+    w = sa[:, None, :] - sb[None, :, :]  # (a, b, 3)
+    cos = ua @ ub.T  # (a, b)
+    d = np.einsum("ik,ijk->ij", ua, w)
+    e = np.einsum("jk,ijk->ij", ub, w)
+    denominator = 1.0 - cos**2
+    parallel = denominator < 1e-12
+    denominator = np.where(parallel, 1.0, denominator)
+    range_a = (cos * e - d) / denominator
+    range_b = (e - cos * d) / denominator
+    gap = w + range_a[..., None] * ua[:, None, :] - range_b[..., None] * ub[None, :, :]
+    miss_sq = np.einsum("ijk,ijk->ij", gap, gap)
+    spread = (std_a[:, None] * range_a) ** 2 + (std_b[None, :] * range_b) ** 2
+    valid = ~parallel & (range_a > 0) & (range_b > 0)
+    return np.where(valid, miss_sq / np.where(valid, spread, 1.0), np.inf)
+
+
 def stereo_miss_distance_sq(
     position_a: FloatArray,
     los_a: FloatArray,
@@ -170,24 +221,17 @@ def stereo_miss_distance_sq(
     los_b: FloatArray,
     std_b: float,
 ) -> float:
-    """Normalized squared miss distance of two rays at their triangulated point
-    (χ² with 1 dof when both rays see the same target)."""
-    try:
-        x, _ = triangulate([position_a, position_b], [los_a, los_b], [std_a, std_b])
-    except GeometryError:
-        return float("inf")
-    chi2 = 0.0
-    for s, u, std in ((position_a, los_a, std_a), (position_b, los_b, std_b)):
-        d = x - s
-        r = float(np.linalg.norm(d))
-        perpendicular = d - (d @ u) * u
-        chi2 += float(perpendicular @ perpendicular) / (std * r) ** 2
-    return chi2
+    """:func:`stereo_miss_distances` for a single pair of rays."""
+    return float(
+        stereo_miss_distances(
+            [(position_a, los_a, std_a)], [(position_b, los_b, std_b)]
+        )[0, 0]
+    )
 
 
 def associate_stereo(
-    rays_a: Sequence[tuple[FloatArray, FloatArray, float]],
-    rays_b: Sequence[tuple[FloatArray, FloatArray, float]],
+    rays_a: Sequence[Ray],
+    rays_b: Sequence[Ray],
     gate_probability: float = 0.99,
     reject_ambiguous: bool = True,
 ) -> list[tuple[int, int]]:
@@ -202,16 +246,11 @@ def associate_stereo(
     if not rays_a or not rays_b:
         return []
     threshold = chi2_gate(1, gate_probability)
-    cost = np.full((len(rays_a), len(rays_b)), np.inf)
-    for i, a in enumerate(rays_a):
-        for j, b in enumerate(rays_b):
-            value = stereo_miss_distance_sq(*a, *b)
-            if value <= threshold:
-                cost[i, j] = value
-    pairs = assign_gnn(cost, unassigned_cost=threshold)
+    distances = stereo_miss_distances(rays_a, rays_b)
+    gated = distances <= threshold
+    pairs = assign_gnn(np.where(gated, distances, np.inf), unassigned_cost=threshold)
     if not reject_ambiguous:
         return pairs
-    gated = np.isfinite(cost)
     return [(i, j) for i, j in pairs if gated[i].sum() == 1 and gated[:, j].sum() == 1]
 
 
@@ -248,7 +287,7 @@ def measurements_from_reports(
             continue
         free_primary = [i for i in primary if i not in used]
 
-        def rays(ids: list[int]) -> list[tuple[FloatArray, FloatArray, float]]:
+        def rays(ids: list[int]) -> list[Ray]:
             return [
                 (
                     reports[i].sensor_position,

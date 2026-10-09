@@ -63,6 +63,32 @@ def innovation(
     return Innovation(residual=residual, covariance=covariance, nis=nis)
 
 
+def batch_nis(
+    measurement: FloatArray,
+    predicted: FloatArray,
+    matrices: FloatArray,
+    covariances: FloatArray,
+    noise: FloatArray,
+) -> np.ndarray:
+    """NIS of one measurement against K states at once.
+
+    Args:
+        measurement: z, shape (d,).
+        predicted: h(x̂ₖ) per state, shape (K, d).
+        matrices: Jacobians Hₖ, shape (K, d, n).
+        covariances: State covariances Pₖ, shape (K, n, n).
+        noise: Measurement noise R, shape (d, d).
+
+    Returns:
+        NIS per state, shape (K,): rₖᵀ Sₖ⁻¹ rₖ with Sₖ = Hₖ Pₖ Hₖᵀ + R.
+    """
+    residual = np.asarray(measurement, dtype=np.float64)[None, :] - predicted
+    s = matrices @ covariances @ np.swapaxes(matrices, 1, 2) + noise
+    s = 0.5 * (s + np.swapaxes(s, 1, 2))
+    solved = np.linalg.solve(s, residual[..., None])[..., 0]
+    return np.asarray(np.einsum("kd,kd->k", residual, solved))
+
+
 def update(
     state: Gaussian,
     measurement: FloatArray,

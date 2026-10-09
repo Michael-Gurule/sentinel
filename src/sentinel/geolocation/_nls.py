@@ -7,7 +7,7 @@ import numpy as np
 from scipy.optimize import least_squares
 
 from sentinel.core.errors import GeometryError
-from sentinel.core.linalg import FloatArray, whitening_matrix
+from sentinel.core.linalg import FloatArray, symmetrize, whitening_matrix
 
 ModelFn = Callable[[FloatArray], tuple[FloatArray, FloatArray]]
 
@@ -23,6 +23,7 @@ class NLSSolution:
     covariance: FloatArray
     chi2: float
     converged: bool
+    systematic_covariance: FloatArray | None = None
 
 
 def solve_whitened(
@@ -31,11 +32,17 @@ def solve_whitened(
     covariance: FloatArray,
     initial_state: FloatArray,
     max_nfev: int,
+    systematic_covariance: FloatArray | None = None,
 ) -> NLSSolution:
     """Gauss-Newton/Levenberg-Marquardt ML estimate under Gaussian noise.
 
     Minimizes ‖W (z - h(x))‖² with W = L⁻¹, C = L Lᵀ. The returned covariance
-    (Jᵀ C⁻¹ J)⁻¹ is evaluated at the solution.
+    P = (Jᵀ C⁻¹ J)⁻¹ is evaluated at the solution.
+
+    ``systematic_covariance`` is the part of C due to errors that are fixed
+    over a scenario (already included in C). To first order the estimate
+    moves by δx = A δz with A = P Jᵀ C⁻¹, so the systematic part of P is
+    A Σ_sys Aᵀ; it is returned so a tracker can keep it as a floor.
 
     Raises:
         GeometryError: the Jacobian at the solution is rank deficient or
@@ -77,10 +84,15 @@ def solve_whitened(
     if np.linalg.eigvalsh(0.5 * (scaled_cov + scaled_cov.T))[0] <= 0.0:
         raise GeometryError("covariance at the solution is not positive definite")
     state_cov = scaled_cov / np.outer(scale, scale)
+    systematic = None
+    if systematic_covariance is not None:
+        gain = state_cov @ (-whitened_jac.T) @ whitening  # A = P Jᵀ C⁻¹
+        systematic = symmetrize(gain @ systematic_covariance @ gain.T)
     final = residuals(state)
     return NLSSolution(
         state=state,
-        covariance=0.5 * (state_cov + state_cov.T),
+        covariance=symmetrize(state_cov),
         chi2=float(final @ final),
         converged=bool(result.success),
+        systematic_covariance=systematic,
     )

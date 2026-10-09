@@ -63,14 +63,18 @@ def solve_tdoa(
         InsufficientMeasurementsError: fewer than three TDOAs.
         GeometryError: position not observable from the given geometry.
     """
-    if systematic is not None:
-        measurement = inflate_tdoa(measurement, systematic)
     m = len(measurement)
     if m < 3:
         raise InsufficientMeasurementsError(f"3-D TDOA needs >= 3 TDOAs, got {m}")
+    systematic_rd = None
+    if systematic is not None:
+        _, random_rd = tdoa_to_range_difference(measurement)
+        measurement = inflate_tdoa(measurement, systematic)
     (reference,) = receiver_lookup(receivers, [measurement.reference])
     others = receiver_lookup(receivers, measurement.others)
     observations, covariance = tdoa_to_range_difference(measurement)
+    if systematic is not None:
+        systematic_rd = covariance - random_rd
     starts = (
         initial_positions(receivers, measurement)
         if initial is None
@@ -86,6 +90,7 @@ def solve_tdoa(
                 covariance,
                 start,
                 max_nfev,
+                systematic_rd,
             )
         except GeometryError as exc:
             error = exc
@@ -101,6 +106,7 @@ def solve_tdoa(
             num_measurements=m,
             converged=solution.converged,
             method="tdoa_ml",
+            systematic_covariance=solution.systematic_covariance,
         )
         if best is None or result.chi2 < best.chi2:
             best = result

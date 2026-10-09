@@ -31,39 +31,24 @@ def receiver_lookup(
     return [by_id[i] for i in ids]
 
 
-def _unit_and_range(
-    position: FloatArray, receiver_position: FloatArray
-) -> tuple[FloatArray, float]:
-    delta = position - receiver_position
-    distance = float(np.linalg.norm(delta))
-    if distance == 0.0:
+def _units_and_ranges(
+    position: FloatArray, receiver_positions: FloatArray
+) -> tuple[FloatArray, FloatArray]:
+    """Unit vectors (n×3) from each receiver to the emitter, and ranges (n,)."""
+    delta = np.asarray(position, dtype=np.float64)[None, :] - receiver_positions
+    distance = np.linalg.norm(delta, axis=1)
+    if np.any(distance == 0.0):
         raise ValueError("emitter coincides with a receiver")
-    return delta / distance, distance
+    return delta / distance[:, None], distance
 
 
 def range_difference_model(
     position: FloatArray, reference: Receiver, others: Sequence[Receiver]
 ) -> tuple[FloatArray, FloatArray]:
     """Predicted range differences r_k - r_0 (m) and Jacobian wrt position (m×3)."""
-    u_ref, r_ref = _unit_and_range(position, reference.position)
-    values = np.empty(len(others))
-    jacobian = np.empty((len(others), 3))
-    for k, receiver in enumerate(others):
-        u_k, r_k = _unit_and_range(position, receiver.position)
-        values[k] = r_k - r_ref
-        jacobian[k] = u_k - u_ref
-    return values, jacobian
-
-
-def _range_rate_and_gradient(
-    position: FloatArray, velocity: FloatArray, receiver: Receiver
-) -> tuple[float, FloatArray, FloatArray]:
-    u, distance = _unit_and_range(position, receiver.position)
-    relative_velocity = velocity - receiver.velocity
-    rate = float(u @ relative_velocity)
-    # d(uᵀw)/dp = wᵀ (I - u uᵀ) / r ;  d(uᵀw)/dv = uᵀ
-    grad_position = (relative_velocity - u * rate) / distance
-    return rate, grad_position, u
+    receivers = np.array([reference.position, *(r.position for r in others)])
+    u, r = _units_and_ranges(position, receivers)
+    return r[1:] - r[0], u[1:] - u[0]
 
 
 def range_rate_difference_model(
@@ -73,15 +58,16 @@ def range_rate_difference_model(
     others: Sequence[Receiver],
 ) -> tuple[FloatArray, FloatArray]:
     """Predicted range-rate differences (m/s) and Jacobian wrt [p, v] (m×6)."""
-    rate_ref, gp_ref, gv_ref = _range_rate_and_gradient(position, velocity, reference)
-    values = np.empty(len(others))
-    jacobian = np.empty((len(others), 6))
-    for k, receiver in enumerate(others):
-        rate_k, gp_k, gv_k = _range_rate_and_gradient(position, velocity, receiver)
-        values[k] = rate_k - rate_ref
-        jacobian[k, :3] = gp_k - gp_ref
-        jacobian[k, 3:] = gv_k - gv_ref
-    return values, jacobian
+    receivers = [reference, *others]
+    u, r = _units_and_ranges(position, np.array([x.position for x in receivers]))
+    relative_velocity = np.asarray(velocity, dtype=np.float64)[None, :] - np.array(
+        [x.velocity for x in receivers]
+    )
+    rate = np.einsum("nk,nk->n", u, relative_velocity)
+    # d(uᵀw)/dp = wᵀ (I - u uᵀ) / r ;  d(uᵀw)/dv = uᵀ
+    grad_position = (relative_velocity - u * rate[:, None]) / r[:, None]
+    jacobian = np.hstack([grad_position[1:] - grad_position[0], u[1:] - u[0]])
+    return rate[1:] - rate[0], jacobian
 
 
 def tdoa_to_range_difference(
