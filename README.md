@@ -270,20 +270,30 @@ roadmap.
 ```python
 import numpy as np
 
-from sentinel.detection.opir_detectors import MultiMethodDetector
-from sentinel.models.cnn_classifier import OPIRClassifier
-from sentinel.models.signal_generator import OPIRSignalGenerator
+from sentinel.classification import EventClassifier
+from sentinel.data.config import Priors
+from sentinel.data.generate import generate_sample
+from sentinel.detection import CFARDetector
+from sentinel.pipeline.phase3_pipeline import CFAR_THRESHOLD_PFA_1E2
 
-generator = OPIRSignalGenerator(rng=np.random.default_rng(0))
-signal = generator.generate_launch_signature(start_time=2.0)
+# One simulated 64 s pixel window (10 Hz) containing a launch.
+sample = generate_sample("launch", Priors(), 64.0, np.random.default_rng(3))
 
-detection = MultiMethodDetector().detect(signal, generator.sampling_rate)
-classification = OPIRClassifier().classify(
-    signal
-)  # pass model_path= for trained weights
+# Stage 1: CFAR detection at a threshold calibrated for 1% false alarms
+# per window on glint-free background.
+score = CFARDetector().score(sample.signal, 10.0).score[0]
+print(f"CFAR score {score:.1f}, alarm: {score > CFAR_THRESHOLD_PFA_1E2}")
 
-print(f"Detected: {detection.detected}")
-print(f"Event type: {classification.class_name} ({classification.confidence:.2f})")
+# Stage 2: calibrated classification with a 90% conformal prediction set;
+# a "background" label rejects the alarm (e.g. a sun glint).
+classifier = EventClassifier.load("models/opir_event_classifier")
+prediction = classifier.predict(sample.signal)
+members = prediction.prediction_sets[0]
+print("label:", prediction.labels[0])
+print(
+    "prediction set:",
+    [c for c, m in zip(classifier.classes, members, strict=True) if m],
+)
 ```
 
 ### Simulating a Scenario
@@ -315,6 +325,15 @@ The dataset is a pure function of `configs/dataset/opir_v2.yaml` and its seed.
 See the [data card](docs/data_card.md) for the generative model, splits,
 domain-shift test sets, and limitations.
 
+### Running the Experiments
+
+```bash
+make experiments   # E1 detection, E2 classification (~1 h on Apple MPS), E3 calibration + model export
+```
+
+Each experiment writes a JSON report and figures to `reports/phase3/`. E3
+exports the calibrated classifier to `models/opir_event_classifier/`.
+
 ## Testing
 
 ```bash
@@ -329,30 +348,43 @@ make test    # tests only
 | `tests/integration/` | End-to-end pipeline scenarios |
 | `tests/characterization/` | One test per defect found in the v1 audit; open defects are strict expected failures |
 
-## Performance Metrics
+## Results
 
-### Geolocation Accuracy
+All numbers are measured on the simulated `opir_v2` dataset
+([data card](docs/data_card.md)) by the experiments in `experiments/`
+(`make experiments`). Reports with confidence intervals are in
+[`reports/phase3/`](reports/phase3/). The shipped classifier is documented in
+the [model card](docs/model_card.md). Geolocation and fusion benchmarks follow
+in later phases.
 
-- **Position Error**: 10-50m (depending on sensor geometry and noise)
-- **GDOP**: 2-5 (good geometry with mixed-altitude sensors)
-- **Convergence Rate**: >95% for 4+ sensors
+**Detection (E1).** Window-level alarms at a calibrated false-alarm rate
+(20,000 independent background windows):
 
-### Detection Performance
+| Detector | Pd at Pfa = 1% (glint-free background) | Pfa of the analytic 1% threshold on realistic background |
+|---|---|---|
+| CFAR | **66%** (explosion 98%, launch 92%) | 33% |
+| CUSUM | 55% | 84% |
+| Step GLRT | 47% | 65% |
+| v1 ensemble | n/a | 100% (alarms on every window) |
 
-- **Temporal Difference**: 80-90% detection rate
-- **Anomaly Detection**: 75-85% detection rate
-- **Multi-Method Ensemble**: 90-95% detection rate
+Thresholds derived from white-noise theory fail on correlated clutter, so
+thresholds are calibrated empirically. Sun glints dominate the remaining false
+alarms and are handled by the classifier.
 
-### Classification Accuracy (Untrained Model)
+**Classification (E2).** Macro-F1, mean over 5 seeds with 95% CI:
 
-- Random baseline: ~20% (5 classes)
-- After training: Expected 85-95% validation accuracy
+| Model | Test | Low SNR | Out-of-range physics | Heavy clutter |
+|---|---|---|---|---|
+| Features + logistic regression | 0.703 | 0.550 | 0.556 | 0.455 |
+| Features + gradient-boosted trees | 0.720 | 0.584 | 0.560 | 0.463 |
+| 1D CNN | 0.790 | 0.618 | 0.750 | 0.575 |
+| **TCN (shipped)** | **0.806** [0.788, 0.824] | 0.659 | 0.737 | 0.579 |
 
-### Sensor Fusion Quality
+**Calibration and two-stage alarms (E3).**
 
-- **Track Quality**: 0.7-0.9 for multi-sensor tracks
-- **Position Uncertainty**: 20-100m CEP (50% confidence)
-- **Velocity Uncertainty**: 5-20 m/s standard deviation
+- **Conformal sets:** 90.2% coverage on test with a mean of 1.32 labels, falling to 73–83% under shift.
+- **Two-stage false alarms:** CFAR followed by the classifier reduces false alarms on all background from 24% to 5.6% at 63% detection probability.
+- **Novel event types:** energy-based OOD scores flag unseen faint events (AUROC 0.71–0.79) but not unseen bright ones (0.38–0.40), a documented limitation.
 
 ## Technical Highlights
 
