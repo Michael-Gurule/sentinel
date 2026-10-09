@@ -15,6 +15,7 @@ Conventions (local Cartesian frame, SI units):
 from dataclasses import dataclass, field
 
 import numpy as np
+from scipy.stats import chi2
 
 from sentinel.core.linalg import FloatArray, is_psd
 
@@ -113,3 +114,15 @@ class GeolocationResult:
     num_measurements: int
     converged: bool
     method: str
+
+    def fits(self, probability: float = 0.999) -> bool:
+        """χ² goodness-of-fit test of the residuals at the solution.
+
+        A solver can stop at a stationary point that does not explain the
+        measurements (e.g. a far-field solution along a hyperboloid's
+        asymptote); its residual χ² is then far above its ``dof``. With zero
+        degrees of freedom the test is vacuous and passes.
+        """
+        if self.dof < 1:
+            return True
+        return bool(self.chi2 <= float(chi2.ppf(probability, self.dof)))

@@ -95,3 +95,34 @@ def test_needs_three_tdoas(receivers, emitter, rng):
     m = simulate_tdoa(emitter, receivers[:3], 1e-9, rng)
     with pytest.raises(InsufficientMeasurementsError):
         solve_tdoa(receivers, m)
+
+
+def test_restarts_when_chan_ho_picks_the_wrong_root(
+    receivers, emitter, rng, monkeypatch
+):
+    """A mirrored Chan-Ho root sends the iteration off along an asymptote;
+    the χ² fit test triggers a restart from the receiver centroid."""
+    import sentinel.geolocation.tdoa as tdoa_module
+
+    class WrongRoot:
+        position = emitter * np.array([1.0, 1.0, -1.0]) + np.array([0, 0, -3e4])
+
+    monkeypatch.setattr(tdoa_module, "chan_ho", lambda *_: WrongRoot())
+    measurement = simulate_tdoa(emitter, receivers, 10e-9, rng)
+    result = solve_tdoa(receivers, measurement)
+    assert result.converged
+    assert result.fits()
+    assert np.linalg.norm(result.position - emitter) < 100.0
+
+
+def test_fit_test_flags_inconsistent_residuals(receivers, emitter, rng):
+    measurement = simulate_tdoa(emitter, receivers, 10e-9, rng)
+    good = solve_tdoa(receivers, measurement)
+    assert good.fits()
+    shifted = TDOAMeasurement(
+        reference=measurement.reference,
+        others=measurement.others,
+        values=measurement.values + np.array([1e-6, 0.0, -1e-6, 0.0]),
+        covariance=measurement.covariance,
+    )
+    assert not solve_tdoa(receivers, shifted, initial=emitter).fits()

@@ -1,6 +1,7 @@
 """Maximum-likelihood TDOA geolocation with full measurement covariance."""
 
 from collections.abc import Sequence
+from contextlib import suppress
 
 import numpy as np
 
@@ -21,17 +22,18 @@ from sentinel.geolocation.models import (
 from sentinel.geolocation.systematic import SystematicErrors, inflate_tdoa
 
 
-def initial_position(
+def initial_positions(
     receivers: Sequence[Receiver], measurement: TDOAMeasurement
-) -> FloatArray:
-    """Chan-Ho closed form when available, else the receiver centroid."""
+) -> list[FloatArray]:
+    """Starting points in order of preference: Chan-Ho closed form when
+    available, then the receiver centroid."""
+    starts = []
     if len(measurement) >= 4:
-        try:
-            return chan_ho(receivers, measurement).position
-        except GeometryError:
-            pass
+        with suppress(GeometryError):
+            starts.append(chan_ho(receivers, measurement).position)
     used = receiver_lookup(receivers, [measurement.reference, *measurement.others])
-    return np.asarray(np.mean([r.position for r in used], axis=0))
+    starts.append(np.asarray(np.mean([r.position for r in used], axis=0)))
+    return starts
 
 
 def solve_tdoa(
@@ -45,7 +47,11 @@ def solve_tdoa(
 
     The measurement covariance is used in full, so correlated reference-sensor
     differences are weighted correctly. Initialized with Chan-Ho when at least
-    four TDOAs are available.
+    four TDOAs are available. Chan-Ho can pick the wrong root when one
+    coordinate is poorly observed (e.g. altitude from a near-planar network)
+    and the iteration then runs off along a hyperboloid asymptote; if that
+    solution fails the χ² fit test, the solver restarts from the receiver
+    centroid and keeps the better fit.
 
     Args:
         systematic: Receiver clock-bias / survey-error levels to fold into the
@@ -65,28 +71,42 @@ def solve_tdoa(
     (reference,) = receiver_lookup(receivers, [measurement.reference])
     others = receiver_lookup(receivers, measurement.others)
     observations, covariance = tdoa_to_range_difference(measurement)
-    start = (
-        initial_position(receivers, measurement)
+    starts = (
+        initial_positions(receivers, measurement)
         if initial is None
-        else np.asarray(initial, dtype=np.float64)
+        else [np.asarray(initial, dtype=np.float64)]
     )
-
-    solution = solve_whitened(
-        lambda x: range_difference_model(x, reference, others),
-        observations,
-        covariance,
-        start,
-        max_nfev,
-    )
-    return GeolocationResult(
-        position=solution.state,
-        position_covariance=solution.covariance,
-        velocity=None,
-        velocity_covariance=None,
-        state_covariance=solution.covariance,
-        chi2=solution.chi2,
-        dof=m - 3,
-        num_measurements=m,
-        converged=solution.converged,
-        method="tdoa_ml",
-    )
+    best: GeolocationResult | None = None
+    error: GeometryError | None = None
+    for start in starts:
+        try:
+            solution = solve_whitened(
+                lambda x: range_difference_model(x, reference, others),
+                observations,
+                covariance,
+                start,
+                max_nfev,
+            )
+        except GeometryError as exc:
+            error = exc
+            continue
+        result = GeolocationResult(
+            position=solution.state,
+            position_covariance=solution.covariance,
+            velocity=None,
+            velocity_covariance=None,
+            state_covariance=solution.covariance,
+            chi2=solution.chi2,
+            dof=m - 3,
+            num_measurements=m,
+            converged=solution.converged,
+            method="tdoa_ml",
+        )
+        if best is None or result.chi2 < best.chi2:
+            best = result
+        if best.converged and best.fits():
+            break
+    if best is None:
+        assert error is not None
+        raise error
+    return best

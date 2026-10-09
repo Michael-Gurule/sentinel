@@ -11,7 +11,10 @@ from sentinel.core.linalg import FloatArray, whitening_matrix
 
 ModelFn = Callable[[FloatArray], tuple[FloatArray, FloatArray]]
 
-_MAX_CONDITION = 1e12
+# Condition number of the column-equilibrated whitened Jacobian (invariant to
+# the units of each unknown). The covariance has its square, so beyond ~1e8
+# it carries no precision.
+_MAX_CONDITION = 1e8
 
 
 @dataclass(frozen=True, eq=False)
@@ -60,14 +63,20 @@ def solve_whitened(
     )
     state = np.asarray(result.x, dtype=np.float64)
     whitened_jac = jacobian(state)
-    singular_values = np.linalg.svd(whitened_jac, compute_uv=False)
+    column_norms = np.linalg.norm(whitened_jac, axis=0)
+    scale = np.where(column_norms > 0, column_norms, 1.0)
+    equilibrated = whitened_jac / scale
+    singular_values = np.linalg.svd(equilibrated, compute_uv=False)
     if singular_values[-1] <= singular_values[0] / _MAX_CONDITION:
         raise GeometryError(
             "unknowns are not observable from these measurements "
             f"(condition number {singular_values[0] / max(singular_values[-1], 1e-300):.2e})"
         )
-    information = whitened_jac.T @ whitened_jac
-    state_cov = np.linalg.inv(information)
+    # (JᵀJ)⁻¹ = D⁻¹ (JₛᵀJₛ)⁻¹ D⁻¹ with Jₛ = J D⁻¹: invert the well-scaled form.
+    scaled_cov = np.linalg.inv(equilibrated.T @ equilibrated)
+    if np.linalg.eigvalsh(0.5 * (scaled_cov + scaled_cov.T))[0] <= 0.0:
+        raise GeometryError("covariance at the solution is not positive definite")
+    state_cov = scaled_cov / np.outer(scale, scale)
     final = residuals(state)
     return NLSSolution(
         state=state,
