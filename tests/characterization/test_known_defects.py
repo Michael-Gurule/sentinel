@@ -35,9 +35,11 @@ from sentinel.geolocation import (
 from sentinel.geolocation.models import range_difference_model
 from sentinel.pipeline.phase3_pipeline import (
     CFAR_THRESHOLD_PFA_1E2,
+    OPIRObservation,
     SENTINELPhase3Pipeline,
 )
 from sentinel.sim import load_scenario, simulate_scenario
+from sentinel.sim.opir.reports import to_local
 from sentinel.taxonomy import EVENT_CLASSES
 from sentinel.tracking import ConstantVelocity, LinearMeasurement
 
@@ -71,32 +73,37 @@ def _windows(
 
 
 # --------------------------------------------------------------------------
-# C1 (open, Phase 5): OPIR detections never contribute to fused tracks
+# C1 (fixed in Phase 5): OPIR detections never contributed to fused tracks
 # --------------------------------------------------------------------------
-@known_defect(
-    "C1",
-    "OPIR has no position until line-of-sight geolocation (Phase 5), so OPIR "
-    "reports cannot update fused tracks",
-)
 def test_c1_opir_contributes_to_fused_tracks():
-    result = simulate_scenario(
-        load_scenario(REPO_ROOT / "configs/scenario/launch_with_radar.yaml"), seed=0
-    )
+    """A radar at the launch site cues an RF track; the launch's OPIR
+    detections, with their lines of sight, update and classify that track."""
+    config = load_scenario(REPO_ROOT / "configs/scenario/launch_with_radar.yaml")
+    result = simulate_scenario(config, seed=0)
+    frame = config.origin.frame()
     pipeline = SENTINELPhase3Pipeline()
-    launch = result.opir["launch-1"].measured
+    pixel = result.opir["launch-1"]
     for emitter, scan in result.rf_scans:
         if emitter != "radar-1":
             continue
-        end = round(scan.t * FS) + 1
-        window = launch[max(0, end - 640) : end] if end > 20 else launch[:640]
-        fix = pipeline.process_rf_measurements(scan.tdoa, scan.receivers)
-        pipeline.process_multi_sensor_frame([window], [], FS, scan.t)
-        if fix is not None:
-            pipeline.fusion_engine.process([fix], scan.t)
+        k = int(np.argmin(np.abs(result.times - scan.t)))
+        position, los = to_local(frame, pixel, k)
+        observation = OPIRObservation(
+            pixel.measured[max(0, k + 1 - 640) : k + 1],
+            sensor_position=position,
+            line_of_sight=los,
+        )
+        pipeline.process_multi_sensor_frame(
+            [observation], [scan.tdoa], FS, scan.t, receivers=scan.receivers
+        )
 
     tracks = pipeline.fusion_engine.tracks
     assert tracks, "expected at least one fused track"
-    assert any({"opir", "rf"} <= t.hits_by_source.keys() for t in tracks)
+    assert any(
+        "rf" in t.hits_by_source
+        and any(source.startswith("opir") for source in t.hits_by_source)
+        for t in tracks
+    )
 
 
 # --------------------------------------------------------------------------

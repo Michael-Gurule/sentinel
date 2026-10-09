@@ -4,9 +4,12 @@ geolocation, and track fusion.
 
 OPIR windows go through a CFAR detector at a false-alarm-calibrated threshold,
 then (optionally) a calibrated classifier that rejects background, including
-sun glints, and returns a conformal prediction set. OPIR reports are not yet
-fused: OPIR has no position until line-of-sight geolocation lands in Phase 5
-(audit defect C1). This module is replaced by a configurable runner in Phase 6.
+sun glints, and returns a conformal prediction set. Detections that come with
+their line of sight (:class:`OPIRObservation`) are geolocated, by stereo
+triangulation when two satellites see the event or as an angle-only update
+otherwise, and fused with RF fixes in the same tracker update (this closes
+audit defect C1, where OPIR never reached the fused tracks). This module is
+replaced by a configurable runner in Phase 6.
 """
 
 import json
@@ -23,23 +26,66 @@ from sentinel.core.linalg import FloatArray
 from sentinel.detection import CFARDetector, Detector
 from sentinel.fusion.engine import FusionEngine
 from sentinel.fusion.measurements import rf_measurement
+from sentinel.fusion.opir_geoloc import measurements_from_reports
 from sentinel.geolocation.hybrid import solve_tdoa_fdoa
 from sentinel.geolocation.measurements import (
     FDOAMeasurement,
     Receiver,
     TDOAMeasurement,
 )
-from sentinel.tracking.tracker import LinearMeasurement, Track
+from sentinel.taxonomy import EVENT_CLASSES
+from sentinel.tracking.tracker import LinearMeasurement, Measurement, Track
 
 logger = logging.getLogger(__name__)
 
 RFInput = TDOAMeasurement | tuple[TDOAMeasurement, FDOAMeasurement | None]
+
+CLASSIFIER_ONSET_RANGE_S = (2.0, 40.0)
+"""Onset positions within the 64 s window that the classifier was trained on
+(data card). Outside this range, e.g. once the window has slid past a launch's
+onset, a boosting plume looks like a steady source, so class evidence is only
+passed to tracks when the detected onset lies inside it (E6)."""
 
 
 CFAR_THRESHOLD_PFA_1E2 = 5.27
 """CFAR threshold for a 1e-2 false-alarm rate per 64 s window on glint-free
 background (E1, ``reports/phase3/e1_detection.json``; a test keeps them in
 sync). Glint alarms are left to the classifier."""
+
+
+@dataclass(frozen=True, eq=False)
+class OPIRObservation:
+    """One OPIR pixel window and, optionally, where it points.
+
+    Attributes:
+        signal: Radiometric samples ending at the frame time.
+        sensor_index: Which OPIR satellite produced it (stereo pairs are
+            formed across sensors).
+        sensor_position: Satellite position in the local ENU frame, m.
+        line_of_sight: Unit vector from the satellite to the pixel center.
+        angle_std: Line-of-sight error per axis, rad.
+
+    Without ``sensor_position`` and ``line_of_sight`` the detection is
+    reported but cannot be geolocated or fused.
+    """
+
+    signal: FloatArray
+    sensor_index: int = 0
+    sensor_position: FloatArray | None = None
+    line_of_sight: FloatArray | None = None
+    angle_std: float = 10e-6
+
+    @property
+    def geolocatable(self) -> bool:
+        return self.sensor_position is not None and self.line_of_sight is not None
+
+
+@dataclass(frozen=True, eq=False)
+class _Ray:
+    sensor_index: int
+    sensor_position: FloatArray
+    line_of_sight: FloatArray
+    angle_std: float
 
 
 @dataclass(frozen=True, eq=False)
@@ -175,34 +221,81 @@ class SENTINELPhase3Pipeline:
         except (GeometryError, InsufficientMeasurementsError) as exc:
             logger.warning("RF geolocation failed: %s", exc)
             return None
-        if not result.converged:
-            logger.warning("RF geolocation did not converge")
+        if not result.converged or not result.fits():
+            logger.warning(
+                "RF geolocation rejected (converged=%s, chi2=%.1f on %d dof)",
+                result.converged,
+                result.chi2,
+                result.dof,
+            )
             return None
         return rf_measurement(result)
 
     def process_multi_sensor_frame(
         self,
-        opir_signals: Sequence[FloatArray],
+        opir_signals: Sequence[FloatArray | OPIRObservation],
         rf_measurements: Sequence[RFInput],
         sampling_rate: float,
         timestamp: float,
+        receivers: Sequence[Receiver] | None = None,
     ) -> dict[str, object]:
-        """Process one synchronized frame from all sensors."""
-        opir_reports = [
-            report
-            for signal in opir_signals
-            if (report := self.process_opir_signal(signal, sampling_rate, timestamp))
+        """Process one synchronized frame from all sensors.
+
+        Args:
+            opir_signals: Pixel windows; plain arrays are detected and
+                classified only, :class:`OPIRObservation` with geometry is
+                also geolocated and fused.
+            receivers: RF receiver states for this frame (moving receivers);
+                defaults to the pipeline's network.
+        """
+        observations = [
+            s if isinstance(s, OPIRObservation) else OPIRObservation(np.asarray(s))
+            for s in opir_signals
         ]
-        rf_fixes = [self.process_rf_measurements(m) for m in rf_measurements]
-        measurements = [m for m in rf_fixes if m is not None]
+        opir_reports: list[OPIRReport] = []
+        rays: list[_Ray] = []
+        probabilities: list[FloatArray | None] = []
+        for observation in observations:
+            report = self.process_opir_signal(
+                observation.signal, sampling_rate, timestamp
+            )
+            if report is None:
+                continue
+            opir_reports.append(report)
+            if observation.geolocatable:
+                assert observation.sensor_position is not None
+                assert observation.line_of_sight is not None
+                rays.append(
+                    _Ray(
+                        observation.sensor_index,
+                        observation.sensor_position,
+                        observation.line_of_sight,
+                        observation.angle_std,
+                    )
+                )
+                in_domain = (
+                    CLASSIFIER_ONSET_RANGE_S[0]
+                    <= report.onset_time
+                    <= CLASSIFIER_ONSET_RANGE_S[1]
+                )
+                probabilities.append(
+                    np.array(list(report.probabilities.values()))
+                    if report.probabilities is not None and in_domain
+                    else None
+                )
+        opir_measurements = measurements_from_reports(rays, probabilities)
+        rf_fixes = [self.process_rf_measurements(m, receivers) for m in rf_measurements]
+        rf_valid = [m for m in rf_fixes if m is not None]
+        measurements: list[Measurement] = [*rf_valid, *opir_measurements]
 
         tracks = self.fusion_engine.process(measurements, timestamp)
         result: dict[str, object] = {
             "timestamp": timestamp,
             "opir_detections": len(opir_reports),
             "opir_labels": [r.label for r in opir_reports],
-            "rf_geolocations": len(measurements),
-            "rf_failures": len(rf_fixes) - len(measurements),
+            "opir_measurements": len(opir_measurements),
+            "rf_geolocations": len(rf_valid),
+            "rf_failures": len(rf_fixes) - len(rf_valid),
             "fused_tracks": len(tracks),
             "tracks": [track_to_dict(t) for t in tracks],
         }
@@ -230,12 +323,15 @@ DEFAULT_CLASSIFIER = (
 
 
 def demo_phase3_system(seed: int = 0, classifier: str | Path | None = None) -> None:
-    """Simulate the example scenario; classify OPIR events and track the RF emitter."""
+    """Run the example scenario frame by frame through detection,
+    classification, geolocation, and fusion, then print the track picture."""
     from sentinel.sim import load_scenario, simulate_scenario
+    from sentinel.sim.opir.reports import to_local
 
     root = Path(__file__).resolve().parents[3]
     config = load_scenario(root / "configs" / "scenario" / "launch_with_radar.yaml")
     result = simulate_scenario(config, seed)
+    frame = config.origin.frame()
     model = classifier or (DEFAULT_CLASSIFIER if DEFAULT_CLASSIFIER.exists() else None)
     pipeline = SENTINELPhase3Pipeline(classifier=model)
     fs = config.sensor.frame_rate_hz
@@ -243,6 +339,30 @@ def demo_phase3_system(seed: int = 0, classifier: str | Path | None = None) -> N
 
     print("SENTINEL multi-sensor demo")
     print(f"classifier: {model or 'none (detections reported unclassified)'}")
+    scans_by_time: dict[float, list[object]] = {}
+    for _, scan in result.rf_scans:
+        scans_by_time.setdefault(scan.t, []).append(scan)
+    for t in np.arange(1.0, config.duration_s, 1.0):
+        k = int(np.argmin(np.abs(result.times - t)))
+        observations = []
+        for pixel in result.opir.values():
+            position, los = to_local(frame, pixel, k)
+            observations.append(
+                OPIRObservation(
+                    pixel.measured[max(0, k + 1 - window) : k + 1],
+                    sensor_position=position,
+                    line_of_sight=los,
+                )
+            )
+        scans = scans_by_time.get(float(t), [])
+        pipeline.process_multi_sensor_frame(
+            observations,
+            [(s.tdoa, s.fdoa) for s in scans],  # type: ignore[attr-defined]
+            fs,
+            float(t),
+            receivers=scans[0].receivers if scans else None,  # type: ignore[attr-defined]
+        )
+
     for event_id, pixel in result.opir.items():
         report = pipeline.process_opir_signal(
             pixel.measured[-window:], fs, float(result.times[-1])
@@ -254,16 +374,17 @@ def demo_phase3_system(seed: int = 0, classifier: str | Path | None = None) -> N
                 f"OPIR {event_id:11s} alarm (score {report.score:.1f}) -> {report.label}"
                 f"  set {list(report.prediction_set)}"
             )
-
-    for emitter_id, scan in result.rf_scans:
-        if emitter_id != "datalink-1":
-            continue
-        fix = pipeline.process_rf_measurements((scan.tdoa, scan.fdoa), scan.receivers)
-        pipeline.fusion_engine.process([fix] if fix else [], scan.t)
-    for track in pipeline.fusion_engine.tracks:
+    for track in pipeline.fusion_engine.confirmed_tracks:
+        posterior = track.class_posterior
+        label = (
+            f"{EVENT_CLASSES[int(np.argmax(posterior))]} ({np.max(posterior):.2f})"
+            if posterior is not None
+            else "unclassified"
+        )
         print(
             f"track {track.id}: velocity {np.round(track.velocity, 1)} m/s, "
-            f"RMS uncertainty {track.position_rms_uncertainty:.1f} m, hits {track.hits_by_source}"
+            f"RMS uncertainty {track.position_rms_uncertainty:.1f} m, "
+            f"class {label}, hits {track.hits_by_source}"
         )
 
 

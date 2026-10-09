@@ -16,9 +16,12 @@ from sentinel.classification import (
 from sentinel.classification.artifact import ConformalSpec
 from sentinel.data.build import generate_samples
 from sentinel.data.config import Priors
+from sentinel.fusion import FusionEngine
 from sentinel.geolocation import simulate_fdoa, simulate_tdoa
 from sentinel.pipeline.phase3_pipeline import (
     CFAR_THRESHOLD_PFA_1E2,
+    OPIRObservation,
+    OPIRReport,
     SENTINELPhase3Pipeline,
     demo_phase3_system,
 )
@@ -117,6 +120,39 @@ def test_opir_classification_and_background_rejection(windows, tiny_classifier):
     assert frame["opir_detections"] == len(frame["opir_labels"])
 
 
+def test_geolocated_opir_detections_start_fused_tracks(pipeline, windows, rng):
+    """Two satellites detecting the same event triangulate it; the stereo
+    position starts and confirms a track without any RF."""
+    geo, heo = np.array([0.0, -30e6, 25e6]), np.array([10e6, 15e6, 35e6])
+    target = np.array([2_000.0, 3_000.0, 12_000.0])
+
+    def observe(sensor_index: int, sensor: np.ndarray) -> OPIRObservation:
+        u = (target - sensor) / np.linalg.norm(target - sensor)
+        u = u + rng.normal(0.0, 10e-6, 3)
+        return OPIRObservation(
+            windows["launch"][0],
+            sensor_index=sensor_index,
+            sensor_position=sensor,
+            line_of_sight=u / np.linalg.norm(u),
+        )
+
+    for t in range(5):
+        result = pipeline.process_multi_sensor_frame(
+            [observe(0, geo), observe(1, heo)], [], 10.0, float(t)
+        )
+    assert result["opir_measurements"] == 1
+    (track,) = pipeline.fusion_engine.confirmed_tracks
+    assert track.hits_by_source == {"opir": 5}
+    assert np.linalg.norm(track.position - target) < 4 * track.position_rms_uncertainty
+
+
+def test_unlocated_opir_detections_are_reported_not_fused(pipeline, windows):
+    result = pipeline.process_multi_sensor_frame([windows["launch"][0]], [], 10.0, 0.0)
+    assert result["opir_detections"] == 1
+    assert result["opir_measurements"] == 0
+    assert result["fused_tracks"] == 0
+
+
 def test_situation_awareness_and_export(pipeline, rng, tmp_path):
     for t in range(5):
         tdoa = simulate_tdoa(START + VELOCITY * t, pipeline.receivers, 10e-9, rng)
@@ -135,3 +171,34 @@ def test_demo_runs(capsys, tiny_classifier):
     out = capsys.readouterr().out
     assert "OPIR launch-1" in out
     assert "track 0" in out
+
+
+@pytest.mark.parametrize(("onset", "classified"), [(10.0, True), (55.0, False)])
+def test_class_evidence_only_when_onset_is_in_the_trained_range(
+    monkeypatch, onset, classified
+):
+    """Windows whose onset lies outside the classifier's training range
+    still update the track kinematically but add no class evidence."""
+    pipeline = SENTINELPhase3Pipeline(fusion_engine=FusionEngine(confirm_hits=1))
+    report = OPIRReport(
+        timestamp=0.0,
+        score=10.0,
+        onset_time=onset,
+        label="launch",
+        probabilities=dict.fromkeys(EVENT_CLASSES, 0.2),
+    )
+    monkeypatch.setattr(pipeline, "process_opir_signal", lambda *_: report)
+    geo, heo = np.array([0.0, -30e6, 25e6]), np.array([10e6, 15e6, 35e6])
+    target = np.array([2_000.0, 3_000.0, 12_000.0])
+    observations = [
+        OPIRObservation(
+            np.zeros(640),
+            sensor_index=i,
+            sensor_position=s,
+            line_of_sight=(target - s) / np.linalg.norm(target - s),
+        )
+        for i, s in enumerate((geo, heo))
+    ]
+    pipeline.process_multi_sensor_frame(observations, [], 10.0, 0.0)
+    (track,) = pipeline.fusion_engine.tracks
+    assert (track.class_posterior is not None) is classified
