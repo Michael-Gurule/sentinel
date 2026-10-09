@@ -28,7 +28,7 @@ from experiments.common import (
     TEXT_PRIMARY,
     TEXT_SECONDARY,
     RunOptions,
-    parse_options,
+    run_experiment,
     style,
 )
 from sentinel.core import (
@@ -52,8 +52,7 @@ from sentinel.geolocation import (
     tdoa_dop,
     tdoa_fdoa_crlb,
 )
-from sentinel.pipeline.phase3_pipeline import default_receiver_network
-from sentinel.sim.rf.network import ReceiverModel, RFNetwork
+from sentinel.sim.rf.network import ReceiverModel, RFNetwork, default_receiver_network
 from sentinel.sim.trajectories import Stationary
 
 REPORT_DIR = ROOT / "reports" / "phase4"
@@ -516,4 +515,9 @@ def _figures(out: Path, report: dict[str, Any], maps: dict[str, Any]) -> None:
 
 
 if __name__ == "__main__":
-    run(parse_options(__doc__ or "E4", report_dir=REPORT_DIR))
+    run_experiment(
+        "e4_geolocation",
+        run,
+        (__doc__ or "e4_geolocation").splitlines()[0],
+        report_dir=REPORT_DIR,
+    )

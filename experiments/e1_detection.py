@@ -29,7 +29,7 @@ from experiments.common import (
     RunOptions,
     dataset_info,
     load,
-    parse_options,
+    run_experiment,
     snr_bin,
     style,
 )
@@ -223,4 +223,4 @@ def _figures(
 
 
 if __name__ == "__main__":
-    run(parse_options(__doc__ or "E1"))
+    run_experiment("e1_detection", run, (__doc__ or "e1_detection").splitlines()[0])

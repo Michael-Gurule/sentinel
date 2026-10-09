@@ -8,9 +8,9 @@ can be regenerated in isolation.
 Splits are independent by construction (different spawn keys), so there is no
 leakage between train, validation, test, and the domain-shift sets.
 
-Usage::
+Usage (``python -m sentinel.data`` takes the same options)::
 
-    python -m sentinel.data --config configs/dataset/opir_v2.yaml \\
+    sentinel data build --config configs/dataset/opir_v2.yaml \\
         --out data/opir_v2 --workers 4
 """
 

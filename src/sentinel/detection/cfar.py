@@ -21,6 +21,11 @@ from scipy.special import ndtri
 from sentinel.core.linalg import FloatArray
 from sentinel.detection.base import DetectionScores, as_batch
 
+CFAR_THRESHOLD_PFA_1E2 = 5.27
+"""Calibrated CFAR threshold for a 1e-2 false-alarm rate per 64 s window at
+10 Hz on glint-free background (E1, ``reports/phase3/e1_detection.json``; a
+test keeps them in sync). Glint alarms are left to the classifier."""
+
 
 def _window_sums(x: FloatArray, start: np.ndarray, stop: np.ndarray) -> FloatArray:
     """Sums of x[:, start[t]:stop[t]] for every t, via cumulative sums."""

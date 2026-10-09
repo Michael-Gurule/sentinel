@@ -49,18 +49,22 @@ class EventClassifier:
     def predict(self, signals: FloatArray) -> Prediction:
         inputs = preprocess(signals, self.artifact.preprocess)
         logits = predict_logits(self.model, inputs, self.device)
-        t = self.artifact.temperature
-        probs = probabilities(logits, t)
-        sets = (
-            prediction_sets(
-                probs, self.artifact.conformal.threshold, self.artifact.conformal.method
-            )
-            if self.artifact.conformal is not None
-            else np.ones_like(probs, dtype=bool)
-        )
-        return Prediction(
-            labels=tuple(self.classes[i] for i in probs.argmax(axis=1)),
-            probabilities=probs,
-            prediction_sets=sets,
-            energy=energy_score(logits, t),
-        )
+        return prediction_from_logits(self.artifact, logits)
+
+
+def prediction_from_logits(artifact: ModelArtifact, logits: np.ndarray) -> Prediction:
+    """Calibrated probabilities, conformal sets, and energy from raw logits
+    (shared by every inference backend)."""
+    t = artifact.temperature
+    probs = probabilities(logits, t)
+    sets = (
+        prediction_sets(probs, artifact.conformal.threshold, artifact.conformal.method)
+        if artifact.conformal is not None
+        else np.ones_like(probs, dtype=bool)
+    )
+    return Prediction(
+        labels=tuple(artifact.classes[i] for i in probs.argmax(axis=1)),
+        probabilities=probs,
+        prediction_sets=sets,
+        energy=energy_score(logits, t),
+    )

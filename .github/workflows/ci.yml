@@ -52,10 +52,12 @@ jobs:
         run: mypy
       - name: Test
         run: pytest --cov --cov-report=term-missing --cov-report=xml
+      - name: Latency budgets
+        run: pytest benchmarks --benchmark-only --benchmark-columns=median,max
       - name: Coverage gate (library packages >= 85%)
         run: >-
           coverage report --fail-under=85
-          --include="src/sentinel/core/*,src/sentinel/geolocation/*,src/sentinel/tracking/*,src/sentinel/fusion/*,src/sentinel/sim/*,src/sentinel/data/*,src/sentinel/detection/*,src/sentinel/classification/*,src/sentinel/eval/*"
+          --include="src/sentinel/core/*,src/sentinel/geolocation/*,src/sentinel/tracking/*,src/sentinel/fusion/*,src/sentinel/sim/*,src/sentinel/data/*,src/sentinel/detection/*,src/sentinel/classification/*,src/sentinel/eval/*,src/sentinel/pipeline/*,src/sentinel/runs.py,src/sentinel/cli.py"
       - name: Upload coverage report
         if: always()
         uses: actions/upload-artifact@v7

@@ -22,7 +22,12 @@ from sentinel.core.constants import SPEED_OF_LIGHT
 from sentinel.data import build_dataset, load_dataset_config
 from sentinel.data.build import generate_samples
 from sentinel.data.config import Priors
-from sentinel.detection import CFARDetector, CUSUMDetector, StepGLRTDetector
+from sentinel.detection import (
+    CFAR_THRESHOLD_PFA_1E2,
+    CFARDetector,
+    CUSUMDetector,
+    StepGLRTDetector,
+)
 from sentinel.fusion import FusionEngine
 from sentinel.geolocation import (
     Receiver,
@@ -33,10 +38,11 @@ from sentinel.geolocation import (
     tdoa_dop,
 )
 from sentinel.geolocation.models import range_difference_model
-from sentinel.pipeline.phase3_pipeline import (
-    CFAR_THRESHOLD_PFA_1E2,
+from sentinel.pipeline import (
     OPIRObservation,
-    SENTINELPhase3Pipeline,
+    RFObservation,
+    SensorFrame,
+    SentinelPipeline,
 )
 from sentinel.sim import load_scenario, simulate_scenario
 from sentinel.sim.opir.reports import to_local
@@ -81,7 +87,7 @@ def test_c1_opir_contributes_to_fused_tracks():
     config = load_scenario(REPO_ROOT / "configs/scenario/launch_with_radar.yaml")
     result = simulate_scenario(config, seed=0)
     frame = config.origin.frame()
-    pipeline = SENTINELPhase3Pipeline()
+    pipeline = SentinelPipeline()
     pixel = result.opir["launch-1"]
     for emitter, scan in result.rf_scans:
         if emitter != "radar-1":
@@ -93,11 +99,16 @@ def test_c1_opir_contributes_to_fused_tracks():
             sensor_position=position,
             line_of_sight=los,
         )
-        pipeline.process_multi_sensor_frame(
-            [observation], [scan.tdoa], FS, scan.t, receivers=scan.receivers
+        pipeline.process_frame(
+            SensorFrame(
+                scan.t,
+                opir=[observation],
+                rf=[RFObservation(scan.tdoa, receivers=scan.receivers)],
+                sampling_rate=FS,
+            )
         )
 
-    tracks = pipeline.fusion_engine.tracks
+    tracks = pipeline.tracks
     assert tracks, "expected at least one fused track"
     assert any(
         "rf" in t.hits_by_source
@@ -260,7 +271,7 @@ def test_h1_fusion_prediction_uses_elapsed_time():
 # H2 (fixed in Phase 1): the association gate accepted distant measurements
 # --------------------------------------------------------------------------
 def test_h2_gate_rejects_distant_measurement():
-    engine = SENTINELPhase3Pipeline().fusion_engine
+    engine = FusionEngine()
     sigma_10m = np.eye(3) * 100.0
     engine.process([LinearMeasurement.position(np.zeros(3), sigma_10m, "rf")], 0.0)
     (track,) = engine.tracks

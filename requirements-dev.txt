@@ -5,6 +5,12 @@
 pytest==9.1.1
 pytest-cov==7.1.0
 hypothesis==6.168.5
+pytest-benchmark==5.3.0
+
+# ONNX export and runtime (the `onnx` extra)
+onnx==1.23.2
+onnxscript==0.7.2
+onnxruntime==1.31.0
 
 # Lint, format, type check
 ruff==0.16.10

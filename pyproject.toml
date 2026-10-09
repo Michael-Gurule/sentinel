@@ -20,10 +20,15 @@ dependencies = [
     "tqdm>=4.66",
     "pydantic>=2.7",
     "pyyaml>=6.0",
+    "typer>=0.15",
 ]
+
+[project.scripts]
+sentinel = "sentinel.cli:app"
 
 [project.optional-dependencies]
 viz = ["seaborn>=0.13"]
+onnx = ["onnx>=1.17", "onnxscript>=0.2", "onnxruntime>=1.20"]
 
 [tool.setuptools.dynamic]
 version = { attr = "sentinel.__version__" }
@@ -86,7 +91,7 @@ warn_required_dynamic_aliases = true
 
 # Third-party packages without type information.
 [[tool.mypy.overrides]]
-module = ["sklearn.*"]
+module = ["sklearn.*", "onnxruntime", "onnxruntime.*"]
 ignore_missing_imports = true
 
 [tool.coverage.run]

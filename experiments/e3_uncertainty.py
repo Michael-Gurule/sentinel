@@ -34,7 +34,7 @@ from experiments.common import (
     RunOptions,
     dataset_info,
     load,
-    parse_options,
+    run_experiment,
     style,
 )
 from sentinel.classification import (
@@ -410,4 +410,4 @@ def _figures(entry: dict[str, Any], summary: dict[str, Any]) -> None:
 
 
 if __name__ == "__main__":
-    run(parse_options(__doc__ or "E3"))
+    run_experiment("e3_uncertainty", run, (__doc__ or "e3_uncertainty").splitlines()[0])

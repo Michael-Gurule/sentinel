@@ -9,7 +9,8 @@ test suite can exercise the full code path in seconds.
 """
 
 import argparse
-from dataclasses import dataclass
+from collections.abc import Callable
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
@@ -21,6 +22,7 @@ import numpy as np
 
 from sentinel.data import load_manifest, load_split
 from sentinel.data.dataset import OPIRSplit
+from sentinel.runs import RunRegistry
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = ROOT / "data" / "opir_v2"
@@ -28,6 +30,7 @@ REPORT_DIR = ROOT / "reports" / "phase3"
 FIGURE_DIR = REPORT_DIR / "figures"
 MODEL_DIR = ROOT / "outputs" / "models"
 EXPORT_DIR = ROOT / "models"
+RUNS_DIR = ROOT / "runs"
 
 EVAL_SPLITS = ("test", "shift_low_snr", "shift_params", "shift_clutter")
 SNR_BINS = (0.0, 2.0, 5.0, 20.0, 100.0, float("inf"))
@@ -72,6 +75,7 @@ class RunOptions:
     model_dir: Path
     device: str | None
     workers: int
+    runs_dir: Path = RUNS_DIR
 
 
 def parse_options(description: str, report_dir: Path = REPORT_DIR) -> RunOptions:
@@ -84,6 +88,7 @@ def parse_options(description: str, report_dir: Path = REPORT_DIR) -> RunOptions
     parser.add_argument("--models", type=Path, default=MODEL_DIR)
     parser.add_argument("--device", default=None, help="Torch device (default: auto)")
     parser.add_argument("--workers", type=int, default=4)
+    parser.add_argument("--runs", type=Path, default=RUNS_DIR, help="Run registry")
     args = parser.parse_args()
     return RunOptions(
         quick=args.quick,
@@ -92,7 +97,24 @@ def parse_options(description: str, report_dir: Path = REPORT_DIR) -> RunOptions
         model_dir=args.models,
         device="cpu" if args.quick and args.device is None else args.device,
         workers=1 if args.quick else args.workers,
+        runs_dir=args.runs,
     )
+
+
+def run_experiment(
+    name: str,
+    run: Callable[[RunOptions], dict[str, Any]],
+    description: str,
+    report_dir: Path = REPORT_DIR,
+) -> dict[str, Any]:
+    """Command-line entry point: parse options, run, and record the run (its
+    options, git state, duration, and report) in the run registry."""
+    options = parse_options(description, report_dir)
+    registry = RunRegistry(options.runs_dir)
+    with registry.start(name, asdict(options), kind="experiment") as active:
+        report = run(options)
+        active.add_artifact(options.report_dir / f"{name}.json")
+    return report
 
 
 def load(options: RunOptions, name: str, per_class: int | None = None) -> OPIRSplit:

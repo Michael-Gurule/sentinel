@@ -10,3 +10,4 @@ seaborn==0.13.2
 tqdm==4.70.1
 pydantic==2.14.0
 pyyaml==6.0.3
+typer==0.27.3

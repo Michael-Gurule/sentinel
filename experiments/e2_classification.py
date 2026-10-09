@@ -22,7 +22,7 @@ from experiments.common import (
     RunOptions,
     dataset_info,
     load,
-    parse_options,
+    run_experiment,
     snr_bin,
     style,
 )
@@ -353,4 +353,6 @@ def _figures(summary: dict[str, Any], runs: dict[str, Any], selected: str) -> No
 
 
 if __name__ == "__main__":
-    run(parse_options(__doc__ or "E2"))
+    run_experiment(
+        "e2_classification", run, (__doc__ or "e2_classification").splitlines()[0]
+    )
