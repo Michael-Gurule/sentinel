@@ -1,0 +1,2403 @@
+{
+  "experiment": "E5 tracking",
+  "gospa_cutoff_m": 2000.0,
+  "motion_model": {
+    "cv_q25": {
+      "coverage_by_type": {
+        "aircraft": {
+          "ci_high": 0.988889,
+          "ci_low": 0.988889,
+          "runs": 10,
+          "value": 0.988889
+        },
+        "fire": {
+          "ci_high": 0.970116,
+          "ci_low": 0.951585,
+          "runs": 10,
+          "value": 0.96085
+        },
+        "launch": {
+          "ci_high": 0.724149,
+          "ci_low": 0.55809,
+          "runs": 10,
+          "value": 0.641119
+        }
+      },
+      "false_per_scan": {
+        "ci_high": 0.690481,
+        "ci_low": 0.327297,
+        "runs": 10,
+        "value": 0.508889
+      },
+      "fragmentations": {
+        "ci_high": 3.407999,
+        "ci_low": 1.592001,
+        "runs": 10,
+        "value": 2.5
+      },
+      "gospa": {
+        "ci_high": 1543.640832,
+        "ci_low": 1264.980779,
+        "runs": 10,
+        "value": 1404.310806
+      },
+      "id_switches": {
+        "ci_high": 10.717735,
+        "ci_low": 6.282265,
+        "runs": 10,
+        "value": 8.5
+      },
+      "latency_by_type": {
+        "aircraft": {
+          "ci_high": 2.0,
+          "ci_low": 2.0,
+          "runs": 10,
+          "value": 2.0
+        },
+        "fire": {
+          "ci_high": 7.430714,
+          "ci_low": 4.569286,
+          "runs": 10,
+          "value": 6.0
+        },
+        "launch": {
+          "ci_high": 8.056271,
+          "ci_low": 0.843729,
+          "runs": 10,
+          "value": 4.45
+        }
+      },
+      "missed_per_scan": {
+        "ci_high": 0.693388,
+        "ci_low": 0.419945,
+        "runs": 10,
+        "value": 0.556667
+      },
+      "nees": {
+        "ci_high": 17.326238,
+        "ci_low": 8.99787,
+        "runs": 10,
+        "value": 13.162054
+      },
+      "never_tracked": {
+        "ci_high": 0.0,
+        "ci_low": 0.0,
+        "runs": 10,
+        "value": 0.0
+      },
+      "ospa": {
+        "ci_high": 761.017096,
+        "ci_low": 629.744738,
+        "runs": 10,
+        "value": 695.380917
+      },
+      "purity": {
+        "ci_high": 1.0,
+        "ci_low": 1.0,
+        "runs": 10,
+        "value": 1.0
+      },
+      "rmse": {
+        "ci_high": 367.719047,
+        "ci_low": 320.073068,
+        "runs": 10,
+        "value": 343.896057
+      },
+      "rmse_by_type": {
+        "aircraft": {
+          "ci_high": 95.170237,
+          "ci_low": 31.791689,
+          "runs": 10,
+          "value": 63.480963
+        },
+        "fire": {
+          "ci_high": 304.298866,
+          "ci_low": 223.015148,
+          "runs": 10,
+          "value": 263.657007
+        },
+        "launch": {
+          "ci_high": 774.417635,
+          "ci_low": 719.560157,
+          "runs": 10,
+          "value": 746.988896
+        }
+      }
+    },
+    "cv_q400": {
+      "coverage_by_type": {
+        "aircraft": {
+          "ci_high": 0.988889,
+          "ci_low": 0.988889,
+          "runs": 10,
+          "value": 0.988889
+        },
+        "fire": {
+          "ci_high": 0.970116,
+          "ci_low": 0.951585,
+          "runs": 10,
+          "value": 0.96085
+        },
+        "launch": {
+          "ci_high": 0.998488,
+          "ci_low": 0.848789,
+          "runs": 10,
+          "value": 0.923638
+        }
+      },
+      "false_per_scan": {
+        "ci_high": 0.241703,
+        "ci_low": 0.100519,
+        "runs": 10,
+        "value": 0.171111
+      },
+      "fragmentations": {
+        "ci_high": 1.0911,
+        "ci_low": -0.2911,
+        "runs": 10,
+        "value": 0.4
+      },
+      "gospa": {
+        "ci_high": 1008.773324,
+        "ci_low": 769.426595,
+        "runs": 10,
+        "value": 889.09996
+      },
+      "id_switches": {
+        "ci_high": 5.216464,
+        "ci_low": -0.016464,
+        "runs": 10,
+        "value": 2.6
+      },
+      "latency_by_type": {
+        "aircraft": {
+          "ci_high": 2.0,
+          "ci_low": 2.0,
+          "runs": 10,
+          "value": 2.0
+        },
+        "fire": {
+          "ci_high": 7.430714,
+          "ci_low": 4.569286,
+          "runs": 10,
+          "value": 6.0
+        },
+        "launch": {
+          "ci_high": 8.056271,
+          "ci_low": 0.843729,
+          "runs": 10,
+          "value": 4.45
+        }
+      },
+      "missed_per_scan": {
+        "ci_high": 0.284565,
+        "ci_low": 0.065435,
+        "runs": 10,
+        "value": 0.175
+      },
+      "nees": {
+        "ci_high": 9.370594,
+        "ci_low": 4.867368,
+        "runs": 10,
+        "value": 7.118981
+      },
+      "never_tracked": {
+        "ci_high": 0.0,
+        "ci_low": 0.0,
+        "runs": 10,
+        "value": 0.0
+      },
+      "ospa": {
+        "ci_high": 500.841584,
+        "ci_low": 378.899777,
+        "runs": 10,
+        "value": 439.87068
+      },
+      "purity": {
+        "ci_high": 1.0,
+        "ci_low": 1.0,
+        "runs": 10,
+        "value": 1.0
+      },
+      "rmse": {
+        "ci_high": 315.92897,
+        "ci_low": 272.633297,
+        "runs": 10,
+        "value": 294.281134
+      },
+      "rmse_by_type": {
+        "aircraft": {
+          "ci_high": 94.96133,
+          "ci_low": 32.686636,
+          "runs": 10,
+          "value": 63.823983
+        },
+        "fire": {
+          "ci_high": 342.711304,
+          "ci_low": 287.518618,
+          "runs": 10,
+          "value": 315.114961
+        },
+        "launch": {
+          "ci_high": 562.201609,
+          "ci_low": 482.269503,
+          "runs": 10,
+          "value": 522.235556
+        }
+      }
+    },
+    "imm_q25_q1600": {
+      "coverage_by_type": {
+        "aircraft": {
+          "ci_high": 0.988889,
+          "ci_low": 0.988889,
+          "runs": 10,
+          "value": 0.988889
+        },
+        "fire": {
+          "ci_high": 0.970116,
+          "ci_low": 0.951585,
+          "runs": 10,
+          "value": 0.96085
+        },
+        "launch": {
+          "ci_high": 0.992549,
+          "ci_low": 0.93465,
+          "runs": 10,
+          "value": 0.963599
+        }
+      },
+      "false_per_scan": {
+        "ci_high": 0.12242,
+        "ci_low": 0.050914,
+        "runs": 10,
+        "value": 0.086667
+      },
+      "fragmentations": {
+        "ci_high": 0.0,
+        "ci_low": 0.0,
+        "runs": 10,
+        "value": 0.0
+      },
+      "gospa": {
+        "ci_high": 749.063063,
+        "ci_low": 637.36959,
+        "runs": 10,
+        "value": 693.216326
+      },
+      "id_switches": {
+        "ci_high": 0.782829,
+        "ci_low": -0.182829,
+        "runs": 10,
+        "value": 0.3
+      },
+      "latency_by_type": {
+        "aircraft": {
+          "ci_high": 2.0,
+          "ci_low": 2.0,
+          "runs": 10,
+          "value": 2.0
+        },
+        "fire": {
+          "ci_high": 7.430714,
+          "ci_low": 4.569286,
+          "runs": 10,
+          "value": 6.0
+        },
+        "launch": {
+          "ci_high": 8.056271,
+          "ci_low": 0.843729,
+          "runs": 10,
+          "value": 4.45
+        }
+      },
+      "missed_per_scan": {
+        "ci_high": 0.154617,
+        "ci_low": 0.077605,
+        "runs": 10,
+        "value": 0.116111
+      },
+      "nees": {
+        "ci_high": 14.288828,
+        "ci_low": 6.659902,
+        "runs": 10,
+        "value": 10.474365
+      },
+      "never_tracked": {
+        "ci_high": 0.0,
+        "ci_low": 0.0,
+        "runs": 10,
+        "value": 0.0
+      },
+      "ospa": {
+        "ci_high": 380.440051,
+        "ci_low": 310.292315,
+        "runs": 10,
+        "value": 345.366183
+      },
+      "purity": {
+        "ci_high": 1.0,
+        "ci_low": 1.0,
+        "runs": 10,
+        "value": 1.0
+      },
+      "rmse": {
+        "ci_high": 251.915259,
+        "ci_low": 234.142621,
+        "runs": 10,
+        "value": 243.02894
+      },
+      "rmse_by_type": {
+        "aircraft": {
+          "ci_high": 95.169843,
+          "ci_low": 31.798438,
+          "runs": 10,
+          "value": 63.484141
+        },
+        "fire": {
+          "ci_high": 302.787456,
+          "ci_low": 248.766351,
+          "runs": 10,
+          "value": 275.776903
+        },
+        "launch": {
+          "ci_high": 428.155653,
+          "ci_low": 397.332207,
+          "runs": 10,
+          "value": 412.74393
+        }
+      }
+    }
+  },
+  "quick": false,
+  "seeds": 10,
+  "stereo_ambiguity": {
+    "centralized/defer": {
+      "coverage_by_type": {
+        "aircraft": {
+          "ci_high": 0.988889,
+          "ci_low": 0.988889,
+          "runs": 10,
+          "value": 0.988889
+        },
+        "fire": {
+          "ci_high": 0.970116,
+          "ci_low": 0.951585,
+          "runs": 10,
+          "value": 0.96085
+        },
+        "launch": {
+          "ci_high": 0.992549,
+          "ci_low": 0.93465,
+          "runs": 10,
+          "value": 0.963599
+        }
+      },
+      "false_per_scan": {
+        "ci_high": 0.12242,
+        "ci_low": 0.050914,
+        "runs": 10,
+        "value": 0.086667
+      },
+      "fragmentations": {
+        "ci_high": 0.0,
+        "ci_low": 0.0,
+        "runs": 10,
+        "value": 0.0
+      },
+      "gospa": {
+        "ci_high": 749.063063,
+        "ci_low": 637.36959,
+        "runs": 10,
+        "value": 693.216326
+      },
+      "id_switches": {
+        "ci_high": 0.782829,
+        "ci_low": -0.182829,
+        "runs": 10,
+        "value": 0.3
+      },
+      "latency_by_type": {
+        "aircraft": {
+          "ci_high": 2.0,
+          "ci_low": 2.0,
+          "runs": 10,
+          "value": 2.0
+        },
+        "fire": {
+          "ci_high": 7.430714,
+          "ci_low": 4.569286,
+          "runs": 10,
+          "value": 6.0
+        },
+        "launch": {
+          "ci_high": 8.056271,
+          "ci_low": 0.843729,
+          "runs": 10,
+          "value": 4.45
+        }
+      },
+      "missed_per_scan": {
+        "ci_high": 0.154617,
+        "ci_low": 0.077605,
+        "runs": 10,
+        "value": 0.116111
+      },
+      "nees": {
+        "ci_high": 14.288828,
+        "ci_low": 6.659902,
+        "runs": 10,
+        "value": 10.474365
+      },
+      "never_tracked": {
+        "ci_high": 0.0,
+        "ci_low": 0.0,
+        "runs": 10,
+        "value": 0.0
+      },
+      "ospa": {
+        "ci_high": 380.440051,
+        "ci_low": 310.292315,
+        "runs": 10,
+        "value": 345.366183
+      },
+      "purity": {
+        "ci_high": 1.0,
+        "ci_low": 1.0,
+        "runs": 10,
+        "value": 1.0
+      },
+      "rmse": {
+        "ci_high": 251.915259,
+        "ci_low": 234.142621,
+        "runs": 10,
+        "value": 243.02894
+      },
+      "rmse_by_type": {
+        "aircraft": {
+          "ci_high": 95.169843,
+          "ci_low": 31.798438,
+          "runs": 10,
+          "value": 63.484141
+        },
+        "fire": {
+          "ci_high": 302.787456,
+          "ci_low": 248.766351,
+          "runs": 10,
+          "value": 275.776903
+        },
+        "launch": {
+          "ci_high": 428.155653,
+          "ci_low": 397.332207,
+          "runs": 10,
+          "value": 412.74393
+        }
+      }
+    },
+    "centralized/gnn": {
+      "coverage_by_type": {
+        "aircraft": {
+          "ci_high": 0.988889,
+          "ci_low": 0.988889,
+          "runs": 10,
+          "value": 0.988889
+        },
+        "fire": {
+          "ci_high": 0.970116,
+          "ci_low": 0.951585,
+          "runs": 10,
+          "value": 0.96085
+        },
+        "launch": {
+          "ci_high": 0.987066,
+          "ci_low": 0.974413,
+          "runs": 10,
+          "value": 0.98074
+        }
+      },
+      "false_per_scan": {
+        "ci_high": 0.516272,
+        "ci_low": 0.100394,
+        "runs": 10,
+        "value": 0.308333
+      },
+      "fragmentations": {
+        "ci_high": 0.0,
+        "ci_low": 0.0,
+        "runs": 10,
+        "value": 0.0
+      },
+      "gospa": {
+        "ci_high": 965.003483,
+        "ci_low": 698.76237,
+        "runs": 10,
+        "value": 831.882927
+      },
+      "id_switches": {
+        "ci_high": 1.612139,
+        "ci_low": -0.012139,
+        "runs": 10,
+        "value": 0.8
+      },
+      "latency_by_type": {
+        "aircraft": {
+          "ci_high": 2.0,
+          "ci_low": 2.0,
+          "runs": 10,
+          "value": 2.0
+        },
+        "fire": {
+          "ci_high": 7.430714,
+          "ci_low": 4.569286,
+          "runs": 10,
+          "value": 6.0
+        },
+        "launch": {
+          "ci_high": 2.978647,
+          "ci_low": 1.621353,
+          "runs": 10,
+          "value": 2.3
+        }
+      },
+      "missed_per_scan": {
+        "ci_high": 0.104101,
+        "ci_low": 0.080344,
+        "runs": 10,
+        "value": 0.092222
+      },
+      "nees": {
+        "ci_high": 14.281425,
+        "ci_low": 6.622775,
+        "runs": 10,
+        "value": 10.4521
+      },
+      "never_tracked": {
+        "ci_high": 0.0,
+        "ci_low": 0.0,
+        "runs": 10,
+        "value": 0.0
+      },
+      "ospa": {
+        "ci_high": 475.632239,
+        "ci_low": 348.996474,
+        "runs": 10,
+        "value": 412.314356
+      },
+      "purity": {
+        "ci_high": 1.0,
+        "ci_low": 1.0,
+        "runs": 10,
+        "value": 1.0
+      },
+      "rmse": {
+        "ci_high": 260.494923,
+        "ci_low": 239.367805,
+        "runs": 10,
+        "value": 249.931364
+      },
+      "rmse_by_type": {
+        "aircraft": {
+          "ci_high": 94.827556,
+          "ci_low": 31.892982,
+          "runs": 10,
+          "value": 63.360269
+        },
+        "fire": {
+          "ci_high": 311.592341,
+          "ci_low": 252.840849,
+          "runs": 10,
+          "value": 282.216595
+        },
+        "launch": {
+          "ci_high": 442.29911,
+          "ci_low": 403.243278,
+          "runs": 10,
+          "value": 422.771194
+        }
+      }
+    },
+    "opir/defer": {
+      "coverage_by_type": {
+        "aircraft": {
+          "ci_high": 0.98959,
+          "ci_low": 0.987077,
+          "runs": 10,
+          "value": 0.988333
+        },
+        "fire": {
+          "ci_high": 0.970116,
+          "ci_low": 0.951585,
+          "runs": 10,
+          "value": 0.96085
+        },
+        "launch": {
+          "ci_high": 0.992549,
+          "ci_low": 0.93465,
+          "runs": 10,
+          "value": 0.963599
+        }
+      },
+      "false_per_scan": {
+        "ci_high": 0.109571,
+        "ci_low": 0.045984,
+        "runs": 10,
+        "value": 0.077778
+      },
+      "fragmentations": {
+        "ci_high": 0.0,
+        "ci_low": 0.0,
+        "runs": 10,
+        "value": 0.0
+      },
+      "gospa": {
+        "ci_high": 931.149797,
+        "ci_low": 822.121468,
+        "runs": 10,
+        "value": 876.635633
+      },
+      "id_switches": {
+        "ci_high": 0.782829,
+        "ci_low": -0.182829,
+        "runs": 10,
+        "value": 0.3
+      },
+      "latency_by_type": {
+        "aircraft": {
+          "ci_high": 2.0,
+          "ci_low": 2.0,
+          "runs": 10,
+          "value": 2.0
+        },
+        "fire": {
+          "ci_high": 7.430714,
+          "ci_low": 4.569286,
+          "runs": 10,
+          "value": 6.0
+        },
+        "launch": {
+          "ci_high": 8.056271,
+          "ci_low": 0.843729,
+          "runs": 10,
+          "value": 4.45
+        }
+      },
+      "missed_per_scan": {
+        "ci_high": 0.155796,
+        "ci_low": 0.07976,
+        "runs": 10,
+        "value": 0.117778
+      },
+      "nees": {
+        "ci_high": 2.845287,
+        "ci_low": 2.586001,
+        "runs": 10,
+        "value": 2.715644
+      },
+      "never_tracked": {
+        "ci_high": 0.0,
+        "ci_low": 0.0,
+        "runs": 10,
+        "value": 0.0
+      },
+      "ospa": {
+        "ci_high": 467.061419,
+        "ci_low": 399.716597,
+        "runs": 10,
+        "value": 433.389008
+      },
+      "purity": {
+        "ci_high": 1.0,
+        "ci_low": 1.0,
+        "runs": 10,
+        "value": 1.0
+      },
+      "rmse": {
+        "ci_high": 335.000597,
+        "ci_low": 309.270758,
+        "runs": 10,
+        "value": 322.135677
+      },
+      "rmse_by_type": {
+        "aircraft": {
+          "ci_high": 304.776291,
+          "ci_low": 267.331214,
+          "runs": 10,
+          "value": 286.053753
+        },
+        "fire": {
+          "ci_high": 302.787456,
+          "ci_low": 248.766351,
+          "runs": 10,
+          "value": 275.776903
+        },
+        "launch": {
+          "ci_high": 428.155653,
+          "ci_low": 397.332207,
+          "runs": 10,
+          "value": 412.74393
+        }
+      }
+    },
+    "opir/gnn": {
+      "coverage_by_type": {
+        "aircraft": {
+          "ci_high": 0.990096,
+          "ci_low": 0.983978,
+          "runs": 10,
+          "value": 0.987037
+        },
+        "fire": {
+          "ci_high": 0.970116,
+          "ci_low": 0.951585,
+          "runs": 10,
+          "value": 0.96085
+        },
+        "launch": {
+          "ci_high": 0.987066,
+          "ci_low": 0.974413,
+          "runs": 10,
+          "value": 0.98074
+        }
+      },
+      "false_per_scan": {
+        "ci_high": 0.485972,
+        "ci_low": 0.064028,
+        "runs": 10,
+        "value": 0.275
+      },
+      "fragmentations": {
+        "ci_high": 0.326216,
+        "ci_low": -0.126216,
+        "runs": 10,
+        "value": 0.1
+      },
+      "gospa": {
+        "ci_high": 1135.366311,
+        "ci_low": 851.877325,
+        "runs": 10,
+        "value": 993.621818
+      },
+      "id_switches": {
+        "ci_high": 2.136651,
+        "ci_low": 0.063349,
+        "runs": 10,
+        "value": 1.1
+      },
+      "latency_by_type": {
+        "aircraft": {
+          "ci_high": 2.0,
+          "ci_low": 2.0,
+          "runs": 10,
+          "value": 2.0
+        },
+        "fire": {
+          "ci_high": 7.430714,
+          "ci_low": 4.569286,
+          "runs": 10,
+          "value": 6.0
+        },
+        "launch": {
+          "ci_high": 2.978647,
+          "ci_low": 1.621353,
+          "runs": 10,
+          "value": 2.3
+        }
+      },
+      "missed_per_scan": {
+        "ci_high": 0.115172,
+        "ci_low": 0.080384,
+        "runs": 10,
+        "value": 0.097778
+      },
+      "nees": {
+        "ci_high": 2.889659,
+        "ci_low": 2.633972,
+        "runs": 10,
+        "value": 2.761815
+      },
+      "never_tracked": {
+        "ci_high": 0.0,
+        "ci_low": 0.0,
+        "runs": 10,
+        "value": 0.0
+      },
+      "ospa": {
+        "ci_high": 553.011341,
+        "ci_low": 419.020759,
+        "runs": 10,
+        "value": 486.01605
+      },
+      "purity": {
+        "ci_high": 1.0,
+        "ci_low": 1.0,
+        "runs": 10,
+        "value": 1.0
+      },
+      "rmse": {
+        "ci_high": 346.520852,
+        "ci_low": 317.824081,
+        "runs": 10,
+        "value": 332.172466
+      },
+      "rmse_by_type": {
+        "aircraft": {
+          "ci_high": 316.333718,
+          "ci_low": 275.512308,
+          "runs": 10,
+          "value": 295.923013
+        },
+        "fire": {
+          "ci_high": 311.592341,
+          "ci_low": 252.840849,
+          "runs": 10,
+          "value": 282.216595
+        },
+        "launch": {
+          "ci_high": 442.29911,
+          "ci_low": 403.243278,
+          "runs": 10,
+          "value": 422.771194
+        }
+      }
+    }
+  },
+  "stereo_pairing": {
+    "correct_pairs_kept": 0.891172,
+    "defer": {
+      "correct_pairs": 7460,
+      "ghost_fraction": 0.0,
+      "ghost_pairs": 0
+    },
+    "gnn": {
+      "correct_pairs": 8371,
+      "ghost_fraction": 0.026062,
+      "ghost_pairs": 224
+    }
+  },
+  "track_management": {
+    "clutter_0.5/1of1": {
+      "clutter_rate": 0.5,
+      "confirm": [
+        1,
+        1
+      ],
+      "coverage_by_type": {
+        "aircraft": {
+          "ci_high": 1.0,
+          "ci_low": 1.0,
+          "runs": 10,
+          "value": 1.0
+        },
+        "fire": {
+          "ci_high": 0.98356,
+          "ci_low": 0.96042,
+          "runs": 10,
+          "value": 0.97199
+        },
+        "launch": {
+          "ci_high": 1.008659,
+          "ci_low": 0.950862,
+          "runs": 10,
+          "value": 0.97976
+        }
+      },
+      "false_per_scan": {
+        "ci_high": 0.453914,
+        "ci_low": 0.251641,
+        "runs": 10,
+        "value": 0.352778
+      },
+      "fragmentations": {
+        "ci_high": 0.0,
+        "ci_low": 0.0,
+        "runs": 10,
+        "value": 0.0
+      },
+      "gospa": {
+        "ci_high": 978.309413,
+        "ci_low": 762.654508,
+        "runs": 10,
+        "value": 870.481961
+      },
+      "id_switches": {
+        "ci_high": 1.611372,
+        "ci_low": 0.188628,
+        "runs": 10,
+        "value": 0.9
+      },
+      "latency_by_type": {
+        "aircraft": {
+          "ci_high": 0.0,
+          "ci_low": 0.0,
+          "runs": 10,
+          "value": 0.0
+        },
+        "fire": {
+          "ci_high": 6.086006,
+          "ci_low": 2.513994,
+          "runs": 10,
+          "value": 4.3
+        },
+        "launch": {
+          "ci_high": 6.088687,
+          "ci_low": -1.088687,
+          "runs": 10,
+          "value": 2.5
+        }
+      },
+      "missed_per_scan": {
+        "ci_high": 0.089742,
+        "ci_low": 0.013591,
+        "runs": 10,
+        "value": 0.051667
+      },
+      "nees": {
+        "ci_high": 14.152968,
+        "ci_low": 6.63812,
+        "runs": 10,
+        "value": 10.395544
+      },
+      "never_tracked": {
+        "ci_high": 0.0,
+        "ci_low": 0.0,
+        "runs": 10,
+        "value": 0.0
+      },
+      "ospa": {
+        "ci_high": 497.140648,
+        "ci_low": 372.998154,
+        "runs": 10,
+        "value": 435.069401
+      },
+      "purity": {
+        "ci_high": 1.0,
+        "ci_low": 1.0,
+        "runs": 10,
+        "value": 1.0
+      },
+      "rmse": {
+        "ci_high": 254.34499,
+        "ci_low": 236.518918,
+        "runs": 10,
+        "value": 245.431954
+      },
+      "rmse_by_type": {
+        "aircraft": {
+          "ci_high": 97.083436,
+          "ci_low": 31.534406,
+          "runs": 10,
+          "value": 64.308921
+        },
+        "fire": {
+          "ci_high": 303.478878,
+          "ci_low": 257.79114,
+          "runs": 10,
+          "value": 280.635009
+        },
+        "launch": {
+          "ci_high": 431.445271,
+          "ci_low": 398.727146,
+          "runs": 10,
+          "value": 415.086208
+        }
+      }
+    },
+    "clutter_0.5/2of3": {
+      "clutter_rate": 0.5,
+      "confirm": [
+        2,
+        3
+      ],
+      "coverage_by_type": {
+        "aircraft": {
+          "ci_high": 0.994444,
+          "ci_low": 0.994444,
+          "runs": 10,
+          "value": 0.994444
+        },
+        "fire": {
+          "ci_high": 0.976992,
+          "ci_low": 0.953913,
+          "runs": 10,
+          "value": 0.965452
+        },
+        "launch": {
+          "ci_high": 1.000306,
+          "ci_low": 0.942609,
+          "runs": 10,
+          "value": 0.971458
+        }
+      },
+      "false_per_scan": {
+        "ci_high": 0.175059,
+        "ci_low": 0.089386,
+        "runs": 10,
+        "value": 0.132222
+      },
+      "fragmentations": {
+        "ci_high": 0.0,
+        "ci_low": 0.0,
+        "runs": 10,
+        "value": 0.0
+      },
+      "gospa": {
+        "ci_high": 780.906012,
+        "ci_low": 645.098781,
+        "runs": 10,
+        "value": 713.002397
+      },
+      "id_switches": {
+        "ci_high": 1.378647,
+        "ci_low": 0.021353,
+        "runs": 10,
+        "value": 0.7
+      },
+      "latency_by_type": {
+        "aircraft": {
+          "ci_high": 1.0,
+          "ci_low": 1.0,
+          "runs": 10,
+          "value": 1.0
+        },
+        "fire": {
+          "ci_high": 7.086006,
+          "ci_low": 3.513994,
+          "runs": 10,
+          "value": 5.3
+        },
+        "launch": {
+          "ci_high": 7.088687,
+          "ci_low": -0.088687,
+          "runs": 10,
+          "value": 3.5
+        }
+      },
+      "missed_per_scan": {
+        "ci_high": 0.123075,
+        "ci_low": 0.046925,
+        "runs": 10,
+        "value": 0.085
+      },
+      "nees": {
+        "ci_high": 14.225186,
+        "ci_low": 6.643365,
+        "runs": 10,
+        "value": 10.434276
+      },
+      "never_tracked": {
+        "ci_high": 0.0,
+        "ci_low": 0.0,
+        "runs": 10,
+        "value": 0.0
+      },
+      "ospa": {
+        "ci_high": 394.613775,
+        "ci_low": 310.253464,
+        "runs": 10,
+        "value": 352.43362
+      },
+      "purity": {
+        "ci_high": 1.0,
+        "ci_low": 1.0,
+        "runs": 10,
+        "value": 1.0
+      },
+      "rmse": {
+        "ci_high": 252.136971,
+        "ci_low": 235.094123,
+        "runs": 10,
+        "value": 243.615547
+      },
+      "rmse_by_type": {
+        "aircraft": {
+          "ci_high": 94.999907,
+          "ci_low": 31.772689,
+          "runs": 10,
+          "value": 63.386298
+        },
+        "fire": {
+          "ci_high": 300.549753,
+          "ci_low": 253.011167,
+          "runs": 10,
+          "value": 276.78046
+        },
+        "launch": {
+          "ci_high": 429.544732,
+          "ci_low": 397.452508,
+          "runs": 10,
+          "value": 413.49862
+        }
+      }
+    },
+    "clutter_0.5/3of5": {
+      "clutter_rate": 0.5,
+      "confirm": [
+        3,
+        5
+      ],
+      "coverage_by_type": {
+        "aircraft": {
+          "ci_high": 0.988889,
+          "ci_low": 0.988889,
+          "runs": 10,
+          "value": 0.988889
+        },
+        "fire": {
+          "ci_high": 0.970424,
+          "ci_low": 0.947406,
+          "runs": 10,
+          "value": 0.958915
+        },
+        "launch": {
+          "ci_high": 0.991959,
+          "ci_low": 0.934351,
+          "runs": 10,
+          "value": 0.963155
+        }
+      },
+      "false_per_scan": {
+        "ci_high": 0.14463,
+        "ci_low": 0.056481,
+        "runs": 10,
+        "value": 0.100556
+      },
+      "fragmentations": {
+        "ci_high": 0.0,
+        "ci_low": 0.0,
+        "runs": 10,
+        "value": 0.0
+      },
+      "gospa": {
+        "ci_high": 775.863201,
+        "ci_low": 645.692706,
+        "runs": 10,
+        "value": 710.777954
+      },
+      "id_switches": {
+        "ci_high": 0.782829,
+        "ci_low": -0.182829,
+        "runs": 10,
+        "value": 0.3
+      },
+      "latency_by_type": {
+        "aircraft": {
+          "ci_high": 2.0,
+          "ci_low": 2.0,
+          "runs": 10,
+          "value": 2.0
+        },
+        "fire": {
+          "ci_high": 8.086006,
+          "ci_low": 4.513994,
+          "runs": 10,
+          "value": 6.3
+        },
+        "launch": {
+          "ci_high": 8.088687,
+          "ci_low": 0.911313,
+          "runs": 10,
+          "value": 4.5
+        }
+      },
+      "missed_per_scan": {
+        "ci_high": 0.156409,
+        "ci_low": 0.080258,
+        "runs": 10,
+        "value": 0.118333
+      },
+      "nees": {
+        "ci_high": 14.295279,
+        "ci_low": 6.667174,
+        "runs": 10,
+        "value": 10.481227
+      },
+      "never_tracked": {
+        "ci_high": 0.0,
+        "ci_low": 0.0,
+        "runs": 10,
+        "value": 0.0
+      },
+      "ospa": {
+        "ci_high": 396.399878,
+        "ci_low": 315.987392,
+        "runs": 10,
+        "value": 356.193635
+      },
+      "purity": {
+        "ci_high": 1.0,
+        "ci_low": 1.0,
+        "runs": 10,
+        "value": 1.0
+      },
+      "rmse": {
+        "ci_high": 252.27803,
+        "ci_low": 234.541153,
+        "runs": 10,
+        "value": 243.409592
+      },
+      "rmse_by_type": {
+        "aircraft": {
+          "ci_high": 95.176638,
+          "ci_low": 31.805028,
+          "runs": 10,
+          "value": 63.490833
+        },
+        "fire": {
+          "ci_high": 303.472539,
+          "ci_low": 249.120252,
+          "runs": 10,
+          "value": 276.296395
+        },
+        "launch": {
+          "ci_high": 429.069396,
+          "ci_low": 397.860587,
+          "runs": 10,
+          "value": 413.464991
+        }
+      }
+    },
+    "clutter_0/1of1": {
+      "clutter_rate": 0.0,
+      "confirm": [
+        1,
+        1
+      ],
+      "coverage_by_type": {
+        "aircraft": {
+          "ci_high": 1.0,
+          "ci_low": 1.0,
+          "runs": 10,
+          "value": 1.0
+        },
+        "fire": {
+          "ci_high": 0.983246,
+          "ci_low": 0.964604,
+          "runs": 10,
+          "value": 0.973925
+        },
+        "launch": {
+          "ci_high": 1.009258,
+          "ci_low": 0.951151,
+          "runs": 10,
+          "value": 0.980205
+        }
+      },
+      "false_per_scan": {
+        "ci_high": 0.268131,
+        "ci_low": 0.160758,
+        "runs": 10,
+        "value": 0.214444
+      },
+      "fragmentations": {
+        "ci_high": 0.0,
+        "ci_low": 0.0,
+        "runs": 10,
+        "value": 0.0
+      },
+      "gospa": {
+        "ci_high": 825.622247,
+        "ci_low": 681.847129,
+        "runs": 10,
+        "value": 753.734688
+      },
+      "id_switches": {
+        "ci_high": 1.611372,
+        "ci_low": 0.188628,
+        "runs": 10,
+        "value": 0.9
+      },
+      "latency_by_type": {
+        "aircraft": {
+          "ci_high": 0.0,
+          "ci_low": 0.0,
+          "runs": 10,
+          "value": 0.0
+        },
+        "fire": {
+          "ci_high": 5.430714,
+          "ci_low": 2.569286,
+          "runs": 10,
+          "value": 4.0
+        },
+        "launch": {
+          "ci_high": 6.056271,
+          "ci_low": -1.156271,
+          "runs": 10,
+          "value": 2.45
+        }
+      },
+      "missed_per_scan": {
+        "ci_high": 0.087951,
+        "ci_low": 0.010938,
+        "runs": 10,
+        "value": 0.049444
+      },
+      "nees": {
+        "ci_high": 14.147273,
+        "ci_low": 6.630973,
+        "runs": 10,
+        "value": 10.389123
+      },
+      "never_tracked": {
+        "ci_high": 0.0,
+        "ci_low": 0.0,
+        "runs": 10,
+        "value": 0.0
+      },
+      "ospa": {
+        "ci_high": 412.266749,
+        "ci_low": 325.908492,
+        "runs": 10,
+        "value": 369.08762
+      },
+      "purity": {
+        "ci_high": 1.0,
+        "ci_low": 1.0,
+        "runs": 10,
+        "value": 1.0
+      },
+      "rmse": {
+        "ci_high": 253.992674,
+        "ci_low": 236.132162,
+        "runs": 10,
+        "value": 245.062418
+      },
+      "rmse_by_type": {
+        "aircraft": {
+          "ci_high": 97.076652,
+          "ci_low": 31.527581,
+          "runs": 10,
+          "value": 64.302116
+        },
+        "fire": {
+          "ci_high": 302.793971,
+          "ci_low": 257.44207,
+          "runs": 10,
+          "value": 280.118021
+        },
+        "launch": {
+          "ci_high": 430.567699,
+          "ci_low": 398.215001,
+          "runs": 10,
+          "value": 414.39135
+        }
+      }
+    },
+    "clutter_0/2of3": {
+      "clutter_rate": 0.0,
+      "confirm": [
+        2,
+        3
+      ],
+      "coverage_by_type": {
+        "aircraft": {
+          "ci_high": 0.994444,
+          "ci_low": 0.994444,
+          "runs": 10,
+          "value": 0.994444
+        },
+        "fire": {
+          "ci_high": 0.976681,
+          "ci_low": 0.958095,
+          "runs": 10,
+          "value": 0.967388
+        },
+        "launch": {
+          "ci_high": 1.000901,
+          "ci_low": 0.942903,
+          "runs": 10,
+          "value": 0.971902
+        }
+      },
+      "false_per_scan": {
+        "ci_high": 0.14878,
+        "ci_low": 0.065665,
+        "runs": 10,
+        "value": 0.107222
+      },
+      "fragmentations": {
+        "ci_high": 0.0,
+        "ci_low": 0.0,
+        "runs": 10,
+        "value": 0.0
+      },
+      "gospa": {
+        "ci_high": 751.332133,
+        "ci_low": 618.449789,
+        "runs": 10,
+        "value": 684.890961
+      },
+      "id_switches": {
+        "ci_high": 1.378647,
+        "ci_low": 0.021353,
+        "runs": 10,
+        "value": 0.7
+      },
+      "latency_by_type": {
+        "aircraft": {
+          "ci_high": 1.0,
+          "ci_low": 1.0,
+          "runs": 10,
+          "value": 1.0
+        },
+        "fire": {
+          "ci_high": 6.430714,
+          "ci_low": 3.569286,
+          "runs": 10,
+          "value": 5.0
+        },
+        "launch": {
+          "ci_high": 7.056271,
+          "ci_low": -0.156271,
+          "runs": 10,
+          "value": 3.45
+        }
+      },
+      "missed_per_scan": {
+        "ci_high": 0.121284,
+        "ci_low": 0.044271,
+        "runs": 10,
+        "value": 0.082778
+      },
+      "nees": {
+        "ci_high": 14.219503,
+        "ci_low": 6.636235,
+        "runs": 10,
+        "value": 10.427869
+      },
+      "never_tracked": {
+        "ci_high": 0.0,
+        "ci_low": 0.0,
+        "runs": 10,
+        "value": 0.0
+      },
+      "ospa": {
+        "ci_high": 376.527278,
+        "ci_low": 293.897865,
+        "runs": 10,
+        "value": 335.212571
+      },
+      "purity": {
+        "ci_high": 1.0,
+        "ci_low": 1.0,
+        "runs": 10,
+        "value": 1.0
+      },
+      "rmse": {
+        "ci_high": 252.023809,
+        "ci_low": 234.783625,
+        "runs": 10,
+        "value": 243.403717
+      },
+      "rmse_by_type": {
+        "aircraft": {
+          "ci_high": 94.992677,
+          "ci_low": 31.765516,
+          "runs": 10,
+          "value": 63.379097
+        },
+        "fire": {
+          "ci_high": 300.14369,
+          "ci_low": 252.824875,
+          "runs": 10,
+          "value": 276.484283
+        },
+        "launch": {
+          "ci_high": 428.755951,
+          "ci_low": 397.4631,
+          "runs": 10,
+          "value": 413.109526
+        }
+      }
+    },
+    "clutter_0/3of5": {
+      "clutter_rate": 0.0,
+      "confirm": [
+        3,
+        5
+      ],
+      "coverage_by_type": {
+        "aircraft": {
+          "ci_high": 0.988889,
+          "ci_low": 0.988889,
+          "runs": 10,
+          "value": 0.988889
+        },
+        "fire": {
+          "ci_high": 0.970116,
+          "ci_low": 0.951585,
+          "runs": 10,
+          "value": 0.96085
+        },
+        "launch": {
+          "ci_high": 0.992549,
+          "ci_low": 0.93465,
+          "runs": 10,
+          "value": 0.963599
+        }
+      },
+      "false_per_scan": {
+        "ci_high": 0.12242,
+        "ci_low": 0.050914,
+        "runs": 10,
+        "value": 0.086667
+      },
+      "fragmentations": {
+        "ci_high": 0.0,
+        "ci_low": 0.0,
+        "runs": 10,
+        "value": 0.0
+      },
+      "gospa": {
+        "ci_high": 749.063063,
+        "ci_low": 637.36959,
+        "runs": 10,
+        "value": 693.216326
+      },
+      "id_switches": {
+        "ci_high": 0.782829,
+        "ci_low": -0.182829,
+        "runs": 10,
+        "value": 0.3
+      },
+      "latency_by_type": {
+        "aircraft": {
+          "ci_high": 2.0,
+          "ci_low": 2.0,
+          "runs": 10,
+          "value": 2.0
+        },
+        "fire": {
+          "ci_high": 7.430714,
+          "ci_low": 4.569286,
+          "runs": 10,
+          "value": 6.0
+        },
+        "launch": {
+          "ci_high": 8.056271,
+          "ci_low": 0.843729,
+          "runs": 10,
+          "value": 4.45
+        }
+      },
+      "missed_per_scan": {
+        "ci_high": 0.154617,
+        "ci_low": 0.077605,
+        "runs": 10,
+        "value": 0.116111
+      },
+      "nees": {
+        "ci_high": 14.288828,
+        "ci_low": 6.659902,
+        "runs": 10,
+        "value": 10.474365
+      },
+      "never_tracked": {
+        "ci_high": 0.0,
+        "ci_low": 0.0,
+        "runs": 10,
+        "value": 0.0
+      },
+      "ospa": {
+        "ci_high": 380.440051,
+        "ci_low": 310.292315,
+        "runs": 10,
+        "value": 345.366183
+      },
+      "purity": {
+        "ci_high": 1.0,
+        "ci_low": 1.0,
+        "runs": 10,
+        "value": 1.0
+      },
+      "rmse": {
+        "ci_high": 251.915259,
+        "ci_low": 234.142621,
+        "runs": 10,
+        "value": 243.02894
+      },
+      "rmse_by_type": {
+        "aircraft": {
+          "ci_high": 95.169843,
+          "ci_low": 31.798438,
+          "runs": 10,
+          "value": 63.484141
+        },
+        "fire": {
+          "ci_high": 302.787456,
+          "ci_low": 248.766351,
+          "runs": 10,
+          "value": 275.776903
+        },
+        "launch": {
+          "ci_high": 428.155653,
+          "ci_low": 397.332207,
+          "runs": 10,
+          "value": 412.74393
+        }
+      }
+    },
+    "clutter_2/1of1": {
+      "clutter_rate": 2.0,
+      "confirm": [
+        1,
+        1
+      ],
+      "coverage_by_type": {
+        "aircraft": {
+          "ci_high": 1.0,
+          "ci_low": 1.0,
+          "runs": 10,
+          "value": 1.0
+        },
+        "fire": {
+          "ci_high": 0.982712,
+          "ci_low": 0.963831,
+          "runs": 10,
+          "value": 0.973272
+        },
+        "launch": {
+          "ci_high": 1.008707,
+          "ci_low": 0.950886,
+          "runs": 10,
+          "value": 0.979797
+        }
+      },
+      "false_per_scan": {
+        "ci_high": 1.927527,
+        "ci_low": 1.246917,
+        "runs": 10,
+        "value": 1.587222
+      },
+      "fragmentations": {
+        "ci_high": 0.0,
+        "ci_low": 0.0,
+        "runs": 10,
+        "value": 0.0
+      },
+      "gospa": {
+        "ci_high": 1867.864486,
+        "ci_low": 1514.457789,
+        "runs": 10,
+        "value": 1691.161138
+      },
+      "id_switches": {
+        "ci_high": 1.378647,
+        "ci_low": 0.021353,
+        "runs": 10,
+        "value": 0.7
+      },
+      "latency_by_type": {
+        "aircraft": {
+          "ci_high": 0.0,
+          "ci_low": 0.0,
+          "runs": 10,
+          "value": 0.0
+        },
+        "fire": {
+          "ci_high": 5.548487,
+          "ci_low": 2.651513,
+          "runs": 10,
+          "value": 4.1
+        },
+        "launch": {
+          "ci_high": 6.088687,
+          "ci_low": -1.088687,
+          "runs": 10,
+          "value": 2.5
+        }
+      },
+      "missed_per_scan": {
+        "ci_high": 0.088603,
+        "ci_low": 0.012508,
+        "runs": 10,
+        "value": 0.050556
+      },
+      "nees": {
+        "ci_high": 14.153539,
+        "ci_low": 6.654659,
+        "runs": 10,
+        "value": 10.404099
+      },
+      "never_tracked": {
+        "ci_high": 0.0,
+        "ci_low": 0.0,
+        "runs": 10,
+        "value": 0.0
+      },
+      "ospa": {
+        "ci_high": 923.252917,
+        "ci_low": 770.449026,
+        "runs": 10,
+        "value": 846.850972
+      },
+      "purity": {
+        "ci_high": 1.0,
+        "ci_low": 1.0,
+        "runs": 10,
+        "value": 1.0
+      },
+      "rmse": {
+        "ci_high": 254.462065,
+        "ci_low": 236.18652,
+        "runs": 10,
+        "value": 245.324292
+      },
+      "rmse_by_type": {
+        "aircraft": {
+          "ci_high": 97.16806,
+          "ci_low": 31.520573,
+          "runs": 10,
+          "value": 64.344316
+        },
+        "fire": {
+          "ci_high": 301.555233,
+          "ci_low": 254.229243,
+          "runs": 10,
+          "value": 277.892238
+        },
+        "launch": {
+          "ci_high": 432.909387,
+          "ci_low": 398.897174,
+          "runs": 10,
+          "value": 415.903281
+        }
+      }
+    },
+    "clutter_2/2of3": {
+      "clutter_rate": 2.0,
+      "confirm": [
+        2,
+        3
+      ],
+      "coverage_by_type": {
+        "aircraft": {
+          "ci_high": 0.994444,
+          "ci_low": 0.994444,
+          "runs": 10,
+          "value": 0.994444
+        },
+        "fire": {
+          "ci_high": 0.976147,
+          "ci_low": 0.957321,
+          "runs": 10,
+          "value": 0.966734
+        },
+        "launch": {
+          "ci_high": 1.000347,
+          "ci_low": 0.94264,
+          "runs": 10,
+          "value": 0.971494
+        }
+      },
+      "false_per_scan": {
+        "ci_high": 0.280767,
+        "ci_low": 0.107011,
+        "runs": 10,
+        "value": 0.193889
+      },
+      "fragmentations": {
+        "ci_high": 0.0,
+        "ci_low": 0.0,
+        "runs": 10,
+        "value": 0.0
+      },
+      "gospa": {
+        "ci_high": 861.991282,
+        "ci_low": 657.767686,
+        "runs": 10,
+        "value": 759.879484
+      },
+      "id_switches": {
+        "ci_high": 1.107936,
+        "ci_low": -0.107936,
+        "runs": 10,
+        "value": 0.5
+      },
+      "latency_by_type": {
+        "aircraft": {
+          "ci_high": 1.0,
+          "ci_low": 1.0,
+          "runs": 10,
+          "value": 1.0
+        },
+        "fire": {
+          "ci_high": 6.548487,
+          "ci_low": 3.651513,
+          "runs": 10,
+          "value": 5.1
+        },
+        "launch": {
+          "ci_high": 7.088687,
+          "ci_low": -0.088687,
+          "runs": 10,
+          "value": 3.5
+        }
+      },
+      "missed_per_scan": {
+        "ci_high": 0.121937,
+        "ci_low": 0.045841,
+        "runs": 10,
+        "value": 0.083889
+      },
+      "nees": {
+        "ci_high": 14.21752,
+        "ci_low": 6.641862,
+        "runs": 10,
+        "value": 10.429691
+      },
+      "never_tracked": {
+        "ci_high": 0.0,
+        "ci_low": 0.0,
+        "runs": 10,
+        "value": 0.0
+      },
+      "ospa": {
+        "ci_high": 437.035201,
+        "ci_low": 318.437453,
+        "runs": 10,
+        "value": 377.736327
+      },
+      "purity": {
+        "ci_high": 1.0,
+        "ci_low": 1.0,
+        "runs": 10,
+        "value": 1.0
+      },
+      "rmse": {
+        "ci_high": 251.184427,
+        "ci_low": 234.333218,
+        "runs": 10,
+        "value": 242.758823
+      },
+      "rmse_by_type": {
+        "aircraft": {
+          "ci_high": 94.998451,
+          "ci_low": 31.769878,
+          "runs": 10,
+          "value": 63.384164
+        },
+        "fire": {
+          "ci_high": 297.746474,
+          "ci_low": 249.001428,
+          "runs": 10,
+          "value": 273.373951
+        },
+        "launch": {
+          "ci_high": 428.935544,
+          "ci_low": 396.895061,
+          "runs": 10,
+          "value": 412.915303
+        }
+      }
+    },
+    "clutter_2/3of5": {
+      "clutter_rate": 2.0,
+      "confirm": [
+        3,
+        5
+      ],
+      "coverage_by_type": {
+        "aircraft": {
+          "ci_high": 0.988889,
+          "ci_low": 0.988889,
+          "runs": 10,
+          "value": 0.988889
+        },
+        "fire": {
+          "ci_high": 0.969582,
+          "ci_low": 0.950811,
+          "runs": 10,
+          "value": 0.960197
+        },
+        "launch": {
+          "ci_high": 0.991994,
+          "ci_low": 0.934389,
+          "runs": 10,
+          "value": 0.963191
+        }
+      },
+      "false_per_scan": {
+        "ci_high": 0.199705,
+        "ci_low": 0.055851,
+        "runs": 10,
+        "value": 0.127778
+      },
+      "fragmentations": {
+        "ci_high": 0.0,
+        "ci_low": 0.0,
+        "runs": 10,
+        "value": 0.0
+      },
+      "gospa": {
+        "ci_high": 810.490368,
+        "ci_low": 639.823339,
+        "runs": 10,
+        "value": 725.156854
+      },
+      "id_switches": {
+        "ci_high": 0.326216,
+        "ci_low": -0.126216,
+        "runs": 10,
+        "value": 0.1
+      },
+      "latency_by_type": {
+        "aircraft": {
+          "ci_high": 2.0,
+          "ci_low": 2.0,
+          "runs": 10,
+          "value": 2.0
+        },
+        "fire": {
+          "ci_high": 7.548487,
+          "ci_low": 4.651513,
+          "runs": 10,
+          "value": 6.1
+        },
+        "launch": {
+          "ci_high": 8.088687,
+          "ci_low": 0.911313,
+          "runs": 10,
+          "value": 4.5
+        }
+      },
+      "missed_per_scan": {
+        "ci_high": 0.15527,
+        "ci_low": 0.079174,
+        "runs": 10,
+        "value": 0.117222
+      },
+      "nees": {
+        "ci_high": 14.286189,
+        "ci_low": 6.665621,
+        "runs": 10,
+        "value": 10.475905
+      },
+      "never_tracked": {
+        "ci_high": 0.0,
+        "ci_low": 0.0,
+        "runs": 10,
+        "value": 0.0
+      },
+      "ospa": {
+        "ci_high": 411.003159,
+        "ci_low": 313.512002,
+        "runs": 10,
+        "value": 362.257581
+      },
+      "purity": {
+        "ci_high": 1.0,
+        "ci_low": 1.0,
+        "runs": 10,
+        "value": 1.0
+      },
+      "rmse": {
+        "ci_high": 250.279802,
+        "ci_low": 233.958664,
+        "runs": 10,
+        "value": 242.119233
+      },
+      "rmse_by_type": {
+        "aircraft": {
+          "ci_high": 95.175418,
+          "ci_low": 31.803866,
+          "runs": 10,
+          "value": 63.489642
+        },
+        "fire": {
+          "ci_high": 295.96554,
+          "ci_low": 246.973153,
+          "runs": 10,
+          "value": 271.469347
+        },
+        "launch": {
+          "ci_high": 428.278078,
+          "ci_low": 396.80182,
+          "runs": 10,
+          "value": 412.539949
+        }
+      }
+    },
+    "clutter_5/1of1": {
+      "clutter_rate": 5.0,
+      "confirm": [
+        1,
+        1
+      ],
+      "coverage_by_type": {
+        "aircraft": {
+          "ci_high": 1.0,
+          "ci_low": 1.0,
+          "runs": 10,
+          "value": 1.0
+        },
+        "fire": {
+          "ci_high": 0.983683,
+          "ci_low": 0.955016,
+          "runs": 10,
+          "value": 0.96935
+        },
+        "launch": {
+          "ci_high": 1.009048,
+          "ci_low": 0.945995,
+          "runs": 10,
+          "value": 0.977522
+        }
+      },
+      "false_per_scan": {
+        "ci_high": 8.445977,
+        "ci_low": 6.712912,
+        "runs": 10,
+        "value": 7.579444
+      },
+      "fragmentations": {
+        "ci_high": 0.0,
+        "ci_low": 0.0,
+        "runs": 10,
+        "value": 0.0
+      },
+      "gospa": {
+        "ci_high": 4069.998333,
+        "ci_low": 3602.951322,
+        "runs": 10,
+        "value": 3836.474827
+      },
+      "id_switches": {
+        "ci_high": 2.066391,
+        "ci_low": -0.066391,
+        "runs": 10,
+        "value": 1.0
+      },
+      "latency_by_type": {
+        "aircraft": {
+          "ci_high": 0.0,
+          "ci_low": 0.0,
+          "runs": 10,
+          "value": 0.0
+        },
+        "fire": {
+          "ci_high": 6.886752,
+          "ci_low": 2.513248,
+          "runs": 10,
+          "value": 4.7
+        },
+        "launch": {
+          "ci_high": 6.790783,
+          "ci_low": -1.190783,
+          "runs": 10,
+          "value": 2.8
+        }
+      },
+      "missed_per_scan": {
+        "ci_high": 0.098948,
+        "ci_low": 0.015496,
+        "runs": 10,
+        "value": 0.057222
+      },
+      "nees": {
+        "ci_high": 14.17141,
+        "ci_low": 6.635431,
+        "runs": 10,
+        "value": 10.40342
+      },
+      "never_tracked": {
+        "ci_high": 0.0,
+        "ci_low": 0.0,
+        "runs": 10,
+        "value": 0.0
+      },
+      "ospa": {
+        "ci_high": 1546.146995,
+        "ci_low": 1454.242762,
+        "runs": 10,
+        "value": 1500.194879
+      },
+      "purity": {
+        "ci_high": 1.0,
+        "ci_low": 1.0,
+        "runs": 10,
+        "value": 1.0
+      },
+      "rmse": {
+        "ci_high": 255.110899,
+        "ci_low": 237.980578,
+        "runs": 10,
+        "value": 246.545739
+      },
+      "rmse_by_type": {
+        "aircraft": {
+          "ci_high": 97.166563,
+          "ci_low": 31.534893,
+          "runs": 10,
+          "value": 64.350728
+        },
+        "fire": {
+          "ci_high": 294.283918,
+          "ci_low": 262.327974,
+          "runs": 10,
+          "value": 278.305946
+        },
+        "launch": {
+          "ci_high": 433.629163,
+          "ci_low": 404.949192,
+          "runs": 10,
+          "value": 419.289177
+        }
+      }
+    },
+    "clutter_5/2of3": {
+      "clutter_rate": 5.0,
+      "confirm": [
+        2,
+        3
+      ],
+      "coverage_by_type": {
+        "aircraft": {
+          "ci_high": 0.994444,
+          "ci_low": 0.994444,
+          "runs": 10,
+          "value": 0.994444
+        },
+        "fire": {
+          "ci_high": 0.977127,
+          "ci_low": 0.948497,
+          "runs": 10,
+          "value": 0.962812
+        },
+        "launch": {
+          "ci_high": 1.000667,
+          "ci_low": 0.937771,
+          "runs": 10,
+          "value": 0.969219
+        }
+      },
+      "false_per_scan": {
+        "ci_high": 0.627793,
+        "ci_low": 0.394429,
+        "runs": 10,
+        "value": 0.511111
+      },
+      "fragmentations": {
+        "ci_high": 0.0,
+        "ci_low": 0.0,
+        "runs": 10,
+        "value": 0.0
+      },
+      "gospa": {
+        "ci_high": 1147.41315,
+        "ci_low": 921.744088,
+        "runs": 10,
+        "value": 1034.578619
+      },
+      "id_switches": {
+        "ci_high": 1.656785,
+        "ci_low": -0.256785,
+        "runs": 10,
+        "value": 0.7
+      },
+      "latency_by_type": {
+        "aircraft": {
+          "ci_high": 1.0,
+          "ci_low": 1.0,
+          "runs": 10,
+          "value": 1.0
+        },
+        "fire": {
+          "ci_high": 7.886752,
+          "ci_low": 3.513248,
+          "runs": 10,
+          "value": 5.7
+        },
+        "launch": {
+          "ci_high": 7.790783,
+          "ci_low": -0.190783,
+          "runs": 10,
+          "value": 3.8
+        }
+      },
+      "missed_per_scan": {
+        "ci_high": 0.132282,
+        "ci_low": 0.04883,
+        "runs": 10,
+        "value": 0.090556
+      },
+      "nees": {
+        "ci_high": 14.236853,
+        "ci_low": 6.646322,
+        "runs": 10,
+        "value": 10.441587
+      },
+      "never_tracked": {
+        "ci_high": 0.0,
+        "ci_low": 0.0,
+        "runs": 10,
+        "value": 0.0
+      },
+      "ospa": {
+        "ci_high": 588.77903,
+        "ci_low": 467.090643,
+        "runs": 10,
+        "value": 527.934837
+      },
+      "purity": {
+        "ci_high": 1.0,
+        "ci_low": 1.0,
+        "runs": 10,
+        "value": 1.0
+      },
+      "rmse": {
+        "ci_high": 250.526829,
+        "ci_low": 235.392809,
+        "runs": 10,
+        "value": 242.959819
+      },
+      "rmse_by_type": {
+        "aircraft": {
+          "ci_high": 95.149767,
+          "ci_low": 31.762634,
+          "runs": 10,
+          "value": 63.4562
+        },
+        "fire": {
+          "ci_high": 290.304483,
+          "ci_low": 256.417348,
+          "runs": 10,
+          "value": 273.360916
+        },
+        "launch": {
+          "ci_high": 427.930522,
+          "ci_low": 400.30741,
+          "runs": 10,
+          "value": 414.118966
+        }
+      }
+    },
+    "clutter_5/3of5": {
+      "clutter_rate": 5.0,
+      "confirm": [
+        3,
+        5
+      ],
+      "coverage_by_type": {
+        "aircraft": {
+          "ci_high": 0.988889,
+          "ci_low": 0.988889,
+          "runs": 10,
+          "value": 0.988889
+        },
+        "fire": {
+          "ci_high": 0.970572,
+          "ci_low": 0.941978,
+          "runs": 10,
+          "value": 0.956275
+        },
+        "launch": {
+          "ci_high": 0.99229,
+          "ci_low": 0.929543,
+          "runs": 10,
+          "value": 0.960916
+        }
+      },
+      "false_per_scan": {
+        "ci_high": 0.303319,
+        "ci_low": 0.111126,
+        "runs": 10,
+        "value": 0.207222
+      },
+      "fragmentations": {
+        "ci_high": 0.0,
+        "ci_low": 0.0,
+        "runs": 10,
+        "value": 0.0
+      },
+      "gospa": {
+        "ci_high": 918.674058,
+        "ci_low": 697.778263,
+        "runs": 10,
+        "value": 808.226161
+      },
+      "id_switches": {
+        "ci_high": 0.782829,
+        "ci_low": -0.182829,
+        "runs": 10,
+        "value": 0.3
+      },
+      "latency_by_type": {
+        "aircraft": {
+          "ci_high": 2.0,
+          "ci_low": 2.0,
+          "runs": 10,
+          "value": 2.0
+        },
+        "fire": {
+          "ci_high": 8.886752,
+          "ci_low": 4.513248,
+          "runs": 10,
+          "value": 6.7
+        },
+        "launch": {
+          "ci_high": 8.790783,
+          "ci_low": 0.809217,
+          "runs": 10,
+          "value": 4.8
+        }
+      },
+      "missed_per_scan": {
+        "ci_high": 0.165615,
+        "ci_low": 0.082163,
+        "runs": 10,
+        "value": 0.123889
+      },
+      "nees": {
+        "ci_high": 14.301383,
+        "ci_low": 6.668614,
+        "runs": 10,
+        "value": 10.484998
+      },
+      "never_tracked": {
+        "ci_high": 0.0,
+        "ci_low": 0.0,
+        "runs": 10,
+        "value": 0.0
+      },
+      "ospa": {
+        "ci_high": 472.796256,
+        "ci_low": 346.006533,
+        "runs": 10,
+        "value": 409.401394
+      },
+      "purity": {
+        "ci_high": 1.0,
+        "ci_low": 1.0,
+        "runs": 10,
+        "value": 1.0
+      },
+      "rmse": {
+        "ci_high": 249.377766,
+        "ci_low": 234.994876,
+        "runs": 10,
+        "value": 242.186321
+      },
+      "rmse_by_type": {
+        "aircraft": {
+          "ci_high": 95.385576,
+          "ci_low": 31.783869,
+          "runs": 10,
+          "value": 63.584722
+        },
+        "fire": {
+          "ci_high": 288.353204,
+          "ci_low": 254.302411,
+          "runs": 10,
+          "value": 271.327807
+        },
+        "launch": {
+          "ci_high": 426.761412,
+          "ci_low": 400.21631,
+          "runs": 10,
+          "value": 413.488861
+        }
+      }
+    }
+  }
+}

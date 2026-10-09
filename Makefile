@@ -4,7 +4,7 @@ PYTHON ?= python
 ENV_NAME ?= sentinel
 
 .DEFAULT_GOAL := help
-.PHONY: help env env-update hooks lint format typecheck test cov check data data-verify data-figures experiments e1 e2 e3 e4 clean
+.PHONY: help env env-update hooks lint format typecheck test cov check data data-verify data-figures experiments e1 e2 e3 e4 e5 e6 e7 clean
 
 help:  ## List available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | \
@@ -70,7 +70,16 @@ e3:  ## E3 uncertainty experiment (needs E1 and E2); exports models/opir_event_c
 e4:  ## E4 geolocation experiment (no dataset needed; ~5 min)
 	$(PYTHON) -m experiments.e4_geolocation
 
-experiments: e1 e2 e3 e4  ## Run all experiments in order
+e5:  ## E5 tracking experiment (no dataset needed; ~5 min)
+	$(PYTHON) -m experiments.e5_tracking
+
+e6:  ## E6 fusion ablation + track classification (needs models/opir_event_classifier; ~8 min)
+	$(PYTHON) -m experiments.e6_fusion
+
+e7:  ## E7 robustness: outages, latency, RF bias (no dataset needed; ~8 min)
+	$(PYTHON) -m experiments.e7_robustness
+
+experiments: e1 e2 e3 e4 e5 e6 e7  ## Run all experiments in order
 
 clean:  ## Remove caches and build artifacts
 	rm -rf .pytest_cache .mypy_cache .ruff_cache .hypothesis htmlcov .coverage coverage.xml build dist
