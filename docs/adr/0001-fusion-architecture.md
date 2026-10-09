@@ -5,7 +5,7 @@
 
 ## Context
 
-SENTINEL fuses two very different sensors:
+Locant fuses two very different sensors:
 
 - **OPIR** gives a line of sight (two angles) per satellite at 1 Hz, for every
   hot event: launches, fires, aircraft. Two satellites (GEO + Molniya HEO)
@@ -32,7 +32,7 @@ formula that was really the independent-information formula (audit H3).
 ## Decision
 
 Option 1, centralized fusion. T2T is kept in the library
-(`sentinel.fusion.t2t`) for distributed deployments, and E6 benchmarks it.
+(`locant.fusion.t2t`) for distributed deployments, and E6 benchmarks it.
 
 ## Rationale (E6, 10 seeds, mean with 95% CI)
 

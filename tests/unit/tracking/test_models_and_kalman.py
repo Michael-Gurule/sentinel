@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
 
-from sentinel.core import is_psd
-from sentinel.tracking import ConstantVelocity, Gaussian, innovation, predict, update
-from sentinel.tracking.kalman import batch_nis
+from locant.core import is_psd
+from locant.tracking import ConstantVelocity, Gaussian, innovation, predict, update
+from locant.tracking.kalman import batch_nis
 
 H = np.hstack([np.eye(3), np.zeros((3, 3))])
 

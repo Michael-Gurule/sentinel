@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
 
-from sentinel.core import InsufficientMeasurementsError, mean_nees_bounds, nees
-from sentinel.core.constants import SPEED_OF_LIGHT
-from sentinel.geolocation import (
+from locant.core import InsufficientMeasurementsError, mean_nees_bounds, nees
+from locant.core.constants import SPEED_OF_LIGHT
+from locant.geolocation import (
     TDOAMeasurement,
     difference_covariance,
     simulate_tdoa,
@@ -102,7 +102,7 @@ def test_restarts_when_chan_ho_picks_the_wrong_root(
 ):
     """A mirrored Chan-Ho root sends the iteration off along an asymptote;
     the χ² fit test triggers a restart from the receiver centroid."""
-    import sentinel.geolocation.tdoa as tdoa_module
+    import locant.geolocation.tdoa as tdoa_module
 
     class WrongRoot:
         position = emitter * np.array([1.0, 1.0, -1.0]) + np.array([0, 0, -3e4])

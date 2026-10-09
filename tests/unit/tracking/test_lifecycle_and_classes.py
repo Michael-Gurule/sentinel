@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from sentinel.tracking import (
+from locant.tracking import (
     ConstantVelocity,
     LinearMeasurement,
     MultiTargetTracker,

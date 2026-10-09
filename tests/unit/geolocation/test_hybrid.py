@@ -1,14 +1,14 @@
 import numpy as np
 import pytest
 
-from sentinel.core import (
+from locant.core import (
     GeometryError,
     InsufficientMeasurementsError,
     mean_nees_bounds,
     nees,
 )
-from sentinel.geolocation import simulate_fdoa, simulate_tdoa, solve_tdoa_fdoa
-from sentinel.geolocation._nls import solve_whitened
+from locant.geolocation import simulate_fdoa, simulate_tdoa, solve_tdoa_fdoa
+from locant.geolocation._nls import solve_whitened
 
 CARRIER = 1e9
 

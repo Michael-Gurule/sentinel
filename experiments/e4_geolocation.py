@@ -31,15 +31,15 @@ from experiments.common import (
     run_experiment,
     style,
 )
-from sentinel.core import (
+from locant.core import (
     GeometryError,
     InsufficientMeasurementsError,
     mean_nees_bounds,
     nees,
 )
-from sentinel.core.constants import SPEED_OF_LIGHT
-from sentinel.eval import write_report
-from sentinel.geolocation import (
+from locant.core.constants import SPEED_OF_LIGHT
+from locant.eval import write_report
+from locant.geolocation import (
     Receiver,
     SystematicErrors,
     chan_ho,
@@ -52,8 +52,8 @@ from sentinel.geolocation import (
     tdoa_dop,
     tdoa_fdoa_crlb,
 )
-from sentinel.sim.rf.network import ReceiverModel, RFNetwork, default_receiver_network
-from sentinel.sim.trajectories import Stationary
+from locant.sim.rf.network import ReceiverModel, RFNetwork, default_receiver_network
+from locant.sim.trajectories import Stationary
 
 REPORT_DIR = ROOT / "reports" / "phase4"
 EMITTER = np.array([5_000.0, 5_000.0, 500.0])

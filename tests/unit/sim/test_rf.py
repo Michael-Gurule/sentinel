@@ -1,11 +1,11 @@
 import numpy as np
 import pytest
 
-from sentinel.core import mean_nees_bounds, nees
-from sentinel.core.constants import SPEED_OF_LIGHT
-from sentinel.geolocation import solve_tdoa
-from sentinel.sim.rf.network import ReceiverModel, RFNetwork
-from sentinel.sim.rf.waveforms import (
+from locant.core import mean_nees_bounds, nees
+from locant.core.constants import SPEED_OF_LIGHT
+from locant.geolocation import solve_tdoa
+from locant.sim.rf.network import ReceiverModel, RFNetwork
+from locant.sim.rf.waveforms import (
     EMITTER_PROFILES,
     EmitterProfile,
     add_awgn,
@@ -18,7 +18,7 @@ from sentinel.sim.rf.waveforms import (
     pulse_train,
     qam,
 )
-from sentinel.sim.trajectories import ConstantVelocity, Stationary
+from locant.sim.trajectories import ConstantVelocity, Stationary
 
 FS = 10e6
 

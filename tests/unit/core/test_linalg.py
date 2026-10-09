@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-from sentinel.core import NotPositiveDefiniteError, is_psd, mahalanobis_sq, nees
-from sentinel.core.linalg import cholesky, solve_psd, symmetrize, whitening_matrix
+from locant.core import NotPositiveDefiniteError, is_psd, mahalanobis_sq, nees
+from locant.core.linalg import cholesky, solve_psd, symmetrize, whitening_matrix
 
 SPD = np.array([[4.0, 1.0, 0.5], [1.0, 3.0, 0.2], [0.5, 0.2, 2.0]])
 

@@ -1,6 +1,5 @@
 
-<p align="center">
-  <img width="500" alt="SENTINEL" src="https://github.com/user-attachments/assets/84043002-a02f-4837-9d49-f3390b61176a" />
+<h1 align="center">Locant</h1>
 <p align="center">
   <strong>Multi-Sensor Fusion for Defense Applications</strong><br>
 
@@ -11,7 +10,7 @@ Advanced multi-intelligence fusion system combining Overhead Persistent Infrared
 
 ## Project Overview
 
-SENTINEL-XF is a production-grade Machine Learning platform designed for Defense applications, demonstrating expertise in Sensor Fusion, Geolocation Algorithms, and Multi-Sensor Tracking. The system integrates thermal event detection with RF signal processing to provide comprehensive situational awareness.
+Locant (formerly SENTINEL) is a multi-sensor detection, geolocation, tracking, and fusion system for Overhead Persistent Infrared (OPIR) and RF sensors, developed and evaluated on physics-based simulated data. It integrates thermal event detection with RF signal processing to provide a single, calibrated track picture.
 
 **Key Capabilities:**
 
@@ -28,7 +27,7 @@ only a direction; two satellites triangulate to a few hundred meters. RF
 TDOA/FDOA geolocation measures position and velocity to tens of meters, but
 only for targets that emit. Neither sensor alone gives the full picture.
 
-SENTINEL fuses them at the measurement level: one tracker takes OPIR stereo
+Locant fuses them at the measurement level: one tracker takes OPIR stereo
 positions, single-satellite lines of sight, and RF fixes, each with its own
 covariance. On the multi-target benchmark (E6, 10 seeds), fusion cuts the
 GOSPA tracking error from 877 m (OPIR only) and 1961 m (RF only) to 693 m.
@@ -87,8 +86,8 @@ centralized fusion was chosen over track-to-track fusion.
 ## Project Structure
 
 ```
-sentinel/
-├── src/sentinel/
+locant/
+├── src/locant/
 │   ├── core/            # linear algebra, χ² statistics, errors, structured logging
 │   ├── sim/             # WGS-84 geometry, trajectories, OPIR sensor model, RF network, scenarios
 │   ├── data/            # deterministic dataset builder + hashed manifests
@@ -98,9 +97,9 @@ sentinel/
 │   ├── tracking/        # EKF, IMM, GNN, M-of-N lifecycle, class posteriors, bias floor
 │   ├── fusion/          # OPIR line-of-sight geolocation, fusion engine, T2T fusion
 │   ├── eval/            # metrics, GOSPA/OSPA tracking evaluation, reports
-│   ├── pipeline/        # PipelineConfig, stage protocols, SentinelPipeline, scenario runner
+│   ├── pipeline/        # PipelineConfig, stage protocols, LocantPipeline, scenario runner
 │   ├── runs.py          # JSON run registry
-│   └── cli.py           # `sentinel` command line
+│   └── cli.py           # `locant` command line
 ├── configs/             # scenario, dataset, and pipeline YAML
 ├── experiments/         # E1–E7 (one script per question) + shared harness
 ├── benchmarks/          # per-stage latency budgets (`make bench`)
@@ -118,16 +117,16 @@ Requires [conda](https://docs.conda.io/) (Miniconda or Anaconda).
 
 ```bash
 # Clone repository
-git clone https://github.com/Michael-Gurule/sentinel.git
-cd sentinel
+git clone https://github.com/Michael-Gurule/locant.git
+cd locant
 
 # Create and activate the environment (Python 3.12, pinned dependencies,
-# and the `sentinel` package installed in editable mode)
+# and the `locant` package installed in editable mode)
 conda env create -f environment.yml
-conda activate sentinel
+conda activate locant
 
 # Verify installation
-python -c "import sentinel; print(f'SENTINEL {sentinel.__version__} installed')"
+python -c "import locant; print(f'Locant {locant.__version__} installed')"
 pytest
 ```
 
@@ -136,7 +135,7 @@ pytest
 ### Quick Start: Full System Demo
 
 ```bash
-sentinel run configs/scenario/multi_int.yaml   # or: make demo
+locant run configs/scenario/multi_int.yaml   # or: make demo
 ```
 
 Simulates a launch cued by a fire-control radar, two aircraft with datalinks,
@@ -151,21 +150,21 @@ truth and each confirmed track's class and sources. The run is recorded in
 
 | Command | Purpose |
 |---|---|
-| `sentinel simulate SCENARIO [--seed N]` | Simulate a scenario; summarize what each sensor saw |
-| `sentinel run SCENARIO [--pipeline YAML] [--seed N]` | Full pipeline, scored against truth, recorded as a run |
-| `sentinel export-onnx [ARTIFACT]` | Export the classifier for ONNX Runtime |
-| `sentinel data build / verify` | Build the dataset, or check it against its manifest |
-| `sentinel runs list / show ID` | Inspect the run registry |
+| `locant simulate SCENARIO [--seed N]` | Simulate a scenario; summarize what each sensor saw |
+| `locant run SCENARIO [--pipeline YAML] [--seed N]` | Full pipeline, scored against truth, recorded as a run |
+| `locant export-onnx [ARTIFACT]` | Export the classifier for ONNX Runtime |
+| `locant data build / verify` | Build the dataset, or check it against its manifest |
+| `locant runs list / show ID` | Inspect the run registry |
 
 Global options: `--log-level`, and `--log-json` for one JSON event per line.
-`python -m sentinel` is equivalent.
+`python -m locant` is equivalent.
 
 ### Configuration and Runs
 
 Every tunable number of the processing chain is a field of `PipelineConfig`,
 a validated pydantic model. Each section names the experiment that set its
 default. `configs/pipeline/default.yaml` is the deployed configuration;
-unknown or out-of-range values fail at load time. Each `sentinel run` and each
+unknown or out-of-range values fail at load time. Each `locant run` and each
 experiment launched from the command line writes `runs/<id>/run.json`. The
 record holds the configuration and its hash, the seed, the git commit (marked
 when the tree is dirty), package versions, timing, metrics, and artifacts. See
@@ -176,7 +175,7 @@ when the tree is dirty), package versions, timing, metrics, and artifacts. See
 ```python
 import numpy as np
 
-from sentinel.geolocation import Receiver, simulate_tdoa, solve_tdoa, tdoa_dop
+from locant.geolocation import Receiver, simulate_tdoa, solve_tdoa, tdoa_dop
 
 receivers = [
     Receiver(0, np.array([0.0, 0.0, 500.0])),
@@ -203,7 +202,7 @@ print(f"GDOP:           {tdoa_dop(emitter, [r.position for r in receivers]).gdop
 ```python
 import numpy as np
 
-from sentinel.geolocation import Receiver, simulate_fdoa, simulate_tdoa, solve_tdoa_fdoa
+from locant.geolocation import Receiver, simulate_fdoa, simulate_tdoa, solve_tdoa_fdoa
 
 positions = [
     [0, 0, 500],
@@ -235,10 +234,10 @@ Without FDOA the velocity is not observable, and `solve_tdoa_fdoa` returns
 ```python
 import numpy as np
 
-from sentinel.geolocation import simulate_tdoa
-from sentinel.pipeline import RFObservation, SensorFrame, SentinelPipeline
+from locant.geolocation import simulate_tdoa
+from locant.pipeline import RFObservation, SensorFrame, LocantPipeline
 
-pipeline = SentinelPipeline()  # defaults from PipelineConfig
+pipeline = LocantPipeline()  # defaults from PipelineConfig
 rng = np.random.default_rng(0)
 start, velocity = np.array([5e3, 5e3, 500.0]), np.array([100.0, 50.0, 0.0])
 
@@ -255,18 +254,18 @@ constant-velocity models), with χ² gating on the innovation covariance,
 global-nearest-neighbor assignment, and M-of-N confirmation. OPIR windows
 passed as `OPIRObservation` with their line of sight are geolocated (stereo
 or angle-only) and fused in the same update. Any stage can be replaced by
-passing a component that satisfies its protocol in `sentinel.pipeline.stages`,
-such as `SentinelPipeline(config, classifier=...)`.
+passing a component that satisfies its protocol in `locant.pipeline.stages`,
+such as `LocantPipeline(config, classifier=...)`.
 
 ### OPIR Detection & Classification
 
 ```python
 import numpy as np
 
-from sentinel.classification import EventClassifier
-from sentinel.data.config import Priors
-from sentinel.data.generate import generate_sample
-from sentinel.detection import CFAR_THRESHOLD_PFA_1E2, CFARDetector
+from locant.classification import EventClassifier
+from locant.data.config import Priors
+from locant.data.generate import generate_sample
+from locant.detection import CFAR_THRESHOLD_PFA_1E2, CFARDetector
 
 # One simulated 64 s pixel window (10 Hz) containing a launch.
 sample = generate_sample("launch", Priors(), 64.0, np.random.default_rng(3))
@@ -291,7 +290,7 @@ print(
 ### Simulating a Scenario
 
 ```python
-from sentinel.sim import load_scenario, simulate_scenario
+from locant.sim import load_scenario, simulate_scenario
 
 config = load_scenario("configs/scenario/launch_with_radar.yaml")
 result = simulate_scenario(config, seed=7)  # same seed, same scenario

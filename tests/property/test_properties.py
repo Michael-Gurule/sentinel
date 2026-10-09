@@ -7,15 +7,15 @@ from hypothesis import given
 from hypothesis import strategies as st
 from hypothesis.extra.numpy import arrays
 
-from sentinel.core import is_psd
-from sentinel.geolocation import (
+from locant.core import is_psd
+from locant.geolocation import (
     Receiver,
     TDOAMeasurement,
     chan_ho,
     simulate_tdoa,
     solve_tdoa,
 )
-from sentinel.tracking import ConstantVelocity, Gaussian, assign_gnn, update
+from locant.tracking import ConstantVelocity, Gaussian, assign_gnn, update
 
 finite = st.floats(-10.0, 10.0, allow_nan=False, allow_infinity=False)
 H = np.hstack([np.eye(3), np.zeros((3, 3))])

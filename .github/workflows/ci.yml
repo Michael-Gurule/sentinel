@@ -57,7 +57,7 @@ jobs:
       - name: Coverage gate (library packages >= 85%)
         run: >-
           coverage report --fail-under=85
-          --include="src/sentinel/core/*,src/sentinel/geolocation/*,src/sentinel/tracking/*,src/sentinel/fusion/*,src/sentinel/sim/*,src/sentinel/data/*,src/sentinel/detection/*,src/sentinel/classification/*,src/sentinel/eval/*,src/sentinel/pipeline/*,src/sentinel/runs.py,src/sentinel/cli.py"
+          --include="src/locant/core/*,src/locant/geolocation/*,src/locant/tracking/*,src/locant/fusion/*,src/locant/sim/*,src/locant/data/*,src/locant/detection/*,src/locant/classification/*,src/locant/eval/*,src/locant/pipeline/*,src/locant/runs.py,src/locant/cli.py"
       - name: Upload coverage report
         if: always()
         uses: actions/upload-artifact@v7

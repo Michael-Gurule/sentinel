@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 from hypothesis import settings
 
-from sentinel.geolocation import Receiver
+from locant.geolocation import Receiver
 
 # Deterministic property tests: the same examples on every run and machine.
 settings.register_profile("default", max_examples=50, deadline=None, derandomize=True)

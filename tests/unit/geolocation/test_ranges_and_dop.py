@@ -1,13 +1,13 @@
 import numpy as np
 import pytest
 
-from sentinel.core import (
+from locant.core import (
     GeometryError,
     InsufficientMeasurementsError,
     mean_nees_bounds,
     nees,
 )
-from sentinel.geolocation import (
+from locant.geolocation import (
     range_dop,
     simulate_ranges,
     solve_ranges,

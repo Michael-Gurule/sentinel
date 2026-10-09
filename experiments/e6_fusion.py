@@ -43,9 +43,9 @@ from experiments.fusion_common import (
     target_type,
     true_class,
 )
-from sentinel.classification import EventClassifier
-from sentinel.eval import expected_calibration_error, gospa, write_report
-from sentinel.sim import ScenarioResult
+from locant.classification import EventClassifier
+from locant.eval import expected_calibration_error, gospa, write_report
+from locant.sim import ScenarioResult
 
 REPORT_DIR = ROOT / "reports" / "phase5"
 MODE_LABELS = {

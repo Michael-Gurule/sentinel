@@ -4,9 +4,9 @@ import numpy as np
 import pytest
 from pydantic import ValidationError
 
-from sentinel.sim import load_scenario, simulate_scenario
-from sentinel.sim.geometry import KeplerianPlatform
-from sentinel.sim.scenario import PlatformConfig, ScenarioConfig
+from locant.sim import load_scenario, simulate_scenario
+from locant.sim.geometry import KeplerianPlatform
+from locant.sim.scenario import PlatformConfig, ScenarioConfig
 
 EXAMPLE = (
     Path(__file__).resolve().parents[3] / "configs/scenario/launch_with_radar.yaml"

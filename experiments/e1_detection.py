@@ -34,16 +34,16 @@ from experiments.common import (
     style,
 )
 from experiments.legacy.v1_detectors import MultiMethodDetector
-from sentinel.data.build import generate_samples
-from sentinel.data.config import Priors
-from sentinel.detection import (
+from locant.data.build import generate_samples
+from locant.data.config import Priors
+from locant.detection import (
     CFARDetector,
     CUSUMDetector,
     StepGLRTDetector,
     calibrate_threshold,
 )
-from sentinel.eval import binomial_interval, detection_roc, write_report
-from sentinel.taxonomy import BACKGROUND, EVENT_CLASSES
+from locant.eval import binomial_interval, detection_roc, write_report
+from locant.taxonomy import BACKGROUND, EVENT_CLASSES
 
 PFAS = (1e-2, 1e-3)
 FS = 10.0

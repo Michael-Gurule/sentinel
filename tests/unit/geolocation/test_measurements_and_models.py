@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-from sentinel.core.constants import SPEED_OF_LIGHT
-from sentinel.geolocation import (
+from locant.core.constants import SPEED_OF_LIGHT
+from locant.geolocation import (
     FDOAMeasurement,
     Receiver,
     TDOAMeasurement,
@@ -10,7 +10,7 @@ from sentinel.geolocation import (
     simulate_fdoa,
     simulate_tdoa,
 )
-from sentinel.geolocation.models import (
+from locant.geolocation.models import (
     fdoa_to_range_rate_difference,
     range_difference_model,
     range_rate_difference_model,

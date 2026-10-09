@@ -40,9 +40,9 @@ from experiments.fusion_common import (
     score,
     simulate,
 )
-from sentinel.eval import write_report
-from sentinel.fusion import associate_stereo
-from sentinel.sim.opir.reports import event_reports
+from locant.eval import write_report
+from locant.fusion import associate_stereo
+from locant.sim.opir.reports import event_reports
 
 REPORT_DIR = ROOT / "reports" / "phase5"
 CLUTTER_RATES = (0.0, 0.5, 2.0, 5.0)

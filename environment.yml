@@ -1,8 +1,8 @@
-# Conda environment for SENTINEL development.
+# Conda environment for Locant development.
 #   conda env create -f environment.yml
-#   conda activate sentinel
+#   conda activate locant
 # Python comes from conda; Python packages come from the pinned pip requirements.
-name: sentinel
+name: locant
 channels:
   - conda-forge
   - nodefaults

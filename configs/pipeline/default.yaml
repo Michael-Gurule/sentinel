@@ -1,6 +1,6 @@
-# Default SENTINEL pipeline. Every value matches the PipelineConfig default;
+# Default Locant pipeline. Every value matches the PipelineConfig default;
 # comments name the experiment that set it. Validate/inspect with
-#   sentinel run <scenario.yaml> --pipeline configs/pipeline/default.yaml
+#   locant run <scenario.yaml> --pipeline configs/pipeline/default.yaml
 detection:
   method: cfar
   threshold: 5.27          # 1e-2 false alarms per 64 s window (E1)

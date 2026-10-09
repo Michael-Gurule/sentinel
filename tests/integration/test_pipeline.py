@@ -9,32 +9,32 @@ import torch
 import yaml
 from pydantic import ValidationError
 
-from sentinel.classification import (
+from locant.classification import (
     ModelArtifact,
     TrainConfig,
     save_artifact,
     train_model,
 )
-from sentinel.classification.artifact import ConformalSpec
-from sentinel.classification.inference import Prediction
-from sentinel.data.build import generate_samples
-from sentinel.data.config import Priors
-from sentinel.detection import CFAR_THRESHOLD_PFA_1E2, DetectionScores
-from sentinel.geolocation import simulate_fdoa, simulate_tdoa
-from sentinel.pipeline import (
+from locant.classification.artifact import ConformalSpec
+from locant.classification.inference import Prediction
+from locant.data.build import generate_samples
+from locant.data.config import Priors
+from locant.detection import CFAR_THRESHOLD_PFA_1E2, DetectionScores
+from locant.geolocation import simulate_fdoa, simulate_tdoa
+from locant.pipeline import (
     ClassificationConfig,
+    LocantPipeline,
     OPIRObservation,
     PipelineConfig,
     RFConfig,
     RFObservation,
     SensorFrame,
-    SentinelPipeline,
     TrackingConfig,
     load_pipeline_config,
     run_scenario,
 )
-from sentinel.sim import load_scenario, simulate_scenario
-from sentinel.taxonomy import EVENT_CLASSES
+from locant.sim import load_scenario, simulate_scenario
+from locant.taxonomy import EVENT_CLASSES
 
 ROOT = Path(__file__).resolve().parents[2]
 START = np.array([5_000.0, 5_000.0, 500.0])
@@ -44,8 +44,8 @@ TARGET = np.array([2_000.0, 3_000.0, 12_000.0])
 
 
 @pytest.fixture
-def pipeline() -> SentinelPipeline:
-    return SentinelPipeline()
+def pipeline() -> LocantPipeline:
+    return LocantPipeline()
 
 
 @pytest.fixture(scope="module")
@@ -153,29 +153,29 @@ def test_rf_failures_are_counted_not_raised(pipeline, rng):
 def test_late_fixes_are_extrapolated_or_dropped(rng):
     truth = START + VELOCITY * 10.0
     late = RFObservation(
-        simulate_tdoa(START + VELOCITY * 8.0, SentinelPipeline().receivers, 10e-9, rng),
+        simulate_tdoa(START + VELOCITY * 8.0, LocantPipeline().receivers, 10e-9, rng),
         simulate_fdoa(
             START + VELOCITY * 8.0,
             VELOCITY,
-            SentinelPipeline().receivers,
+            LocantPipeline().receivers,
             1e9,
             1.0,
             rng,
         ),
         time=8.0,
     )
-    extrapolating = SentinelPipeline()
+    extrapolating = LocantPipeline()
     measurement, outcome = extrapolating.locate(late, frame_time=10.0)
     assert outcome == "fused"
     assert measurement is not None
     assert np.linalg.norm(measurement.value[:3] - truth) < 60.0
-    dropping = SentinelPipeline(PipelineConfig(rf=RFConfig(late_fixes="drop")))
+    dropping = LocantPipeline(PipelineConfig(rf=RFConfig(late_fixes="drop")))
     result = dropping.process_frame(SensorFrame(10.0, rf=[late]))
     assert result.rf_late_dropped == 1
 
 
 def test_systematic_levels_give_tracks_a_bias_floor(rng):
-    pipeline = SentinelPipeline(PipelineConfig(rf=RFConfig(clock_bias_ns=20.0)))
+    pipeline = LocantPipeline(PipelineConfig(rf=RFConfig(clock_bias_ns=20.0)))
     for t in range(3):
         truth = START + VELOCITY * t
         tdoa = simulate_tdoa(truth, pipeline.receivers, 10e-9, rng)
@@ -209,7 +209,7 @@ def test_short_windows_are_padded_without_false_alarms(pipeline, rng):
 
 
 def test_opir_classification_and_background_rejection(windows, tiny_classifier):
-    pipeline = SentinelPipeline(
+    pipeline = LocantPipeline(
         PipelineConfig.model_validate(
             {
                 "detection": {"threshold": 0.0},
@@ -288,7 +288,7 @@ class _UniformClassifier:
 def test_class_evidence_only_when_onset_is_in_the_trained_range(rng, onset, classified):
     """Detections whose onset lies outside the classifier's training range
     still update the track kinematically but add no class evidence."""
-    pipeline = SentinelPipeline(
+    pipeline = LocantPipeline(
         PipelineConfig(tracking=TrackingConfig(confirm_hits=1)),
         detector=_FixedOnsetDetector(onset),
         classifier=_UniformClassifier(),
@@ -321,7 +321,7 @@ def test_stereo_scenario_end_to_end():
     result = simulate_scenario(
         load_scenario(ROOT / "configs/scenario/multi_int.yaml"), 0
     )
-    pipeline = SentinelPipeline(
+    pipeline = LocantPipeline(
         load_pipeline_config(ROOT / "configs/pipeline/default.yaml")
     )
     run = run_scenario(pipeline, result)

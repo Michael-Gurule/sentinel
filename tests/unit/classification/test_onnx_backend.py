@@ -6,16 +6,16 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from sentinel.classification import EventClassifier
-from sentinel.classification.onnx_backend import (
+from locant.classification import EventClassifier
+from locant.classification.onnx_backend import (
     ONNX_MODEL,
     OnnxEventClassifier,
     export_onnx,
 )
-from sentinel.data.build import generate_samples
-from sentinel.data.config import Priors
-from sentinel.pipeline import ClassificationConfig, PipelineConfig, SentinelPipeline
-from sentinel.taxonomy import EVENT_CLASSES
+from locant.data.build import generate_samples
+from locant.data.config import Priors
+from locant.pipeline import ClassificationConfig, LocantPipeline, PipelineConfig
+from locant.taxonomy import EVENT_CLASSES
 
 ARTIFACT = Path(__file__).resolve().parents[3] / "models" / "opir_event_classifier"
 
@@ -55,7 +55,7 @@ def test_pipeline_onnx_backend_and_missing_export(exported, tmp_path):
     config = PipelineConfig(
         classification=ClassificationConfig(artifact=exported, backend="onnx")
     )
-    assert isinstance(SentinelPipeline(config).classifier, OnnxEventClassifier)
+    assert isinstance(LocantPipeline(config).classifier, OnnxEventClassifier)
     bare = tmp_path / "bare"
     shutil.copytree(exported, bare)
     (bare / ONNX_MODEL).unlink()

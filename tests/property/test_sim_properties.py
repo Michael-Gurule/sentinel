@@ -4,8 +4,8 @@ import numpy as np
 from hypothesis import given
 from hypothesis import strategies as st
 
-from sentinel.sim.geometry import ecef_to_lla, lla_to_ecef
-from sentinel.sim.opir.sensor import ensquared_energy
+from locant.sim.geometry import ecef_to_lla, lla_to_ecef
+from locant.sim.opir.sensor import ensquared_energy
 
 
 @given(

@@ -16,20 +16,20 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from sentinel.classification import ModelArtifact, TrainConfig
-from sentinel.core import GeometryError
-from sentinel.core.constants import SPEED_OF_LIGHT
-from sentinel.data import build_dataset, load_dataset_config
-from sentinel.data.build import generate_samples
-from sentinel.data.config import Priors
-from sentinel.detection import (
+from locant.classification import ModelArtifact, TrainConfig
+from locant.core import GeometryError
+from locant.core.constants import SPEED_OF_LIGHT
+from locant.data import build_dataset, load_dataset_config
+from locant.data.build import generate_samples
+from locant.data.config import Priors
+from locant.detection import (
     CFAR_THRESHOLD_PFA_1E2,
     CFARDetector,
     CUSUMDetector,
     StepGLRTDetector,
 )
-from sentinel.fusion import FusionEngine
-from sentinel.geolocation import (
+from locant.fusion import FusionEngine
+from locant.geolocation import (
     Receiver,
     TDOAMeasurement,
     chan_ho,
@@ -37,17 +37,17 @@ from sentinel.geolocation import (
     solve_ranges,
     tdoa_dop,
 )
-from sentinel.geolocation.models import range_difference_model
-from sentinel.pipeline import (
+from locant.geolocation.models import range_difference_model
+from locant.pipeline import (
+    LocantPipeline,
     OPIRObservation,
     RFObservation,
     SensorFrame,
-    SentinelPipeline,
 )
-from sentinel.sim import load_scenario, simulate_scenario
-from sentinel.sim.opir.reports import to_local
-from sentinel.taxonomy import EVENT_CLASSES
-from sentinel.tracking import ConstantVelocity, LinearMeasurement
+from locant.sim import load_scenario, simulate_scenario
+from locant.sim.opir.reports import to_local
+from locant.taxonomy import EVENT_CLASSES
+from locant.tracking import ConstantVelocity, LinearMeasurement
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 REPORTS = REPO_ROOT / "reports" / "phase3"
@@ -87,7 +87,7 @@ def test_c1_opir_contributes_to_fused_tracks():
     config = load_scenario(REPO_ROOT / "configs/scenario/launch_with_radar.yaml")
     result = simulate_scenario(config, seed=0)
     frame = config.origin.frame()
-    pipeline = SentinelPipeline()
+    pipeline = LocantPipeline()
     pixel = result.opir["launch-1"]
     for emitter, scan in result.rf_scans:
         if emitter != "radar-1":

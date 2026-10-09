@@ -1,6 +1,6 @@
 import numpy as np
 
-from sentinel.tracking import assign_gnn
+from locant.tracking import assign_gnn
 
 
 def test_gnn_beats_greedy_on_classic_counterexample():

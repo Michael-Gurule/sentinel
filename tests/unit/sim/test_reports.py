@@ -1,8 +1,8 @@
 import numpy as np
 
-from sentinel.sim import load_scenario, simulate_scenario
-from sentinel.sim.opir.reports import clutter_reports, event_reports
-from sentinel.sim.scenario import PlatformConfig, SensorConfig
+from locant.sim import load_scenario, simulate_scenario
+from locant.sim.opir.reports import clutter_reports, event_reports
+from locant.sim.scenario import PlatformConfig, SensorConfig
 
 
 def test_stereo_scenario_reports(rng):

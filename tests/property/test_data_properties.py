@@ -4,7 +4,7 @@ import numpy as np
 from hypothesis import given
 from hypothesis import strategies as st
 
-from sentinel.data.config import Range
+from locant.data.config import Range
 
 
 @given(

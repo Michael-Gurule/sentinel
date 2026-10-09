@@ -3,7 +3,7 @@ import json
 import numpy as np
 import pytest
 
-from sentinel.eval import (
+from locant.eval import (
     accuracy,
     auroc,
     binomial_interval,

@@ -1,7 +1,7 @@
 import numpy as np
 
-from sentinel.fusion import FusionEngine, SensorType, opir_measurement, rf_measurement
-from sentinel.geolocation import (
+from locant.fusion import FusionEngine, SensorType, opir_measurement, rf_measurement
+from locant.geolocation import (
     simulate_fdoa,
     simulate_tdoa,
     solve_tdoa,
@@ -62,6 +62,6 @@ def test_engine_reports_time_and_gate():
 
 
 def rf_like(position, variance):
-    from sentinel.tracking import LinearMeasurement
+    from locant.tracking import LinearMeasurement
 
     return LinearMeasurement.position(position, np.eye(3) * variance, SensorType.RF)

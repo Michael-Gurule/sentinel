@@ -16,17 +16,17 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from sentinel.detection import CFARDetector
-from sentinel.fusion import FusionEngine, LineOfSightMeasurement, associate_stereo
-from sentinel.fusion.opir_geoloc import perpendicular_basis
-from sentinel.geolocation import (
+from locant.detection import CFARDetector
+from locant.fusion import FusionEngine, LineOfSightMeasurement, associate_stereo
+from locant.fusion.opir_geoloc import perpendicular_basis
+from locant.geolocation import (
     Receiver,
     SystematicErrors,
     simulate_fdoa,
     simulate_tdoa,
     solve_tdoa_fdoa,
 )
-from sentinel.tracking import LinearMeasurement
+from locant.tracking import LinearMeasurement
 
 ROOT = Path(__file__).resolve().parents[1]
 GEO = np.array([0.0, -30e6, 25e6])
@@ -155,7 +155,7 @@ def test_cfar_detection(benchmark):
 
 def test_classifier_batch(benchmark):
     """Calibrated TCN classification of 16 windows on CPU."""
-    from sentinel.classification import EventClassifier
+    from locant.classification import EventClassifier
 
     path = ROOT / "models" / "opir_event_classifier"
     if not path.exists():
@@ -173,7 +173,7 @@ def test_classifier_batch_onnx(benchmark, tmp_path):
     pytest.importorskip("onnxscript")
     import shutil
 
-    from sentinel.classification.onnx_backend import OnnxEventClassifier, export_onnx
+    from locant.classification.onnx_backend import OnnxEventClassifier, export_onnx
 
     source = ROOT / "models" / "opir_event_classifier"
     if not source.exists():

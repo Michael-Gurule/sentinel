@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from sentinel.sim.trajectories import (
+from locant.sim.trajectories import (
     GRAVITY,
     BallisticBoost,
     ConstantVelocity,

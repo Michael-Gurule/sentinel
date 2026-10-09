@@ -8,8 +8,8 @@ Synthetic single-pixel OPIR time series for thermal-event classification.
 | **Manifest** | [`data/manifests/opir_v2.json`](../data/manifests/opir_v2.json): resolved config, per-split SHA-256 of array contents, class counts, SNR quantiles |
 | **Build** | `make data` (about 20 s with 4 workers) · verify with `make data-verify` |
 | **Size** | 30,000 samples, 640 frames each (64 s at 10 Hz), about 74 MB compressed |
-| **Classes** | `launch`, `explosion`, `fire`, `aircraft`, `background` (order fixed by `sentinel.models.taxonomy.EVENT_CLASSES`) |
-| **Provenance** | Fully simulated by `sentinel.sim`; no real sensor data |
+| **Classes** | `launch`, `explosion`, `fire`, `aircraft`, `background` (order fixed by `locant.models.taxonomy.EVENT_CLASSES`) |
+| **Provenance** | Fully simulated by `locant.sim`; no real sensor data |
 
 ## Intended use
 
@@ -21,7 +21,7 @@ All magnitudes (radiant intensities, noise levels, background levels) are order-
 
 ## How a sample is generated
 
-Each sample is one tracked pixel of a staring sensor on a geostationary satellite. The chain is in `sentinel.sim`:
+Each sample is one tracked pixel of a staring sensor on a geostationary satellite. The chain is in `locant.sim`:
 
 1. **Site and geometry.** Site latitude is uniform in 0–60°, and longitude is within ±40° of the satellite's sub-satellite point. Range and viewing elevation follow from WGS-84 geometry.
 2. **Event.** Event parameters are drawn from per-class priors (table below), giving a trajectory and a radiant-intensity time profile (W/sr). Launches fly a powered ascent with pitch-over (`BallisticBoost`), aircraft fly straight and level, and fires and explosions are stationary.
@@ -34,7 +34,7 @@ Each sample is one tracked pixel of a staring sensor on a geostationary satellit
    - sun glints (in 30% of scenes): short half-sine pulses that look like explosions;
    - white noise-equivalent irradiance (NEI) of 0.5–2 pW/m².
 
-Samples store the **measured** pixel irradiance in pW/m², with background included. Truth (signal, background, glint, occlusion, line of sight) is available from `sentinel.sim.opir.observe` when regenerating a sample.
+Samples store the **measured** pixel irradiance in pW/m², with background included. Truth (signal, background, glint, occlusion, line of sight) is available from `locant.sim.opir.observe` when regenerating a sample.
 
 ![Example signals per class](figures/dataset_examples.png)
 
@@ -50,7 +50,7 @@ Samples store the **measured** pixel irradiance in pW/m², with background inclu
 | aircraft | 5e3–6e4 W/sr (log); altitude 3–13 km; 150–300 m/s; aspect modulation 5–30% over 20–80 s; 20% afterburner (2–6×); may already be in view when the window opens |
 | background | no source; background, clutter, clouds, and glints only |
 
-Full priors: `sentinel/data/config.py`. The manifest stores the resolved values for every split.
+Full priors: `locant/data/config.py`. The manifest stores the resolved values for every split.
 
 ## Splits
 

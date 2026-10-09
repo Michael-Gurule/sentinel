@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-from sentinel.core import GeometryError, mean_nees_bounds, nees
-from sentinel.fusion import (
+from locant.core import GeometryError, mean_nees_bounds, nees
+from locant.fusion import (
     LineOfSightMeasurement,
     associate_stereo,
     covariance_intersection,
@@ -12,9 +12,9 @@ from sentinel.fusion import (
     naive_fusion,
     triangulate,
 )
-from sentinel.fusion.opir_geoloc import perpendicular_basis, stereo_miss_distances
-from sentinel.sim.opir.reports import OPIRReport
-from sentinel.tracking import (
+from locant.fusion.opir_geoloc import perpendicular_basis, stereo_miss_distances
+from locant.sim.opir.reports import OPIRReport
+from locant.tracking import (
     ConstantVelocity,
     Gaussian,
     LinearMeasurement,

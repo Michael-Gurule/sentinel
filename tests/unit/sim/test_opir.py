@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-from sentinel.sim.geometry import GeostationaryPlatform, LocalFrame
-from sentinel.sim.opir.sensor import (
+from locant.sim.geometry import GeostationaryPlatform, LocalFrame
+from locant.sim.opir.sensor import (
     PW_PER_W,
     OPIRSensor,
     SceneConditions,
@@ -12,14 +12,14 @@ from sentinel.sim.opir.sensor import (
     glint_series,
     observe,
 )
-from sentinel.sim.opir.signatures import (
+from locant.sim.opir.signatures import (
     AircraftSignature,
     ExplosionSignature,
     FireSignature,
     LaunchSignature,
     ar1,
 )
-from sentinel.sim.trajectories import BallisticBoost, ConstantVelocity, Stationary
+from locant.sim.trajectories import BallisticBoost, ConstantVelocity, Stationary
 
 FRAME = LocalFrame.from_degrees(30.0, -100.0)
 SENSOR = OPIRSensor(GeostationaryPlatform(np.radians(-100.0)))

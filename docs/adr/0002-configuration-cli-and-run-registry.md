@@ -1,7 +1,7 @@
 # ADR 0002: Typed configuration, a Typer CLI, and a JSON run registry
 
 - **Status:** accepted (Phase 6)
-- **Code:** `sentinel.pipeline` (config, stages, runner), `sentinel.cli`, `sentinel.runs`, `sentinel.core.logs`
+- **Code:** `locant.pipeline` (config, stages, runner), `locant.cli`, `locant.runs`, `locant.core.logs`
 
 ## Context
 
@@ -36,14 +36,14 @@ levels (E4). Several problems followed:
    late-fix extrapolation (`extrapolate`), and the bias floor
    (`GeolocationResult.systematic_covariance` → `Track.reported`) are library
    functions. The pipeline and the experiments call the same code.
-4. **A Typer CLI** (`sentinel simulate | run | export-onnx | data | runs`) is
-   installed as a console script and also runs as `python -m sentinel`. It
+4. **A Typer CLI** (`locant simulate | run | export-onnx | data | runs`) is
+   installed as a console script and also runs as `python -m locant`. It
    is the only place that configures logging.
 5. **Structured logging on `logging`.** Library code emits named events with
    fields (`log_event(logger, level, "rf_fix_rejected", chi2=..., dof=...)`).
    The CLI renders them as `key=value` lines or, with `--log-json`, as one
    JSON object per line.
-6. **A JSON file run registry.** Every `sentinel run` and every experiment
+6. **A JSON file run registry.** Every `locant run` and every experiment
    run from the command line writes `runs/<id>/run.json`. The record holds:
    - the configuration and its hash, and the seed;
    - the git commit, with a dirty flag;
@@ -79,7 +79,7 @@ levels (E4). Several problems followed:
 - **Visible defaults.** Changing a default is a reviewed change to
   `PipelineConfig`. The default YAML is tested against it.
 - **Retired demo.** `phase3_pipeline.py` and its dictionary-based frame API
-  are gone. Callers use `SentinelPipeline.process_frame(SensorFrame(...))`,
+  are gone. Callers use `LocantPipeline.process_frame(SensorFrame(...))`,
   which returns a typed `FrameResult`.
 - **Untracked runs.** `runs/` is git-ignored. Results meant to be kept
   belong in `reports/`, which the experiments write and the registry

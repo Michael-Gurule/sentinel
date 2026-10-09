@@ -1,6 +1,6 @@
 """Frozen copy of the v1 OPIR detectors (from src/sentinel/detection/opir_detectors.py).
 
-Kept only as the E1 baseline. Not part of the sentinel package, not maintained,
+Kept only as the E1 baseline. Not part of the locant package, not maintained,
 and known to be defective (audit C5, H11). Do not import from production code.
 """
 

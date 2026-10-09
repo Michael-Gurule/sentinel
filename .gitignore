@@ -64,7 +64,7 @@ REFACTOR_PLAN.md
 *.pkl
 outputs/
 mlruns/
-# Run registry (sentinel run / experiments)
+# Run registry (locant run / experiments)
 runs/
 
 # Logs

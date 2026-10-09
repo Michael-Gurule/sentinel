@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-from sentinel.core import mean_nees_bounds, nees
-from sentinel.tracking import ConstantVelocity, LinearMeasurement, MultiTargetTracker
+from locant.core import mean_nees_bounds, nees
+from locant.tracking import ConstantVelocity, LinearMeasurement, MultiTargetTracker
 
 R = np.eye(3) * 25.0
 MODEL = ConstantVelocity(noise_intensity=4.0)

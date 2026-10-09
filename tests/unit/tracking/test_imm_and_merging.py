@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-from sentinel.core import is_psd
-from sentinel.tracking import (
+from locant.core import is_psd
+from locant.tracking import (
     ConstantVelocity,
     Gaussian,
     IMMState,

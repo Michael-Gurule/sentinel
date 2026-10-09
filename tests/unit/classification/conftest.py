@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from sentinel.taxonomy import EVENT_CLASSES
+from locant.taxonomy import EVENT_CLASSES
 
 
 @pytest.fixture

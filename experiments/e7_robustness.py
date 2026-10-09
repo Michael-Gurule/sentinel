@@ -44,9 +44,9 @@ from experiments.fusion_common import (
     simulate,
     window,
 )
-from sentinel.core import mean_nees_bounds
-from sentinel.eval import write_report
-from sentinel.sim import ScenarioResult
+from locant.core import mean_nees_bounds
+from locant.eval import write_report
+from locant.sim import ScenarioResult
 
 REPORT_DIR = ROOT / "reports" / "phase5"
 DELAYS_S = (0.0, 1.0, 2.0, 5.0)

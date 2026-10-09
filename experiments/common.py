@@ -20,9 +20,9 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-from sentinel.data import load_manifest, load_split
-from sentinel.data.dataset import OPIRSplit
-from sentinel.runs import RunRegistry
+from locant.data import load_manifest, load_split
+from locant.data.dataset import OPIRSplit
+from locant.runs import RunRegistry
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = ROOT / "data" / "opir_v2"

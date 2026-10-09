@@ -3,9 +3,9 @@
 import numpy as np
 import pytest
 
-from sentinel.core import mean_nees_bounds, nees
-from sentinel.fusion import extrapolate
-from sentinel.tracking import ConstantVelocity, LinearMeasurement, MultiTargetTracker
+from locant.core import mean_nees_bounds, nees
+from locant.fusion import extrapolate
+from locant.tracking import ConstantVelocity, LinearMeasurement, MultiTargetTracker
 
 MODEL = ConstantVelocity(noise_intensity=1e-6)
 RANDOM = np.eye(3) * 100.0  # 10 m per axis, independent scan to scan

@@ -5,8 +5,8 @@ from pathlib import Path
 
 from typer.testing import CliRunner
 
-from sentinel import __version__
-from sentinel.cli import app
+from locant import __version__
+from locant.cli import app
 
 ROOT = Path(__file__).resolve().parents[2]
 SCENARIO = str(ROOT / "configs/scenario/multi_int.yaml")

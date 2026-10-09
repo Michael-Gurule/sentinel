@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from sentinel.eval import Snapshot, evaluate_tracking, gospa, ospa
+from locant.eval import Snapshot, evaluate_tracking, gospa, ospa
 
 C = 100.0
 

@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from scipy.special import ndtri
 
-from sentinel.detection import (
+from locant.detection import (
     CFARDetector,
     CUSUMDetector,
     StepGLRTDetector,

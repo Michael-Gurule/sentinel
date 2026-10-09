@@ -4,9 +4,9 @@ from pathlib import Path
 
 import numpy as np
 
-from sentinel.fusion import FusionEngine, rf_measurement
-from sentinel.geolocation import solve_tdoa_fdoa
-from sentinel.sim import load_scenario, simulate_scenario
+from locant.fusion import FusionEngine, rf_measurement
+from locant.geolocation import solve_tdoa_fdoa
+from locant.sim import load_scenario, simulate_scenario
 
 EXAMPLE = (
     Path(__file__).resolve().parents[2] / "configs/scenario/launch_with_radar.yaml"

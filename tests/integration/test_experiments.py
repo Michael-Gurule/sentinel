@@ -14,7 +14,7 @@ from experiments import (
 )
 from experiments.common import RunOptions
 
-from sentinel.data import build_dataset, load_dataset_config
+from locant.data import build_dataset, load_dataset_config
 
 
 @pytest.fixture(scope="module")

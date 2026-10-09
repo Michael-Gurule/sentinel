@@ -1,6 +1,6 @@
 import pytest
 
-from sentinel.core import chi2_gate, mean_nees_bounds
+from locant.core import chi2_gate, mean_nees_bounds
 
 
 def test_chi2_gate_known_values():

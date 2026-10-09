@@ -1,13 +1,13 @@
 import numpy as np
 import pytest
 
-from sentinel.core import (
+from locant.core import (
     GeometryError,
     InsufficientMeasurementsError,
     mean_nees_bounds,
     nees,
 )
-from sentinel.geolocation import Receiver, chan_ho, simulate_tdoa
+from locant.geolocation import Receiver, chan_ho, simulate_tdoa
 
 EXTRA_RECEIVERS = np.array([[2_000.0, 8_000.0, 1_500.0], [8_000.0, 3_000.0, 700.0]])
 

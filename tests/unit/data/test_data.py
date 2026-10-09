@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 from pydantic import ValidationError
 
-from sentinel.data import (
+from locant.data import (
     DatasetConfig,
     build_dataset,
     content_hash,
@@ -12,10 +12,10 @@ from sentinel.data import (
     load_manifest,
     load_split,
 )
-from sentinel.data.build import compare_manifests, main, sample_rng
-from sentinel.data.config import Priors, Range, SplitConfig, deep_merge
-from sentinel.data.generate import generate_sample, params_to_json
-from sentinel.taxonomy import EVENT_CLASSES
+from locant.data.build import compare_manifests, main, sample_rng
+from locant.data.config import Priors, Range, SplitConfig, deep_merge
+from locant.data.generate import generate_sample, params_to_json
+from locant.taxonomy import EVENT_CLASSES
 
 
 def tiny_config(**changes) -> DatasetConfig:

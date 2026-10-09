@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
 
-from sentinel.core import GeometryError, mean_nees_bounds, nees
-from sentinel.core.constants import SPEED_OF_LIGHT
-from sentinel.geolocation import (
+from locant.core import GeometryError, mean_nees_bounds, nees
+from locant.core.constants import SPEED_OF_LIGHT
+from locant.geolocation import (
     FDOAMeasurement,
     SystematicErrors,
     TDOAMeasurement,
@@ -19,8 +19,8 @@ from sentinel.geolocation import (
     tdoa_dop,
     tdoa_fdoa_crlb,
 )
-from sentinel.sim.rf.network import ReceiverModel, RFNetwork, default_receiver_network
-from sentinel.sim.trajectories import Stationary
+from locant.sim.rf.network import ReceiverModel, RFNetwork, default_receiver_network
+from locant.sim.trajectories import Stationary
 
 
 class TestCRLB:

@@ -1,6 +1,6 @@
 # RF geolocation: methods and results
 
-How SENTINEL locates RF emitters from time and frequency differences of
+How Locant locates RF emitters from time and frequency differences of
 arrival, what accuracy is achievable, and how the estimators behave when real
 error sources are present. Results come from experiment E4
 (`make e4`, about 10 s, no dataset needed). The full numbers are in
@@ -21,7 +21,7 @@ Each receiver has an independent timing error with standard deviation σ. The
 reference error is shared by every difference, so the differences are
 correlated, with covariance R = (cσ)²(I + 11ᵀ). v1 treated all N(N-1)/2 pairs
 as independent. That overcounts information and makes the reported covariance
-optimistic. SENTINEL uses the N-1 reference differences with the full R.
+optimistic. Locant uses the N-1 reference differences with the full R.
 
 ## Estimators
 
@@ -106,4 +106,4 @@ against a bound of 0.83 m/s. Mean NEES over the 6-D state is 5.8 (95% band
 
 - **Weak vertical geometry is nonlinear.** With ground-only receivers and an emitter at 500 m altitude, the RMSE is 870 m against a reported 226 m even with no systematic errors. The median NEES is 4.0 but the mean is 37, because a few fits land far off. First-order covariances, including the consider covariance, are not valid in this regime. Remedies are better geometry (an elevated receiver), an altitude constraint (terrain or a known flight level), or a multimodal estimator.
 - **Biases are constant within a scenario.** The consider covariance is correct over network realizations. Fusing many scans from the *same* network does not average the bias down, so a tracker must model it as correlated across time. This feeds into Phase 5 fusion.
-- **Simulated measurements.** TDOAs and FDOAs are simulated directly from geometry. Estimating them from waveforms by cross-ambiguity is a stretch item; the baseband waveforms and delay/Doppler operators are already in `sentinel.sim.rf`.
+- **Simulated measurements.** TDOAs and FDOAs are simulated directly from geometry. Estimating them from waveforms by cross-ambiguity is a stretch item; the baseband waveforms and delay/Doppler operators are already in `locant.sim.rf`.

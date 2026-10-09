@@ -12,8 +12,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-from sentinel.data import load_split
-from sentinel.taxonomy import EVENT_CLASSES
+from locant.data import load_split
+from locant.taxonomy import EVENT_CLASSES
 
 # Reference palette (light mode): one series hue, muted ink, recessive grid.
 SERIES = "#2a78d6"

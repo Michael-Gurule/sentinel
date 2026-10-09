@@ -2,8 +2,8 @@ import json
 
 import pytest
 
-from sentinel.pipeline import PipelineConfig
-from sentinel.runs import RunRegistry, config_hash
+from locant.pipeline import PipelineConfig
+from locant.runs import RunRegistry, config_hash
 
 
 def test_completed_run_record(tmp_path):
@@ -21,7 +21,7 @@ def test_completed_run_record(tmp_path):
     assert record.metrics == {"gospa": 1.5, "nan": None}
     assert record.artifacts == ["tracks.json"]
     assert record.duration_s is not None
-    assert {"python", "numpy", "sentinel"} <= record.environment.keys()
+    assert {"python", "numpy", "locant"} <= record.environment.keys()
     assert json.loads((run.directory / "run.json").read_text())["kind"] == "pipeline"
 
 

@@ -26,7 +26,7 @@ from experiments.common import (
     snr_bin,
     style,
 )
-from sentinel.classification import (
+from locant.classification import (
     FeatureClassifier,
     ModelArtifact,
     TrainConfig,
@@ -35,10 +35,10 @@ from sentinel.classification import (
     select_device,
     train_model,
 )
-from sentinel.classification.calibration import probabilities
-from sentinel.classification.train import predict_logits
-from sentinel.data.dataset import OPIRSplit
-from sentinel.eval import (
+from locant.classification.calibration import probabilities
+from locant.classification.train import predict_logits
+from locant.data.dataset import OPIRSplit
+from locant.eval import (
     accuracy,
     bootstrap,
     confusion,
@@ -47,7 +47,7 @@ from sentinel.eval import (
     seed_summary,
     write_report,
 )
-from sentinel.taxonomy import BACKGROUND, EVENT_CLASSES
+from locant.taxonomy import BACKGROUND, EVENT_CLASSES
 
 NUM_CLASSES = len(EVENT_CLASSES)
 MAIN_MODELS = ("logistic", "gbm", "cnn", "tcn")

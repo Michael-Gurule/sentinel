@@ -1,7 +1,7 @@
 # Developer entry points. Run inside the activated conda env:
-#   conda activate sentinel
+#   conda activate locant
 PYTHON ?= python
-ENV_NAME ?= sentinel
+ENV_NAME ?= locant
 
 .DEFAULT_GOAL := help
 .PHONY: help env env-update hooks lint format typecheck test cov bench check demo onnx data data-verify data-figures experiments e1 e2 e3 e4 e5 e6 e7 clean
@@ -34,7 +34,7 @@ test:  ## Run the test suite
 	MPLBACKEND=Agg $(PYTHON) -m pytest
 
 # Packages whose correctness the project's results depend on; gated at 85%.
-CORE_COVERAGE = src/sentinel/core/*,src/sentinel/geolocation/*,src/sentinel/tracking/*,src/sentinel/fusion/*,src/sentinel/sim/*,src/sentinel/data/*,src/sentinel/detection/*,src/sentinel/classification/*,src/sentinel/eval/*,src/sentinel/pipeline/*,src/sentinel/runs.py,src/sentinel/cli.py
+CORE_COVERAGE = src/locant/core/*,src/locant/geolocation/*,src/locant/tracking/*,src/locant/fusion/*,src/locant/sim/*,src/locant/data/*,src/locant/detection/*,src/locant/classification/*,src/locant/eval/*,src/locant/pipeline/*,src/locant/runs.py,src/locant/cli.py
 
 cov:  ## Run tests with coverage; enforce >=85% on core packages
 	MPLBACKEND=Agg $(PYTHON) -m pytest --cov --cov-report=term-missing --cov-report=xml
@@ -46,10 +46,10 @@ bench:  ## Per-stage latency benchmarks with budgets (benchmarks/)
 check: lint typecheck cov bench  ## Everything CI runs
 
 demo:  ## Run the full pipeline on the multi-INT scenario (recorded in runs/)
-	$(PYTHON) -m sentinel run configs/scenario/multi_int.yaml --pipeline configs/pipeline/default.yaml
+	$(PYTHON) -m locant run configs/scenario/multi_int.yaml --pipeline configs/pipeline/default.yaml
 
 onnx:  ## Export the shipped classifier to ONNX (models/opir_event_classifier/model.onnx)
-	$(PYTHON) -m sentinel export-onnx models/opir_event_classifier
+	$(PYTHON) -m locant export-onnx models/opir_event_classifier
 
 DATASET_CONFIG ?= configs/dataset/opir_v2.yaml
 DATASET_DIR ?= data/opir_v2
@@ -57,12 +57,12 @@ DATASET_MANIFEST ?= data/manifests/opir_v2.json
 WORKERS ?= 4
 
 data:  ## Build the OPIR dataset and update its versioned manifest
-	$(PYTHON) -m sentinel data build --config $(DATASET_CONFIG) --out $(DATASET_DIR) --workers $(WORKERS)
+	$(PYTHON) -m locant data build --config $(DATASET_CONFIG) --out $(DATASET_DIR) --workers $(WORKERS)
 	mkdir -p $(dir $(DATASET_MANIFEST))
 	cp $(DATASET_DIR)/manifest.json $(DATASET_MANIFEST)
 
 data-verify:  ## Rebuild the dataset and check it against the versioned manifest
-	$(PYTHON) -m sentinel data verify --config $(DATASET_CONFIG) --out $(DATASET_DIR) --workers $(WORKERS) --manifest $(DATASET_MANIFEST)
+	$(PYTHON) -m locant data verify --config $(DATASET_CONFIG) --out $(DATASET_DIR) --workers $(WORKERS) --manifest $(DATASET_MANIFEST)
 
 data-figures:  ## Render data-card figures from the built dataset
 	$(PYTHON) scripts/plot_dataset.py --data $(DATASET_DIR) --out docs/figures

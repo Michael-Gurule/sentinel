@@ -6,7 +6,7 @@ stereo, and a 40 km RF network with clock bias and survey error geolocates
 the datalinks.
 
 ``run_fusion`` replays a simulated scenario scan by scan through one of five
-architectures and returns per-scan snapshots for :mod:`sentinel.eval.tracking`.
+architectures and returns per-scan snapshots for :mod:`locant.eval.tracking`.
 The truth set at each scan contains every target observable by *any*
 modality, so a single-sensor architecture is charged for targets only the
 other modality could see. That is the coverage question fusion should answer.
@@ -18,10 +18,10 @@ from typing import Any, Literal
 
 import numpy as np
 
-from sentinel.classification import EventClassifier
-from sentinel.core import GeometryError, InsufficientMeasurementsError, nees
-from sentinel.eval import Snapshot, evaluate_tracking, gospa, seed_summary
-from sentinel.fusion import (
+from locant.classification import EventClassifier
+from locant.core import GeometryError, InsufficientMeasurementsError, nees
+from locant.eval import Snapshot, evaluate_tracking, gospa, seed_summary
+from locant.fusion import (
     FusionEngine,
     accept_fix,
     extrapolate,
@@ -29,16 +29,16 @@ from sentinel.fusion import (
     measurements_from_reports,
     rf_measurement,
 )
-from sentinel.geolocation import SystematicErrors, solve_tdoa_fdoa
-from sentinel.sim import ScenarioConfig, ScenarioResult, simulate_scenario
-from sentinel.sim.geometry import LocalFrame
-from sentinel.sim.opir.reports import (
+from locant.geolocation import SystematicErrors, solve_tdoa_fdoa
+from locant.sim import ScenarioConfig, ScenarioResult, simulate_scenario
+from locant.sim.geometry import LocalFrame
+from locant.sim.opir.reports import (
     OPIRReport,
     clutter_reports,
     event_reports,
     to_local,
 )
-from sentinel.sim.scenario import (
+from locant.sim.scenario import (
     AircraftEvent,
     EmitterConfig,
     FireEvent,
@@ -50,8 +50,8 @@ from sentinel.sim.scenario import (
     SceneConfig,
     SensorConfig,
 )
-from sentinel.taxonomy import EVENT_CLASSES
-from sentinel.tracking import ConstantVelocity, LinearMeasurement, Measurement, predict
+from locant.taxonomy import EVENT_CLASSES
+from locant.tracking import ConstantVelocity, LinearMeasurement, Measurement, predict
 
 Mode = Literal["rf", "opir", "centralized", "t2t_naive", "t2t_ci"]
 MODES: tuple[Mode, ...] = ("rf", "opir", "centralized", "t2t_naive", "t2t_ci")

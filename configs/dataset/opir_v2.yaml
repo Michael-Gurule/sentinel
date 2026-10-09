@@ -1,8 +1,8 @@
-# SENTINEL OPIR event-classification dataset, version 2.
+# Locant OPIR event-classification dataset, version 2.
 #
 # 64 s windows at 10 Hz from a GEO staring sensor; five classes (launch,
 # explosion, fire, aircraft, background). Base priors are defined in
-# sentinel.data.config; splits may override them. The three shift_* splits are
+# locant.data.config; splits may override them. The three shift_* splits are
 # held-out test sets drawn from deliberately shifted distributions.
 #
 # All magnitudes are illustrative and unclassified (see docs/data_card.md).

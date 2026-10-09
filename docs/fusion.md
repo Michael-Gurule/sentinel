@@ -1,6 +1,6 @@
 # Tracking and multi-INT fusion: methods and results
 
-How SENTINEL turns OPIR lines of sight and RF fixes into one track picture,
+How Locant turns OPIR lines of sight and RF fixes into one track picture,
 and what each design choice buys. Results come from experiments E5–E7
 (`make e5 e6 e7`, about 20 min, no dataset needed). The full numbers, with
 95% confidence intervals over 10 seeds, are in
@@ -28,11 +28,11 @@ error plus c²/2 per missed target and per false track; an estimate more than
 localization RMSE and coverage (the fraction of truth scans with a matched
 confirmed track), confirmation latency, fragmentation and identity switches
 from a per-scan truth-to-track assignment, and the NEES of matched tracks
-(`sentinel.eval.tracking`).
+(`locant.eval.tracking`).
 
 ## Methods
 
-### OPIR geolocation (`sentinel.fusion.opir_geoloc`)
+### OPIR geolocation (`locant.fusion.opir_geoloc`)
 
 An OPIR detection is a unit line of sight **u** from a known satellite
 position **s**, with angular noise σ per axis. It is used in three ways:
@@ -55,12 +55,12 @@ consistent if its normalized miss distance passes a χ²(1) gate. Two
 satellites constrain a pair only within their epipolar plane, so rays from
 *different* targets near a common epipolar plane also pass and triangulate to
 a **ghost**. In the benchmark, global-nearest-neighbor pairing produced
-224 ghosts among 8,595 pairs (2.6%). SENTINEL keeps a pair only
+224 ghosts among 8,595 pairs (2.6%). Locant keeps a pair only
 if neither ray gates with any other ray. Ambiguous rays become line-of-sight
 updates, which the tracker resolves against predicted tracks. This removed
 every ghost and kept 89% of the correct pairs.
 
-### Tracker (`sentinel.tracking`)
+### Tracker (`locant.tracking`)
 
 - **Measurement interface.** Every measurement provides
   `linearize(x) -> (h(x), H)` and, if it determines position,
@@ -91,7 +91,7 @@ every ghost and kept 89% of the correct pairs.
   probabilities (E3). They are pooled log-linearly into the track posterior:
   log π ← log π + w·(log p − log prior), with tempering weight w ≤ 1.
 
-### Track-to-track fusion (`sentinel.fusion.t2t`)
+### Track-to-track fusion (`locant.fusion.t2t`)
 
 Separate OPIR and RF trackers; their confirmed tracks' *reported* estimates
 (including any RF bias floor) are paired by a χ²(3) gate on the summed

@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from sentinel.sim.geometry import (
+from locant.sim.geometry import (
     GEO_RADIUS,
     WGS84_A,
     WGS84_F,

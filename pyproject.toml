@@ -3,7 +3,7 @@ requires = ["setuptools>=69", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "sentinel"
+name = "locant"
 dynamic = ["version"]
 description = "Multi-sensor (OPIR + RF) detection, geolocation, tracking, and fusion"
 readme = "README.md"
@@ -24,14 +24,14 @@ dependencies = [
 ]
 
 [project.scripts]
-sentinel = "sentinel.cli:app"
+locant = "locant.cli:app"
 
 [project.optional-dependencies]
 viz = ["seaborn>=0.13"]
 onnx = ["onnx>=1.17", "onnxscript>=0.2", "onnxruntime>=1.20"]
 
 [tool.setuptools.dynamic]
-version = { attr = "sentinel.__version__" }
+version = { attr = "locant.__version__" }
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -39,10 +39,10 @@ where = ["src"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 # importlib mode keeps the repo root off sys.path, so tests exercise the
-# installed `sentinel` package rather than whatever happens to be on disk.
+# installed `locant` package rather than whatever happens to be on disk.
 addopts = ["-ra", "--strict-markers", "--import-mode=importlib"]
 # The repo root is importable for `experiments` (not part of the package);
-# `sentinel` still resolves to the installed src/ package.
+# `locant` still resolves to the installed src/ package.
 pythonpath = ["."]
 # An expected failure that starts passing must fail the run (forces the
 # marker to be removed together with the fix).
@@ -78,7 +78,7 @@ allowed-confusables = ["σ", "α", "ν", "ρ", "γ", "×", "–"]
 
 [tool.mypy]
 python_version = "3.12"
-files = ["src/sentinel"]
+files = ["src/locant"]
 strict = true
 warn_unreachable = true
 enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
@@ -95,7 +95,7 @@ module = ["sklearn.*", "onnxruntime", "onnxruntime.*"]
 ignore_missing_imports = true
 
 [tool.coverage.run]
-source = ["sentinel"]
+source = ["locant"]
 branch = true
 
 [tool.coverage.report]

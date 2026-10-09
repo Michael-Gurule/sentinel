@@ -37,7 +37,7 @@ from experiments.common import (
     run_experiment,
     style,
 )
-from sentinel.classification import (
+from locant.classification import (
     ModelArtifact,
     TrainConfig,
     load_artifact,
@@ -46,20 +46,20 @@ from sentinel.classification import (
     select_device,
     train_model,
 )
-from sentinel.classification.artifact import ConformalSpec
-from sentinel.classification.calibration import (
+from locant.classification.artifact import ConformalSpec
+from locant.classification.calibration import (
     energy_score,
     fit_temperature,
     max_softmax,
     nll,
     probabilities,
 )
-from sentinel.classification.conformal import calibrate, coverage, prediction_sets
-from sentinel.classification.train import predict_logits
-from sentinel.data.build import generate_samples
-from sentinel.data.config import Priors
-from sentinel.detection import CFARDetector
-from sentinel.eval import (
+from locant.classification.conformal import calibrate, coverage, prediction_sets
+from locant.classification.train import predict_logits
+from locant.data.build import generate_samples
+from locant.data.config import Priors
+from locant.detection import CFARDetector
+from locant.eval import (
     auroc,
     binomial_interval,
     expected_calibration_error,
@@ -67,7 +67,7 @@ from sentinel.eval import (
     seed_summary,
     write_report,
 )
-from sentinel.taxonomy import BACKGROUND, EVENT_CLASSES
+from locant.taxonomy import BACKGROUND, EVENT_CLASSES
 
 ALPHA = 0.1
 MIN_BIN_COUNT = 20

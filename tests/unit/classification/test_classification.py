@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 import torch
 
-from sentinel.classification import (
+from locant.classification import (
     EventClassifier,
     FeatureClassifier,
     ModelArtifact,
@@ -14,24 +14,24 @@ from sentinel.classification import (
     select_device,
     train_model,
 )
-from sentinel.classification.artifact import ConformalSpec
-from sentinel.classification.calibration import (
+from locant.classification.artifact import ConformalSpec
+from locant.classification.calibration import (
     energy_score,
     fit_temperature,
     max_softmax,
     nll,
     probabilities,
 )
-from sentinel.classification.conformal import (
+from locant.classification.conformal import (
     calibrate,
     conformal_scores,
     coverage,
     prediction_sets,
 )
-from sentinel.classification.features import FEATURE_NAMES, extract_features
-from sentinel.classification.models import CNN1D, TCN, build_model
-from sentinel.classification.preprocess import noise_normalize
-from sentinel.taxonomy import EVENT_CLASSES
+from locant.classification.features import FEATURE_NAMES, extract_features
+from locant.classification.models import CNN1D, TCN, build_model
+from locant.classification.preprocess import noise_normalize
+from locant.taxonomy import EVENT_CLASSES
 
 
 class TestPreprocess:
