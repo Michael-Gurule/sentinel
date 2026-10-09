@@ -328,10 +328,11 @@ domain-shift test sets, and limitations.
 ### Running the Experiments
 
 ```bash
-make experiments   # E1 detection, E2 classification (~1 h on Apple MPS), E3 calibration + model export
+make experiments   # E1 detection, E2 classification (~1 h on Apple MPS), E3 calibration + model export, E4 geolocation
 ```
 
-Each experiment writes a JSON report and figures to `reports/phase3/`. E3
+Each experiment writes a JSON report and figures to `reports/phase3/` (E1–E3)
+or `reports/phase4/` (E4). E3
 exports the calibrated classifier to `models/opir_event_classifier/`.
 
 ## Testing
@@ -354,8 +355,19 @@ All numbers are measured on the simulated `opir_v2` dataset
 ([data card](docs/data_card.md)) by the experiments in `experiments/`
 (`make experiments`). Reports with confidence intervals are in
 [`reports/phase3/`](reports/phase3/). The shipped classifier is documented in
-the [model card](docs/model_card.md). Geolocation and fusion benchmarks follow
-in later phases.
+the [model card](docs/model_card.md). Geolocation methods and results are in
+[docs/geolocation.md](docs/geolocation.md). Fusion benchmarks follow in a later phase.
+
+**Geolocation (E4).** The ML TDOA estimator stays within 3% of the Cramér-Rao
+bound from 1 to 100 ns of timing noise (for example 8.0 m RMSE against an
+8.3 m bound at 10 ns), and its reported covariance is consistent (NEES ≈ 3).
+Joint TDOA/FDOA attains its velocity bound (0.80 m/s against 0.83 m/s at 1 Hz).
+Unmodeled clock bias or survey error makes the reported uncertainty too small:
+with 50 m survey error the actual RMSE is 131 m against a reported 8.3 m
+(NEES 710). Folding the errors into a consider covariance restores consistency
+(NEES 2.5–2.9). Geometry dominates accuracy: the median
+error bound inside the network is 9 m with mixed-altitude receivers vs 136 m
+with ground-only receivers.
 
 **Detection (E1).** Window-level alarms at a calibrated false-alarm rate
 (20,000 independent background windows):
