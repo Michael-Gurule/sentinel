@@ -13,7 +13,7 @@ For each frame the model computes, in order:
    noise-equivalent irradiance (NEI) noise.
 
 It also produces a noisy line-of-sight measurement for each frame, which
-Phase 5 uses to geolocate OPIR events.
+:mod:`sentinel.fusion.opir_geoloc` uses to geolocate OPIR events.
 
 Irradiance is reported in pW/m² (1e-12 W/m²).
 """

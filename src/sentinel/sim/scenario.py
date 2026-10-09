@@ -274,6 +274,9 @@ class ScenarioConfig(_Model):
     origin: OriginConfig
     duration_s: float = Field(gt=0)
     sensor: SensorConfig = SensorConfig()
+    extra_sensors: list[SensorConfig] = []
+    """Additional OPIR platforms (e.g. an HEO satellite for stereo); all share
+    ``sensor``'s frame rate."""
     scene: SceneConfig = SceneConfig()
     events: list[EventConfig] = []
     rf: RFConfig | None = None
@@ -306,8 +309,14 @@ class ScenarioResult(BaseModel):
     seed: int
     times: FloatArray
     truth: dict[str, TrajectorySample]
-    opir: dict[str, PixelObservation]
+    opir_by_sensor: list[dict[str, PixelObservation]]
+    """Per OPIR sensor (index 0 = ``config.sensor``), per event."""
     rf_scans: list[tuple[str, RFScan]]
+
+    @property
+    def opir(self) -> dict[str, PixelObservation]:
+        """Observations from the primary OPIR sensor."""
+        return self.opir_by_sensor[0]
 
 
 def _rng(seed: int, *key: int) -> np.random.Generator:
@@ -320,27 +329,38 @@ _OPIR_STREAM, _RF_NETWORK_STREAM, _RF_SCAN_STREAM = 0, 1, 2
 def simulate_scenario(config: ScenarioConfig, seed: int) -> ScenarioResult:
     """Simulate all events and emitters of ``config`` deterministically from ``seed``."""
     frame = config.origin.frame()
-    sensor = config.sensor.build()
+    sensors = [config.sensor.build()] + [
+        extra.model_copy(update={"frame_rate_hz": config.sensor.frame_rate_hz}).build()
+        for extra in config.extra_sensors
+    ]
     scene = config.scene.build()
-    times = frame_times(config.duration_s, sensor.frame_rate_hz)
+    times = frame_times(config.duration_s, sensors[0].frame_rate_hz)
 
     trajectories: dict[str, tuple[Trajectory, float]] = {}
     truth: dict[str, TrajectorySample] = {}
-    opir: dict[str, PixelObservation] = {}
+    opir_by_sensor: list[dict[str, PixelObservation]] = [{} for _ in sensors]
     for index, event in enumerate(config.events):
         trajectory, signature = event.build()
         trajectories[event.id] = (trajectory, event.onset_s)
         truth[event.id] = trajectory.sample(times - event.onset_s)
-        opir[event.id] = observe(
-            sensor,
-            frame,
-            trajectory,
-            signature,
-            times,
-            event.onset_s,
-            scene,
-            _rng(seed, _OPIR_STREAM, index),
-        )
+        for sensor_index, sensor in enumerate(sensors):
+            # Sensor 0 keeps the original stream key so single-sensor results
+            # are unchanged; extra sensors get their own streams.
+            key = (
+                (_OPIR_STREAM, index)
+                if sensor_index == 0
+                else (_OPIR_STREAM, index, sensor_index)
+            )
+            opir_by_sensor[sensor_index][event.id] = observe(
+                sensor,
+                frame,
+                trajectory,
+                signature,
+                times,
+                event.onset_s,
+                scene,
+                _rng(seed, *key),
+            )
 
     scans: list[tuple[str, RFScan]] = []
     if config.rf is not None:
@@ -367,5 +387,10 @@ def simulate_scenario(config: ScenarioConfig, seed: int) -> ScenarioResult:
                 scans.append((emitter.id, scan))
 
     return ScenarioResult(
-        config=config, seed=seed, times=times, truth=truth, opir=opir, rf_scans=scans
+        config=config,
+        seed=seed,
+        times=times,
+        truth=truth,
+        opir_by_sensor=opir_by_sensor,
+        rf_scans=scans,
     )

@@ -39,9 +39,6 @@ def rf_measurement(
 def opir_measurement(
     position: FloatArray, covariance: FloatArray, label: str | None = None
 ) -> LinearMeasurement:
-    """Geolocated OPIR event → position measurement.
-
-    OPIR line-of-sight geolocation is introduced in Phase 5; until then the
-    pipeline has no OPIR position to pass here (audit defect C1).
-    """
+    """Geolocated OPIR event (e.g. a triangulated or altitude-intersected
+    position from :mod:`sentinel.fusion.opir_geoloc`) → position measurement."""
     return LinearMeasurement.position(position, covariance, SensorType.OPIR, label)
