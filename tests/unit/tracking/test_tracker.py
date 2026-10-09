@@ -109,17 +109,36 @@ def test_rejects_unsupported_measurement_for_birth():
         tracker.initiate(velocity_only, 0.0)
 
 
-def test_out_of_sequence_and_mixed_dimensions_are_rejected():
+def test_out_of_sequence_is_rejected():
     tracker = MultiTargetTracker(MODEL)
     tracker.step([], 5.0)
     with pytest.raises(ValueError, match="out-of-sequence"):
         tracker.step([], 4.0)
-    mixed = [
-        LinearMeasurement.position(np.zeros(3), R, "rf"),
-        LinearMeasurement.position_velocity(np.zeros(6), np.eye(6), "rf"),
-    ]
-    with pytest.raises(ValueError, match="dimension"):
-        tracker.step(mixed, 6.0)
+
+
+def test_mixed_dimensions_from_one_source_are_gated_separately():
+    """RF fixes with and without FDOA velocity (3-D and 6-D) in one scan."""
+    tracker = MultiTargetTracker(MODEL, confirm_hits=1)
+    far = np.array([50_000.0, 0.0, 0.0])
+    tracker.step(
+        [
+            LinearMeasurement.position(np.zeros(3), R, "rf"),
+            LinearMeasurement.position_velocity(
+                np.concatenate([far, np.zeros(3)]), np.eye(6), "rf"
+            ),
+        ],
+        0.0,
+    )
+    assert len(tracker.tracks) == 2
+    tracker.step(
+        [
+            LinearMeasurement.position_velocity(np.zeros(6), np.eye(6) * 100, "rf"),
+            LinearMeasurement.position(far, R, "rf"),
+        ],
+        1.0,
+    )
+    assert len(tracker.tracks) == 2
+    assert all(t.hits_by_source["rf"] == 2 for t in tracker.tracks)
 
 
 def test_invalid_configuration_and_measurement_shapes():

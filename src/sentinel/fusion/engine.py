@@ -12,7 +12,7 @@ from collections.abc import Sequence
 import numpy as np
 
 from sentinel.tracking.models import ConstantVelocity
-from sentinel.tracking.tracker import LinearMeasurement, MultiTargetTracker, Track
+from sentinel.tracking.tracker import Measurement, MultiTargetTracker, Track
 
 
 class FusionEngine:
@@ -24,6 +24,11 @@ class FusionEngine:
         gate_probability: float = 0.99,
         max_coast_time: float = 10.0,
         initial_velocity_std: float = 300.0,
+        confirm_hits: int = 3,
+        confirm_window: int = 5,
+        class_weight: float = 0.3,
+        merge_probability: float | None = 0.9,
+        imm: bool = True,
     ) -> None:
         """
         Args:
@@ -32,12 +37,29 @@ class FusionEngine:
             gate_probability: χ² gate probability for association.
             max_coast_time: Seconds without an update before a track is dropped.
             initial_velocity_std: Velocity prior (m/s) for position-only births.
+            confirm_hits, confirm_window: M-of-N track confirmation.
+            class_weight: Tempering weight for pooling class evidence on tracks.
+            imm: Track with an IMM of a quiet (q = 25) and a maneuvering
+                (q = 1600, ≈40 m/s² over 1 s) constant-velocity model, so both
+                steady targets and boosting launches are followed.
         """
         self.tracker = MultiTargetTracker(
             motion_model or ConstantVelocity(noise_intensity=25.0),
             gate_probability=gate_probability,
             max_coast_time=max_coast_time,
             initial_velocity_std=initial_velocity_std,
+            confirm_hits=confirm_hits,
+            confirm_window=confirm_window,
+            class_weight=class_weight,
+            merge_probability=merge_probability,
+            imm_models=(
+                [
+                    ConstantVelocity(noise_intensity=25.0),
+                    ConstantVelocity(noise_intensity=1_600.0),
+                ]
+                if imm
+                else None
+            ),
         )
 
     @property
@@ -46,15 +68,20 @@ class FusionEngine:
 
     @property
     def tracks(self) -> list[Track]:
+        """All tracks, tentative and confirmed."""
         return self.tracker.tracks
 
+    @property
+    def confirmed_tracks(self) -> list[Track]:
+        return self.tracker.confirmed_tracks
+
     def process(
-        self, measurements: Sequence[LinearMeasurement], timestamp: float
+        self, measurements: Sequence[Measurement], timestamp: float
     ) -> list[Track]:
         """Fuse one scan of measurements and return the current tracks."""
         return self.tracker.step(measurements, timestamp)
 
-    def in_gate(self, track: Track, measurement: LinearMeasurement) -> bool:
+    def in_gate(self, track: Track, measurement: Measurement) -> bool:
         return self.tracker.in_gate(track, measurement)
 
     def summary(self) -> dict[str, object]:
