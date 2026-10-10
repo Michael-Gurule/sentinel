@@ -106,13 +106,15 @@ within it.
 
 ### Architectures (E6)
 
+<!-- metrics:fusion_architectures -->
 | Architecture | GOSPA (m) | False tracks / scan | Aircraft RMSE | Launch RMSE | Fire RMSE | NEES | Identity switches per run |
 |---|---|---|---|---|---|---|---|
-| RF only | 1961 [1938, 1985] | 0.00 | 74 m | not seen | not seen | 3.2 | 0.0 |
+| RF only | 1,961 [1,938, 1,985] | 0.00 | 74 m | not seen | not seen | 3.2 | 0.0 |
 | OPIR only | 877 [822, 931] | 0.08 | 286 m | 413 m | 276 m | 2.7 | 0.3 |
-| **Centralized** | 693 [637, 749] | 0.09 | 63 m | 413 m | 276 m | 3.1 | **0.3** |
-| T2T naive | 689 [638, 741] | 0.09 | **53 m** | 413 m | 276 m | 3.1 | 1.9 |
+| **Centralized** | 693 [637, 749] | 0.09 | 63 m | 413 m | 276 m | 3.1 | 0.3 |
+| T2T naive | 689 [638, 741] | 0.09 | 53 m | 413 m | 276 m | 3.1 | 1.9 |
 | T2T CI | 692 [640, 744] | 0.09 | 57 m | 413 m | 276 m | 3.1 | 1.9 |
+<!-- /metrics:fusion_architectures -->
 
 Reported covariances include the RF bias floor (below). Track-to-track (T2T)
 fusion combines the trackers' *reported* estimates, which is what a
@@ -148,11 +150,13 @@ distributed node would transmit.
 OPIR false reports are injected uniformly over a 120 km square, at 0–5 per
 satellite per scan.
 
+<!-- metrics:track_management -->
 | Clutter rate | 1-of-1: false tracks/scan, GOSPA | 2-of-3 | 3-of-5 |
 |---|---|---|---|
 | 0 | 0.21, 754 m | 0.11, 685 m | 0.09, 693 m |
-| 2 | 1.59, 1691 m | 0.19, 760 m | 0.13, 725 m |
-| 5 | 7.58, 3837 m | 0.51, 1035 m | **0.21, 808 m** |
+| 2 | 1.59, 1,691 m | 0.19, 760 m | 0.13, 725 m |
+| 5 | 7.58, 3,836 m | 0.51, 1,035 m | 0.21, 808 m |
+<!-- /metrics:track_management -->
 
 Each extra required hit costs about 1 s of confirmation latency (median for
 launches: 2.5 s, 3.5 s, and 4.5 s). Clutter does little to 2-of-3 and 3-of-5
@@ -170,11 +174,13 @@ slower launch initiation, with median latency rising from 2.3 to 4.5 s.
 
 **Motion model.**
 
+<!-- metrics:motion_model -->
 | Model | GOSPA | Launch RMSE | Launch coverage | Identity switches |
 |---|---|---|---|---|
-| Constant velocity, q = 25 | 1404 m | 747 m | 64% | 8.5 |
+| Constant velocity, q = 25 | 1,404 m | 747 m | 64% | 8.5 |
 | Constant velocity, q = 400 | 889 m | 522 m | 92% | 2.6 |
-| **IMM (q = 25 / 1600)** | **693 m** | **413 m** | **96%** | **0.3** |
+| **IMM (q = 25 / 1600)** | 693 m | 413 m | 96% | 0.3 |
+<!-- /metrics:motion_model -->
 
 No single process noise suits both cruising aircraft and boosting launches.
 The quiet model loses launches, and the noisy one blurs everything else.
@@ -188,13 +194,16 @@ is, windows ending 24–62 s after onset. Later windows no longer contain the
 onset, and a boosting plume then looks like a steady source, so launches
 drift to "aircraft".
 
+<!-- metrics:track_classification -->
 | Windows used (detection age) | w | Final label accuracy | Posterior ECE | Median time to confident label |
 |---|---|---|---|---|
-| all ages | 1.0 | 68% | 0.20 | 18 s |
+| all ages | 1 | 68% | 0.20 | 18 s |
 | all ages | 0.3 | 77% | 0.17 | 24 s |
+| 0–62 s | 1 | 100% | 0.13 | 18 s |
 | 0–62 s | 0.3 | 100% | 0.14 | 24 s |
-| **24–62 s (trained range)** | **0.3** | **100%** | **0.06** | 30 s |
-| 24–62 s | 1.0 | 100% | 0.05 | 28 s |
+| **24–62 s (trained range)** | 1 | 100% | 0.05 | 28 s |
+| **24–62 s (trained range)** | 0.3 | 100% | 0.06 | 30 s |
+<!-- /metrics:track_classification -->
 
 "Confident" means a true-class probability of at least 0.9. ECE is computed
 over every scan at which a matched track has a posterior.
@@ -216,14 +225,16 @@ over every scan at which a matched track has a posterior.
 
 **Sensor outages**, during 60–120 s:
 
+<!-- metrics:outages -->
 | Outage | Architecture | GOSPA during | Aircraft coverage | Launch coverage | Fragmentations per run |
 |---|---|---|---|---|---|
-| none | centralized | 682 m | 100% | 97% | 0 |
-| HEO satellite | OPIR only | 2696 m | 100% | 23% | 1.9 |
-| HEO satellite | centralized | 2476 m | 100% | 23% | 1.8 |
-| RF network | RF only | 3284 m | 17% | – | 3.0 |
-| RF network | centralized | 802 m | **100%** | 97% | **0** |
-| RF network | T2T CI | 812 m | 100% | 97% | 0 |
+| none | centralized | 682 m | 100% | 97% | 0.0 |
+| HEO satellite | OPIR only | 2,696 m | 100% | 23% | 1.9 |
+| HEO satellite | centralized | 2,476 m | 100% | 23% | 1.8 |
+| RF network | RF only | 3,284 m | 17% | – | 3.0 |
+| RF network | centralized | 802 m | 100% | 97% | 0.0 |
+| RF network | T2T CI | 812 m | 100% | 97% | 0.0 |
+<!-- /metrics:outages -->
 
 ![Outages](../reports/phase5/figures/e7_outages.png)
 
@@ -239,12 +250,14 @@ over every scan at which a matched track has a posterior.
 
 **RF latency.** RF fixes arrive L seconds late, after newer OPIR scans.
 
+<!-- metrics:latency -->
 | Latency | Drop late fixes | Buffer and predict forward | Extrapolate late fixes |
 |---|---|---|---|
 | 0 s | 693 m | – | – |
-| 1 s | 877 m | 819 m | **692 m** |
-| 2 s | 877 m | 968 m | **692 m** |
-| 5 s | 877 m | 1542 m | **704 m** |
+| 1 s | 877 m | 819 m | 692 m |
+| 2 s | 877 m | 968 m | 692 m |
+| 5 s | 877 m | 1,542 m | 704 m |
+<!-- /metrics:latency -->
 
 All values are GOSPA.
 
@@ -261,11 +274,13 @@ scenario. The consider covariance (E4) makes each *fix* consistent, but the
 tracker averages many fixes from the same biased network as if their errors
 were independent. Its covariance shrinks toward zero while the bias stays.
 
+<!-- metrics:rf_bias -->
 | 30 ns clock bias + 10 m survey | NEES, track age 0–10 s | 30–60 s | 120–180 s |
 |---|---|---|---|
 | naive fixes | 246 | 519 | 469 |
 | consider fixes, filter covariance | 21 | 77 | 113 |
-| **consider fixes, reported covariance (with bias floor)** | **3.8** | **3.4** | **3.5** |
+| **consider fixes, reported covariance (with bias floor)** | 3.8 | 3.4 | 3.5 |
+<!-- /metrics:rf_bias -->
 
 ![Latency and bias](../reports/phase5/figures/e7_latency_bias.png)
 

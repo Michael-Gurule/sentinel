@@ -56,12 +56,16 @@ local-oscillator offsets for FDOA.
 **The ML estimator attains the bound.** Five-receiver mixed-altitude network,
 emitter inside the network, 500 Monte Carlo runs per point:
 
+<!-- metrics:geolocation_crlb -->
 | Timing noise σ | CRLB RMS | ML RMSE | ML mean NEES | Chan-Ho RMSE |
 |---|---|---|---|---|
 | 1 ns | 0.83 m | 0.81 m | 2.84 | 2.57 m |
+| 3 ns | 2.49 m | 2.44 m | 2.83 | 7.92 m |
 | 10 ns | 8.29 m | 8.05 m | 2.90 | 25.5 m |
+| 30 ns | 24.9 m | 24.6 m | 2.98 | 73.1 m |
 | 100 ns | 82.9 m | 81.8 m | 2.95 | 278 m |
 | 300 ns | 249 m | 270 m | 3.14 | 866 m |
+<!-- /metrics:geolocation_crlb -->
 
 The ML RMSE tracks the CRLB to within 3% up to 100 ns. At 300 ns (90 m of
 range noise) it is 9% above the bound, where nonlinearity starts to matter.
@@ -83,13 +87,20 @@ network. Outside the network the bound grows quickly in every case.
 **Unmodeled systematic errors make the covariance overconfident.** Timing noise
 is 10 ns in all rows.
 
+<!-- metrics:geolocation_systematics -->
 | Systematic error | RMSE | Reported RMS (naive) | NEES naive | NEES consider |
 |---|---|---|---|---|
-| none | 7.9 m | 8.3 m | 2.9 | 2.9 |
-| clock bias 30 ns | 25.5 m | 8.3 m | 28.3 | **2.83** |
-| clock bias 100 ns | 84.3 m | 8.3 m | 286 | **2.84** |
-| survey error 20 m | 53.4 m | 8.3 m | 130 | **2.86** |
-| survey error 50 m | 131 m | 8.3 m | 710 | **2.54** |
+| none | 7.91 m | 8.29 m | 2.9 | **2.87** |
+| clock bias 3 ns | 8.67 m | 8.29 m | 3.4 | **3.09** |
+| clock bias 10 ns | 11.8 m | 8.29 m | 5.9 | **2.93** |
+| clock bias 30 ns | 25.5 m | 8.28 m | 28.3 | **2.83** |
+| clock bias 100 ns | 84.3 m | 8.29 m | 286 | **2.84** |
+| survey error 2 m | 9.97 m | 8.29 m | 4.1 | **2.85** |
+| survey error 5 m | 15.5 m | 8.29 m | 11.2 | **2.97** |
+| survey error 10 m | 29.4 m | 8.28 m | 36.9 | **3.04** |
+| survey error 20 m | 53.4 m | 8.28 m | 130 | **2.86** |
+| survey error 50 m | 131 m | 8.28 m | 710 | **2.54** |
+<!-- /metrics:geolocation_systematics -->
 
 Ignoring a 100 ns clock bias leaves the reported uncertainty 10× too small.
 The consider covariance restores consistency at every level tested.

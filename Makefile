@@ -4,7 +4,7 @@ PYTHON ?= python
 ENV_NAME ?= locant
 
 .DEFAULT_GOAL := help
-.PHONY: help env env-update hooks lint format typecheck test cov bench check demo onnx data data-verify data-figures experiments e1 e2 e3 e4 e5 e6 e7 clean
+.PHONY: help env env-update hooks lint format typecheck test cov bench check demo onnx metrics hero data data-verify data-figures experiments e1 e2 e3 e4 e5 e6 e7 clean
 
 help:  ## List available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | \
@@ -64,6 +64,9 @@ data:  ## Build the OPIR dataset and update its versioned manifest
 data-verify:  ## Rebuild the dataset and check it against the versioned manifest
 	$(PYTHON) -m locant data verify --config $(DATASET_CONFIG) --out $(DATASET_DIR) --workers $(WORKERS) --manifest $(DATASET_MANIFEST)
 
+hero:  ## Render the README hero figure (docs/figures/hero.png; ~30 s)
+	$(PYTHON) -m scripts.hero_figure
+
 data-figures:  ## Render data-card figures from the built dataset
 	$(PYTHON) scripts/plot_dataset.py --data $(DATASET_DIR) --out docs/figures
 
@@ -88,7 +91,10 @@ e6:  ## E6 fusion ablation + track classification (needs models/opir_event_class
 e7:  ## E7 robustness: outages, latency, RF bias (no dataset needed; ~8 min)
 	$(PYTHON) -m experiments.e7_robustness
 
-experiments: e1 e2 e3 e4 e5 e6 e7  ## Run all experiments in order
+metrics:  ## Regenerate reports/metrics.json and every results table in the docs
+	$(PYTHON) -m experiments.metrics
+
+experiments: e1 e2 e3 e4 e5 e6 e7 metrics  ## Run all experiments in order, then refresh the docs
 
 clean:  ## Remove caches and build artifacts
 	rm -rf .pytest_cache .mypy_cache .ruff_cache .hypothesis htmlcov .coverage coverage.xml build dist
