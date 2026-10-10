@@ -1,0 +1,14 @@
+# Conda environment for Locant development.
+#   conda env create -f environment.yml
+#   conda activate locant
+# Python comes from conda; Python packages come from the pinned pip requirements.
+name: locant
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+  - python=3.12
+  - pip
+  - pip:
+      - -r requirements-dev.txt
+      - -e .

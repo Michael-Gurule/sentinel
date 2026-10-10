@@ -1,0 +1,108 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "locant"
+dynamic = ["version"]
+description = "Multi-sensor (OPIR + RF) detection, geolocation, tracking, and fusion"
+readme = "README.md"
+requires-python = ">=3.12"
+authors = [{ name = "Michael Gurule" }]
+# Compatible ranges for the library; exact pins for reproducible
+# environments live in requirements.txt / requirements-dev.txt.
+dependencies = [
+    "numpy>=2.0",
+    "scipy>=1.13",
+    "torch>=2.4",
+    "matplotlib>=3.8",
+    "scikit-learn>=1.5",
+    "tqdm>=4.66",
+    "pydantic>=2.7",
+    "pyyaml>=6.0",
+    "typer>=0.15",
+]
+
+[project.scripts]
+locant = "locant.cli:app"
+
+[project.optional-dependencies]
+viz = ["seaborn>=0.13"]
+onnx = ["onnx>=1.17", "onnxscript>=0.2", "onnxruntime>=1.20"]
+
+[tool.setuptools.dynamic]
+version = { attr = "locant.__version__" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# importlib mode keeps the repo root off sys.path, so tests exercise the
+# installed `locant` package rather than whatever happens to be on disk.
+addopts = ["-ra", "--strict-markers", "--import-mode=importlib"]
+# The repo root is importable for `experiments` (not part of the package);
+# `locant` still resolves to the installed src/ package.
+pythonpath = ["."]
+# An expected failure that starts passing must fail the run (forces the
+# marker to be removed together with the fix).
+xfail_strict = true
+
+[tool.ruff]
+target-version = "py312"
+line-length = 88
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E", "W",   # pycodestyle
+    "F",        # pyflakes
+    "I",        # isort
+    "B",        # flake8-bugbear
+    "UP",       # pyupgrade
+    "SIM",      # flake8-simplify
+    "C4",       # flake8-comprehensions
+    "NPY",      # numpy-specific (incl. legacy global RNG use)
+    "PT",       # flake8-pytest-style
+    "RUF",      # ruff-specific
+]
+# The formatter owns line length; long f-strings/URLs are tolerated.
+ignore = ["E501"]
+# Math notation in docstrings and output is intentional.
+allowed-confusables = ["σ", "α", "ν", "ρ", "γ", "×", "–"]
+
+# Known-debt register. The v1 package code has been fully rewritten; the only
+# entry left is the frozen v1 detector copy kept as the E1 baseline.
+[tool.ruff.lint.per-file-ignores]
+"experiments/legacy/v1_detectors.py" = ["B905"]
+
+[tool.mypy]
+python_version = "3.12"
+files = ["src/locant"]
+strict = true
+warn_unreachable = true
+enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
+plugins = ["pydantic.mypy"]
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true
+
+# Third-party packages without type information.
+[[tool.mypy.overrides]]
+module = ["sklearn.*", "onnxruntime", "onnxruntime.*"]
+ignore_missing_imports = true
+
+[tool.coverage.run]
+source = ["locant"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+exclude_also = [
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+]

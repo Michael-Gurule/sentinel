@@ -1,0 +1,32 @@
+# Default Locant pipeline. Every value matches the PipelineConfig default;
+# comments name the experiment that set it. Validate/inspect with
+#   locant run <scenario.yaml> --pipeline configs/pipeline/default.yaml
+detection:
+  method: cfar
+  threshold: 5.27          # 1e-2 false alarms per 64 s window (E1)
+  window_s: 64.0
+classification:
+  artifact: models/opir_event_classifier   # calibrated TCN (E2/E3)
+  onset_range_s: [2.0, 40.0]               # classifier's trained domain (E6)
+  reject_background: true
+rf:
+  clock_bias_ns: 5.0       # consider-covariance levels of the network (E4)
+  survey_m: 2.0
+  lo_offset_hz: 0.0
+  fit_probability: 0.999   # reject divergent fixes (E7 finding)
+  late_fixes: extrapolate  # lossless to 2 s latency (E7)
+opir:
+  angle_std_rad: 1.0e-5
+  stereo_gate_probability: 0.99
+  reject_ambiguous: true   # defer stereo ghosts (E5)
+tracking:
+  gate_probability: 0.99
+  confirm_hits: 3          # 3-of-5 (E5)
+  confirm_window: 5
+  max_coast_s: 10.0
+  initial_velocity_std: 300.0
+  class_weight: 0.3        # (E6)
+  merge_probability: 0.9
+  imm: true                # quiet + maneuvering CV (E5)
+  imm_noise: [25.0, 1600.0]
+  imm_sojourn_s: [60.0, 10.0]
