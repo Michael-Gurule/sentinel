@@ -7,7 +7,8 @@ probabilities and a conformal prediction set.
 | | |
 |---|---|
 | **Artifact** | [`models/opir_event_classifier/`](../models/opir_event_classifier/): `weights.pt` (state dict, loaded with `weights_only=True`) + `artifact.json` (architecture, preprocessing, class order, temperature, conformal threshold, dataset hash, training config, metrics) |
-| **Load** | `EventClassifier.load("models/opir_event_classifier")` |
+| **Load** | `EventClassifier.load("models/opir_event_classifier")`; or export with `locant export-onnx` and load `OnnxEventClassifier` (ONNX Runtime, no PyTorch at inference, about 8× faster on CPU, parity-tested to 1e-5) |
+| **In the pipeline** | Class evidence is fused into tracks only when the detected onset lies in the trained 2–40 s range (`classification.onset_range_s`, E6) |
 | **Produced by** | `make experiments` (E2 trains and selects; E3 calibrates and exports) |
 | **Training data** | `opir_v2` train split, 15,000 simulated windows ([data card](data_card.md)), config hash recorded in the artifact |
 | **Reports** | [`reports/phase3/`](../reports/phase3/): `e1_detection.json`, `e2_classification.json`, `e3_uncertainty.json` and figures |

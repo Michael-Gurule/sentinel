@@ -52,8 +52,8 @@ data/opir_v2/
 !data/manifests/
 
 # Local-only working files
-# assets/ holds design sources and article drafts; curated pieces move into docs/ in Phase 7
-assets/
+# /assets/ holds design sources (master logo); web-sized copies live in docs/assets/
+/assets/
 REFACTOR_PLAN.md
 
 # Model artifacts and run outputs (the selected classifier under models/ is versioned)

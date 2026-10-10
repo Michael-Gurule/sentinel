@@ -8,7 +8,7 @@ Synthetic single-pixel OPIR time series for thermal-event classification.
 | **Manifest** | [`data/manifests/opir_v2.json`](../data/manifests/opir_v2.json): resolved config, per-split SHA-256 of array contents, class counts, SNR quantiles |
 | **Build** | `make data` (about 20 s with 4 workers) · verify with `make data-verify` |
 | **Size** | 30,000 samples, 640 frames each (64 s at 10 Hz), about 74 MB compressed |
-| **Classes** | `launch`, `explosion`, `fire`, `aircraft`, `background` (order fixed by `locant.models.taxonomy.EVENT_CLASSES`) |
+| **Classes** | `launch`, `explosion`, `fire`, `aircraft`, `background` (order fixed by `locant.taxonomy.EVENT_CLASSES`) |
 | **Provenance** | Fully simulated by `locant.sim`; no real sensor data |
 
 ## Intended use

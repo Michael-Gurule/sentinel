@@ -1,165 +1,113 @@
-
-<h1 align="center">Locant</h1>
 <p align="center">
-  <strong>Multi-Sensor Fusion for Defense Applications</strong><br>
+  <img width="560" alt="Locant: spatial intelligence" src="docs/assets/locant_logo.png" />
+</p>
 
-<p align="center">  
-Advanced multi-intelligence fusion system combining Overhead Persistent Infrared (OPIR) thermal detection with Radio Frequency (RF) geolocation for real-time threat detection and tracking
-</p>  
-<br>
+<p align="center">
+  <strong>Multi-sensor detection, classification, geolocation, and tracking for OPIR and RF</strong><br>
+  <a href="https://github.com/Michael-Gurule/locant/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/Michael-Gurule/locant/actions/workflows/ci.yml/badge.svg?branch=v2"></a>
+  <img alt="Python 3.12" src="https://img.shields.io/badge/python-3.12-blue">
+  <img alt="Typed: mypy strict" src="https://img.shields.io/badge/typed-mypy%20strict-informational">
+</p>
 
-## Project Overview
+Locant fuses two sensors that each see half the picture.
+- **Overhead persistent infrared (OPIR) satellites** see every hot event
+  (launches, fires, explosions, aircraft) but measure only a direction.
+- **RF receiver networks** locate emitters to tens of metres, but see only
+  targets that transmit.
 
-Locant (formerly SENTINEL) is a multi-sensor detection, geolocation, tracking, and fusion system for Overhead Persistent Infrared (OPIR) and RF sensors, developed and evaluated on physics-based simulated data. It integrates thermal event detection with RF signal processing to provide a single, calibrated track picture.
+Locant detects events at a calibrated false-alarm rate, classifies them with
+calibrated confidence, geolocates both kinds of measurement with honest
+uncertainty, and fuses them into one track picture. Every component is
+evaluated in seven experiments with confidence intervals, and every number
+below is generated from those experiment reports.
 
-**Key Capabilities:**
+> **Scope.** All data is produced by a physics-based simulator with
+> illustrative, unclassified magnitudes. The results measure the methods,
+> not any fielded system ([why](docs/adr/0003-synthetic-data-strategy.md)).
+> Locant was formerly named SENTINEL ([v1 audit](docs/audit_v1.md)).
 
-- Real-time OPIR thermal event detection and classification
-- RF emitter geolocation using TDOA/FDOA algorithms
-- Multi-sensor data fusion with Kalman filtering
-- Track quality assessment and uncertainty quantification
-- Scalable architecture supporting multiple sensor modalities
+<p align="center">
+  <img alt="Fused tracks over truth, and GOSPA error over time for RF-only, OPIR-only, and fused tracking" src="docs/figures/hero.png" />
+</p>
 
-## Why Sensor Fusion Matters: The Multiplicative Effect
+*Left: one benchmark scenario seen from above, with fused track estimates
+over the true paths. Right: the GOSPA tracking error over time, averaged
+over 10 scenarios. RF alone misses the launches and the fire. OPIR alone
+places aircraft about 4× worse. Fusion gets both.*
 
-OPIR satellites see every hot event (launches, fires, aircraft) but measure
-only a direction; two satellites triangulate to a few hundred meters. RF
-TDOA/FDOA geolocation measures position and velocity to tens of meters, but
-only for targets that emit. Neither sensor alone gives the full picture.
+## Results at a glance
 
-Locant fuses them at the measurement level: one tracker takes OPIR stereo
-positions, single-satellite lines of sight, and RF fixes, each with its own
-covariance. On the multi-target benchmark (E6, 10 seeds), fusion cuts the
-GOSPA tracking error from 877 m (OPIR only) and 1961 m (RF only) to 693 m.
-It tracks launches and fires that RF cannot see, improves aircraft accuracy
-over RF alone (63 m vs 74 m), and puts a calibrated class label on each track.
-When the RF network goes down, OPIR lines of sight keep every aircraft track
-alive (E7). The [fusion write-up](docs/fusion.md) has the methods and
-results, and [ADR 0001](docs/adr/0001-fusion-architecture.md) records why
-centralized fusion was chosen over track-to-track fusion.
+<!-- metrics:headline -->
+| Area | Result |
+|---|---|
+| Detection (E1) | CFAR detects 66% of events at a calibrated 1% false-alarm rate; the v1 detector alarmed on 100% of pure-background windows |
+| Classification (E2) | TCN macro-F1 0.806 on test and 0.579–0.737 under domain shift (feature baseline 0.720) |
+| Uncertainty (E3) | 90% conformal sets cover 90.2% on test with 1.32 labels on average; two-stage alarms cut background false alarms from 24% to 5.6% |
+| Geolocation (E4) | ML TDOA error 8.0 m against a Cramér-Rao bound of 8.3 m at 10 ns, NEES 2.90 (3 = consistent) |
+| Fusion (E6) | GOSPA error 693 m fused vs 877 m OPIR-only and 1,961 m RF-only; NEES 3.1 |
+| Robustness (E7) | RF outage: fused tracking keeps 100% of aircraft (RF alone 17%); RF bias: reported NEES 3.1–3.8 at every track age |
+<!-- /metrics:headline -->
 
----
+The [technical report](docs/technical_report.md) has every experiment's
+question, setup, tables, figures, and limitations.
 
-## System Architecture
-
-### Signal Generation & Data Pipeline
-
-- **OPIR Signal Generator**: Physics-based thermal signature modeling
-  - 5 event types: missile launches, explosions, wildfires, aircraft, background
-  - Realistic temporal dynamics and noise characteristics
-- **RF Signal Generator**: Communications and radar signal simulation
-- **Training Dataset**: 10,000+ labeled samples organized for PyTorch training
-
-### Detection, Classification & Tracking
-
-- **Detection Algorithms**: 4 complementary methods
-  - Temporal Difference Detection
-  - Anomaly Detection (MAD & Z-Score)
-  - Rise Time Analysis
-  - Multi-Method Ensemble
-- **CNN Classifier**: 1D Convolutional Neural Network
-  - 5-class event classification
-  - 256-sample input with batch normalization
-  - Dropout regularization for generalization
-- **Kalman Filter Tracking**: Multi-target tracking with coasting and pruning
-
-### RF Geolocation & Sensor Fusion
-
-- **TDOA Geolocation**: Time Difference of Arrival positioning
-  - Least-squares optimization
-  - GDOP computation for quality assessment
-- **FDOA Geolocation**: Frequency Difference of Arrival for moving emitters
-  - Doppler-based velocity estimation
-  - Sensor motion compensation
-- **Hybrid TDOA/FDOA**: Combined time and frequency measurements
-  - Improved accuracy through complementary data
-- **OPIR geolocation**: stereo triangulation (GEO + HEO), line-of-sight
-  (angle-only) EKF updates, and altitude intersection, all with covariance
-- **Sensor Fusion Engine**: centralized measurement-level fusion
-  - IMM tracking (quiet + maneuvering constant-velocity models), χ² gating, GNN assignment
-  - M-of-N track confirmation and duplicate-track merging
-  - Track class posteriors pooled from calibrated classifier outputs
-  - Track-to-track fusion (naive and covariance intersection) for comparison
-
----
-
-## Project Structure
-
-```
-locant/
-├── src/locant/
-│   ├── core/            # linear algebra, χ² statistics, errors, structured logging
-│   ├── sim/             # WGS-84 geometry, trajectories, OPIR sensor model, RF network, scenarios
-│   ├── data/            # deterministic dataset builder + hashed manifests
-│   ├── detection/       # CFAR, CUSUM, step GLRT with calibrated thresholds
-│   ├── classification/  # features/baselines, CNN/TCN, calibration, conformal, ONNX backend
-│   ├── geolocation/     # TDOA/FDOA ML, Chan-Ho, CRLB, DOP, systematic-error covariance
-│   ├── tracking/        # EKF, IMM, GNN, M-of-N lifecycle, class posteriors, bias floor
-│   ├── fusion/          # OPIR line-of-sight geolocation, fusion engine, T2T fusion
-│   ├── eval/            # metrics, GOSPA/OSPA tracking evaluation, reports
-│   ├── pipeline/        # PipelineConfig, stage protocols, LocantPipeline, scenario runner
-│   ├── runs.py          # JSON run registry
-│   └── cli.py           # `locant` command line
-├── configs/             # scenario, dataset, and pipeline YAML
-├── experiments/         # E1–E7 (one script per question) + shared harness
-├── benchmarks/          # per-stage latency budgets (`make bench`)
-├── tests/               # unit, property, integration, characterization (v1 audit)
-├── reports/             # experiment JSON + figures (versioned)
-├── models/              # the shipped, calibrated classifier artifact
-└── docs/                # data/model cards, methods write-ups, ADRs
-```
-
-## Installation
-
-### Setup
-
-Requires [conda](https://docs.conda.io/) (Miniconda or Anaconda).
+## Quick start
 
 ```bash
-# Clone repository
-git clone https://github.com/Michael-Gurule/locant.git
-cd locant
-
-# Create and activate the environment (Python 3.12, pinned dependencies,
-# and the `locant` package installed in editable mode)
 conda env create -f environment.yml
 conda activate locant
-
-# Verify installation
-python -c "import locant; print(f'Locant {locant.__version__} installed')"
-pytest
+make demo
 ```
+
+`make demo` (`locant run configs/scenario/multi_int.yaml`) simulates a
+radar-cued launch, two aircraft with datalinks, and a wildfire. A GEO and a
+Molniya satellite observe them in stereo, and a five-receiver RF network
+geolocates the emitters. Every frame runs through detection, classification,
+geolocation, and fusion. The output is the tracking error against truth and
+each track's class and sources, and the run is recorded in `runs/`.
+
+`make check` runs everything CI runs: lint, strict type checking, more than
+300 tests, the coverage gate, and the latency budgets.
+
+## How it works
+
+```mermaid
+flowchart LR
+    opir["OPIR pixel windows<br/>+ lines of sight"] --> det["Detection<br/>CFAR, calibrated"]
+    det --> cls["Classification<br/>TCN + temperature + conformal"]
+    cls --> og["OPIR geolocation<br/>stereo / angle-only"]
+    rf["RF TDOA / FDOA"] --> rg["RF geolocation<br/>ML + consider covariance"]
+    og --> trk["Centralized fusion<br/>IMM · GNN · M-of-N · class posterior"]
+    rg --> trk
+    trk --> out["Tracks: state, reported covariance,<br/>class posterior"]
+```
+
+| Read | For |
+|---|---|
+| [Technical report](docs/technical_report.md) | Problem, methods, all seven experiments, limitations, future work |
+| [Architecture](docs/architecture.md) | Components, per-frame sequence, package layering, reproducibility chain |
+| [Geolocation](docs/geolocation.md) | TDOA/FDOA models, Chan-Ho, Cramér-Rao bound, systematic errors (E4) |
+| [Tracking and fusion](docs/fusion.md) | OPIR geolocation, IMM tracker, fusion architectures, robustness (E5–E7) |
+| [Model card](docs/model_card.md) · [Data card](docs/data_card.md) | The shipped classifier, and the simulated dataset |
+| [Decision records](docs/adr/README.md) | Six ADRs: fusion architecture, configuration, data, association, calibration, frames |
+| [v1 audit](docs/audit_v1.md) | Every defect in the prototype, its fix, and the test that guards it |
 
 ## Usage
 
-### Quick Start: Full System Demo
-
-```bash
-locant run configs/scenario/multi_int.yaml   # or: make demo
-```
-
-Simulates a launch cued by a fire-control radar, two aircraft with datalinks,
-and a wildfire, observed in stereo by a GEO and a Molniya OPIR satellite and
-by a five-receiver RF network. It then runs every frame through CFAR
-detection, calibrated classification, OPIR line-of-sight geolocation, RF
-TDOA/FDOA fixes, and centralized fusion. The output is the GOSPA error against
-truth and each confirmed track's class and sources. The run is recorded in
-`runs/` with its configuration, seed, and git commit.
-
-### Command Line
+### Command line
 
 | Command | Purpose |
 |---|---|
 | `locant simulate SCENARIO [--seed N]` | Simulate a scenario; summarize what each sensor saw |
 | `locant run SCENARIO [--pipeline YAML] [--seed N]` | Full pipeline, scored against truth, recorded as a run |
-| `locant export-onnx [ARTIFACT]` | Export the classifier for ONNX Runtime |
+| `locant export-onnx [ARTIFACT]` | Export the classifier for ONNX Runtime (about 8× faster on CPU) |
 | `locant data build / verify` | Build the dataset, or check it against its manifest |
 | `locant runs list / show ID` | Inspect the run registry |
 
 Global options: `--log-level`, and `--log-json` for one JSON event per line.
 `python -m locant` is equivalent.
 
-### Configuration and Runs
+### Configuration and runs
 
 Every tunable number of the processing chain is a field of `PipelineConfig`,
 a validated pydantic model. Each section names the experiment that set its
@@ -167,10 +115,12 @@ default. `configs/pipeline/default.yaml` is the deployed configuration;
 unknown or out-of-range values fail at load time. Each `locant run` and each
 experiment launched from the command line writes `runs/<id>/run.json`. The
 record holds the configuration and its hash, the seed, the git commit (marked
-when the tree is dirty), package versions, timing, metrics, and artifacts. See
-[ADR 0002](docs/adr/0002-configuration-cli-and-run-registry.md).
+when the tree is dirty), package versions, timing, metrics, and artifacts
+([ADR 0002](docs/adr/0002-configuration-cli-and-run-registry.md)).
 
-### RF Geolocation (TDOA)
+### Python API
+
+#### RF Geolocation (TDOA)
 
 ```python
 import numpy as np
@@ -197,7 +147,7 @@ print(f"1-sigma RMS:    {np.sqrt(np.trace(result.position_covariance)):.1f} m")
 print(f"GDOP:           {tdoa_dop(emitter, [r.position for r in receivers]).gdop:.2f}")
 ```
 
-### Joint TDOA/FDOA (Position and Velocity)
+#### Joint TDOA/FDOA (Position and Velocity)
 
 ```python
 import numpy as np
@@ -229,7 +179,7 @@ print(f"Velocity estimate: {result.velocity.round(1)} m/s")
 Without FDOA the velocity is not observable, and `solve_tdoa_fdoa` returns
 `velocity=None` instead of a meaningless estimate.
 
-### Multi-Sensor Tracking
+#### Multi-Sensor Tracking
 
 ```python
 import numpy as np
@@ -257,7 +207,7 @@ or angle-only) and fused in the same update. Any stage can be replaced by
 passing a component that satisfies its protocol in `locant.pipeline.stages`,
 such as `LocantPipeline(config, classifier=...)`.
 
-### OPIR Detection & Classification
+#### OPIR Detection & Classification
 
 ```python
 import numpy as np
@@ -287,7 +237,7 @@ print(
 )
 ```
 
-### Simulating a Scenario
+#### Simulating a Scenario
 
 ```python
 from locant.sim import load_scenario, simulate_scenario
@@ -305,38 +255,56 @@ origin. A GEO staring sensor observes them (range, atmosphere, clouds, PSF,
 clutter, glint, noise), and an RF receiver network with clock biases and survey
 errors measures the emitters.
 
-### Building the Dataset
+## Reproducing the results
 
 ```bash
-make data          # builds data/opir_v2 and updates data/manifests/opir_v2.json
-make data-verify   # rebuilds and checks every split against the versioned manifest
+make data          # build the OPIR dataset (about 20 s); `make data-verify` checks its hashes
+make experiments   # E1–E7, then `make metrics` regenerates every results table
 ```
-
-The dataset is a pure function of `configs/dataset/opir_v2.yaml` and its seed.
-See the [data card](docs/data_card.md) for the generative model, splits,
-domain-shift test sets, and limitations.
-
-### Running the Experiments
-
-```bash
-make experiments   # E1–E7, in order
-make e5 e6 e7      # tracking and fusion only (~10 min, no dataset needed)
-```
-
-Each experiment writes its JSON report and figures under `reports/` and
-records the run in `runs/`.
 
 | Experiment | Question | Reports |
 |---|---|---|
 | E1 | Detection at a calibrated false-alarm rate | `reports/phase3/` |
-| E2 | Classification vs baselines, under domain shift (~1 h on Apple MPS) | `reports/phase3/` |
-| E3 | Calibration, conformal sets, OOD; exports `models/opir_event_classifier/` | `reports/phase3/` |
-| E4 | Geolocation vs the Cramér-Rao bound, geometry, systematic errors | `reports/phase4/` |
+| E2 | Classification against baselines, under domain shift (about 1 h on Apple MPS) | `reports/phase3/` |
+| E3 | Calibration, conformal sets, novelty; exports `models/opir_event_classifier/` | `reports/phase3/` |
+| E4 | Geolocation against the Cramér-Rao bound, geometry, systematic errors | `reports/phase4/` |
 | E5 | Tracking under clutter, stereo ghosts, motion models | `reports/phase5/` |
 | E6 | Fusion architectures and track classification | `reports/phase5/` |
 | E7 | Sensor outages, RF latency, time-correlated RF bias | `reports/phase5/` |
 
-## Testing
+E4–E7 need no dataset (`make e4 e5 e6 e7`, about 10 minutes). Each experiment
+writes a JSON report with confidence intervals and records its run.
+`make metrics` gathers the headline numbers into `reports/metrics.json` and
+regenerates the tables in this README and the docs. A test fails if any
+table drifts from the reports.
+
+## Project structure
+
+```
+locant/
+├── src/locant/
+│   ├── core/            # linear algebra, χ² statistics, errors, structured logging
+│   ├── sim/             # WGS-84 geometry, trajectories, OPIR sensor model, RF network, scenarios
+│   ├── data/            # deterministic dataset builder + hashed manifests
+│   ├── detection/       # CFAR, CUSUM, step GLRT with calibrated thresholds
+│   ├── classification/  # features/baselines, CNN/TCN, calibration, conformal, ONNX backend
+│   ├── geolocation/     # TDOA/FDOA ML, Chan-Ho, CRLB, DOP, systematic-error covariance
+│   ├── tracking/        # EKF, IMM, GNN, M-of-N lifecycle, class posteriors, bias floor
+│   ├── fusion/          # OPIR line-of-sight geolocation, fusion engine, T2T fusion
+│   ├── eval/            # metrics, GOSPA/OSPA tracking evaluation, reports
+│   ├── pipeline/        # PipelineConfig, stage protocols, LocantPipeline, scenario runner
+│   ├── runs.py          # JSON run registry
+│   └── cli.py           # `locant` command line
+├── configs/             # scenario, dataset, and pipeline YAML
+├── experiments/         # E1–E7 (one script per question), shared harness, metrics generator
+├── benchmarks/          # per-stage latency budgets (`make bench`)
+├── tests/               # unit, property, integration, characterization (v1 audit), regression
+├── reports/             # experiment JSON + figures + metrics.json (versioned)
+├── models/              # the shipped, calibrated classifier artifact
+└── docs/                # technical report, architecture, write-ups, cards, ADRs, audit
+```
+
+## Testing and quality
 
 ```bash
 make check   # lint, format check, strict type check, tests, coverage gate, latency budgets
@@ -346,124 +314,22 @@ make bench   # per-stage latency benchmarks
 
 | Suite | Contents |
 |---|---|
-| `tests/unit/` | Per-module tests, including Monte Carlo consistency checks (NEES/NIS within χ² bounds) and exactness on noiseless data |
-| `tests/property/` | Hypothesis property tests: covariance stays PSD, GNN matches brute force, estimates are invariant to measurement order and translation |
-| `tests/integration/` | End-to-end pipeline scenarios, the CLI, and experiment smoke runs |
-| `tests/characterization/` | One regression test per defect found in the v1 audit (all fixed) |
+| `tests/unit/` | Per-module tests, including Monte Carlo consistency checks (NEES/NIS within χ² bounds), exactness on noiseless data, and the package layering |
+| `tests/property/` | Hypothesis properties: covariances stay PSD, GNN matches brute force, estimates are invariant to measurement order and translation |
+| `tests/integration/` | End-to-end pipeline scenarios, the CLI, ONNX parity, and experiment smoke runs |
+| `tests/characterization/` | One regression test per defect found in the v1 audit |
+| `tests/regression/` | Every results table matches the experiment reports |
 | `benchmarks/` | Latency budget per stage: a 30-target tracker scan, stereo pairing, RF fix, CFAR, classifier (PyTorch and ONNX Runtime) |
-
-## Results
-
-All numbers are measured on the simulated `opir_v2` dataset
-([data card](docs/data_card.md)) by the experiments in `experiments/`
-(`make experiments`). Reports with confidence intervals are in
-[`reports/phase3/`](reports/phase3/). The shipped classifier is documented in
-the [model card](docs/model_card.md). Geolocation methods and results are in
-[docs/geolocation.md](docs/geolocation.md), and tracking and fusion in
-[docs/fusion.md](docs/fusion.md).
-
-**Fusion (E5–E7).** Centralized fusion of OPIR and RF on a multi-target
-scenario (2 launches, 3 aircraft with datalinks, 1 fire; 10 seeds):
-
-| Architecture | GOSPA (m) | Aircraft RMSE | Launches / fires tracked | NEES (3 = consistent) |
-|---|---|---|---|---|
-| RF only | 1961 | 74 m | no | 3.2 |
-| OPIR only | 877 | 286 m | yes (413 m / 276 m RMSE) | 2.7 |
-| **Centralized fusion** | **693** | 63 m | yes | 3.1 |
-| Track-to-track, covariance intersection | 692 | 57 m | yes | 3.1 |
-
-Track-to-track fusion places aircraft better because the centralized filter
-treats biased RF fixes as independent and gives OPIR too little weight.
-Centralized fusion is still preferred: GOSPA is equal, identities are 6× more
-stable, and only it can use single-satellite rays. Estimating the bias in the
-filter is the planned remedy ([ADR 0001](docs/adr/0001-fusion-architecture.md)).
-
-- **Stereo ghosts:** two satellites can pair rays from different targets. Deferring ambiguous pairs to angle-only updates cuts false tracks from 0.31 to 0.09 per scan.
-- **Motion model:** an IMM beats a single constant-velocity model (GOSPA 693 m vs 889 m at the best single process noise).
-- **Track classification:** using the classifier only on windows inside its training domain is what makes track labels reliable: posterior ECE falls from 0.13–0.20 to 0.05, and at the default pooling weight every target ends correctly labelled.
-- **Robustness:** OPIR keeps 100% of aircraft tracked through an RF outage (RF alone: 17%). Extrapolating late RF fixes loses nothing up to 2 s of latency.
-- **RF bias:** a fixed 30 ns clock bias makes RF tracks overconfident as they age (NEES 21 → 113), even with consider-covariance fixes. The library carries each fix's systematic covariance to the track as a floor on its reported covariance, which restores NEES 3.2–3.8 at every age.
-
-**Geolocation (E4).** The ML TDOA estimator stays within 3% of the Cramér-Rao
-bound from 1 to 100 ns of timing noise (for example 8.0 m RMSE against an
-8.3 m bound at 10 ns), and its reported covariance is consistent (NEES ≈ 3).
-Joint TDOA/FDOA attains its velocity bound (0.80 m/s against 0.83 m/s at 1 Hz).
-Unmodeled clock bias or survey error makes the reported uncertainty too small:
-with 50 m survey error the actual RMSE is 131 m against a reported 8.3 m
-(NEES 710). Folding the errors into a consider covariance restores consistency
-(NEES 2.5–2.9). Geometry dominates accuracy: the median
-error bound inside the network is 9 m with mixed-altitude receivers vs 136 m
-with ground-only receivers.
-
-**Detection (E1).** Window-level alarms at a calibrated false-alarm rate
-(20,000 independent background windows):
-
-| Detector | Pd at Pfa = 1% (glint-free background) | Pfa of the analytic 1% threshold on realistic background |
-|---|---|---|
-| CFAR | **66%** (explosion 98%, launch 92%) | 33% |
-| CUSUM | 55% | 84% |
-| Step GLRT | 47% | 65% |
-| v1 ensemble | n/a | 100% (alarms on every window) |
-
-Thresholds derived from white-noise theory fail on correlated clutter, so
-thresholds are calibrated empirically. Sun glints dominate the remaining false
-alarms and are handled by the classifier.
-
-**Classification (E2).** Macro-F1, mean over 5 seeds with 95% CI:
-
-| Model | Test | Low SNR | Out-of-range physics | Heavy clutter |
-|---|---|---|---|---|
-| Features + logistic regression | 0.703 | 0.550 | 0.556 | 0.455 |
-| Features + gradient-boosted trees | 0.720 | 0.584 | 0.560 | 0.463 |
-| 1D CNN | 0.790 | 0.618 | 0.750 | 0.575 |
-| **TCN (shipped)** | **0.806** [0.788, 0.824] | 0.659 | 0.737 | 0.579 |
-
-**Calibration and two-stage alarms (E3).**
-
-- **Conformal sets:** 90.2% coverage on test with a mean of 1.32 labels, falling to 73–83% under shift.
-- **Two-stage false alarms:** CFAR followed by the classifier reduces false alarms on all background from 24% to 5.6% at 63% detection probability.
-- **Novel event types:** energy-based OOD scores flag unseen faint events (AUROC 0.71–0.79) but not unseen bright ones (0.38–0.40), a documented limitation.
-
-## Technical Highlights
-
-### Algorithm Implementations
-
-**Detection Algorithms:**
-
-- Temporal differencing with adaptive thresholding
-- MAD-based anomaly detection for outlier identification
-- Rise-time analysis for signature characterization
-- Ensemble voting for robust detection
-
-**Geolocation Methods:**
-
-- Least-squares TDOA positioning with Levenberg-Marquardt optimization
-- Doppler-shift FDOA for velocity estimation
-- Chan's algorithm for closed-form hyperbolic positioning
-- Weighted least squares with covariance estimation
-
-**Sensor Fusion:**
-
-- Centralized measurement-level fusion with χ² gating on the innovation covariance
-- Extended Kalman (line-of-sight) updates and IMM filtering
-- Covariance intersection for track-to-track fusion under unknown correlation
-- GOSPA/OSPA, purity, fragmentation, and NEES for evaluation
 
 ## References
 
-**Geolocation Algorithms:**
+- Y. T. Chan and K. C. Ho, "A simple and efficient estimator for hyperbolic location," *IEEE Trans. Signal Processing*, 1994.
+- Y. Bar-Shalom, X. R. Li, and T. Kirubarajan, *Estimation with Applications to Tracking and Navigation*, Wiley, 2001.
+- S. M. Kay, *Fundamentals of Statistical Signal Processing*, Vols. I–II, Prentice Hall, 1993/1998.
+- A. S. Rahmathullah, Á. F. García-Fernández, and L. Svensson, "Generalized optimal sub-pattern assignment metric," *FUSION*, 2017.
+- A. N. Angelopoulos and S. Bates, "A gentle introduction to conformal prediction and distribution-free uncertainty quantification," 2021.
 
-- Y. T. Chan and K. C. Ho, "A Simple and Efficient Estimator for Hyperbolic Location"
-- K. C. Ho and W. Xu, "An Accurate Algebraic Solution for Moving Source Location"
-
-**Sensor Fusion:**
-
-- S. Blackman and R. Popoli, "Design and Analysis of Modern Tracking Systems"
-- Y. Bar-Shalom et al., "Estimation with Applications to Tracking and Navigation"
-
-**Signal Processing:**
-
-- S. Kay, "Fundamentals of Statistical Signal Processing: Detection Theory"
+The [technical report](docs/technical_report.md#references) has the full list.
 
 <br>
 
@@ -480,10 +346,10 @@ alarms and are handled by the classifier.
   <a href="mailto:michaelgurule1164@gmail.com">
     <img src="https://img.shields.io/badge/Gmail-D14836?style=for-the-badge&logo=gmail&logoColor=white"></a>
 
-  <a href="michaelgurule.com">
+  <a href="https://michaelgurule.com">
     <img src="https://custom-icon-badges.demolab.com/badge/MICHAELGURULE.COM-150458?style=for-the-badge&logo=browser&logoColor=white"></a>
 
-  <a href="www.linkedin.com/in/michael-gurule-447aa2134">
+  <a href="https://www.linkedin.com/in/michael-gurule-447aa2134">
     <img src="https://custom-icon-badges.demolab.com/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin-white&logoColor=fff"></a>
 
   <a href="https://medium.com/@michaelgurule1164">
